@@ -1,4 +1,6 @@
 # Reinforcement learning in Keras
+![Tests](https://github.com/garethjns/reinforcement-learning-keras/workflows/Tests/badge.svg?branch=master) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=garethjns_reinforcement-learning-keras&metric=alert_status)](https://sonarcloud.io/dashboard?id=garethjns_reinforcement-learning-keras)
+
 This repo aims to implement various reinforcement learning agents using Keras (tf==2.2.0) and sklearn, for use with OpenAI Gym environments.
   
 # Planned agents
