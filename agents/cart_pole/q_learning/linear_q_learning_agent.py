@@ -176,7 +176,7 @@ class LinearQLearningAgent:
         """
         obs = self.env.reset()
         total_reward = 0
-        for step in range(max_episode_steps):
+        for _ in range(max_episode_steps):
             action = self.get_action(obs,
                                      training=training)
             prev_obs = obs
