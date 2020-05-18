@@ -12,25 +12,29 @@ from tqdm import tqdm
 from agents.cart_pole.environment_processing.clipper import Clipper
 from agents.cart_pole.q_learning.components.epsilon_greedy import EpsilonGreedy
 from agents.plotting.training_history import TrainingHistory
+from dataclasses import dataclass
 
 
+@dataclass
 class LinearQLearningAgent:
-    def __init__(self, env: gym.Env,
-                 gamma: float = 0.99,
-                 eps: EpsilonGreedy = None,
-                 log_exemplar_space: bool = False,
-                 plot_during_training: bool = False) -> None:
-        self.name = 'LinearQAgent'
-        self.history = TrainingHistory(plotting_on=plot_during_training,
+    env: gym.Env
+    gamma: float = 0.99
+    eps: EpsilonGreedy = None
+    log_exemplar_space: bool = False
+    plot_during_training: bool = False
+    name: str = 'LinearQAgent'
+    plot_during_training: bool = False
+
+    def __post_init__(self, ) -> None:
+        self.history = TrainingHistory(plotting_on=self.plot_during_training,
                                        plot_every=200,
                                        rolling_average=12,
                                        agent_name=self.name)
-        self.env = env
-        self.gamma = gamma
-        self.log_exemplar_space = log_exemplar_space
-        if eps is None:
-            eps = EpsilonGreedy()
-        self.eps = eps
+
+        if self.eps is None:
+            # Prepare the default EpsilonGreedy sampler if one is not specified.
+            self.eps = EpsilonGreedy(eps_initial=0.5,
+                                eps_min=0.01)
 
         self._build_pp()
         self._build_models()
@@ -226,8 +230,5 @@ class LinearQLearningAgent:
 
 if __name__ == "__main__":
     env = gym.make("CartPole-v0")
-    eps = EpsilonGreedy(eps_initial=0.5,
-                        eps_min=0.01)
-    agent = LinearQLearningAgent(env,
-                                 eps=eps)
+    agent = LinearQLearningAgent(env)
     agent.train(verbose=True, render=True)

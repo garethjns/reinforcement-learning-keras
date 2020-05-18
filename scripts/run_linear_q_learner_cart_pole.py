@@ -1,5 +1,6 @@
 """Train and few LinearQAgents, plot the results, and run an episode on the best agent."""
 import warnings
+from typing import Callable
 from typing import List
 
 import gym
@@ -8,26 +9,27 @@ import numpy as np
 import seaborn as sns
 from joblib import Parallel, delayed
 
-from agents.cart_pole.q_learning.components.epsilon_greedy import EpsilonGreedy
 from agents.cart_pole.q_learning.linear_q_learning_agent import LinearQLearningAgent
 
 
-def fit_agent():
+def fit_agent(agent_class: Callable,
+              n_episodes: int = 500, max_episode_steps: int = 500):
     with warnings.catch_warnings():
         warnings.simplefilter('ignore', FutureWarning)
 
         env = gym.make("CartPole-v0")
-        eps = EpsilonGreedy(eps_initial=0.5, eps_min=0.01)
-        agent = LinearQLearningAgent(env, eps=eps)
-        agent.train(n_episodes=1000, max_episode_steps=500, verbose=False, render=False)
+        agent = agent_class(env=env)
+        agent.train(n_episodes=n_episodes, max_episode_steps=max_episode_steps, verbose=False, render=False)
 
     return agent
 
 
-def train_all(n_agents: int = 5, n_jobs: int = -2) -> List[LinearQLearningAgent]:
+def train_all(agent_class: Callable,
+              n_agents: int = 5, n_jobs: int = -2,
+              n_episodes: int = 500, max_episode_steps: int = 500):
     agents = Parallel(backend='loky',
                       verbose=10,
-                      n_jobs=n_jobs)(delayed(fit_agent)()
+                      n_jobs=n_jobs)(delayed(fit_agent)(agent_class, n_episodes, max_episode_steps)
                                      for _ in range(n_agents))
 
     return agents
@@ -40,13 +42,15 @@ def plot_all(agents: List[LinearQLearningAgent]) -> None:
     y_mean = np.mean(hist, axis=1)
     y_std = np.std(hist, axis=1)
     plt.plot(y_mean)
-    plt.fill_between(range(len(y_mean)), y_mean - y_std, y_mean + y_std,
+    plt.fill_between(range(len(y_mean)),
+                     [min(0, s) for s in y_mean - y_std],
+                     [min(len(y_mean), s) for s in y_mean + y_std],
                      color='lightgray')
-    plt.title('LinearQAgent', fontweight='bold')
+    plt.title(f'{agents[0].name}', fontweight='bold')
     plt.xlabel('N episodes', fontweight='bold')
     plt.ylabel('Score', fontweight='bold')
     plt.tight_layout()
-    plt.savefig('LinearQAgent.png')
+    plt.savefig(f'{agents[0].name}.png')
 
 
 def play_best(agents: List[LinearQLearningAgent]):
@@ -58,8 +62,11 @@ def play_best(agents: List[LinearQLearningAgent]):
 
 
 if __name__ == "__main__":
-    agents_ = train_all(n_agents=8,
-                        n_jobs=4)
+    agents_ = train_all(LinearQLearningAgent,
+                        n_agents=8,
+                        n_jobs=4,
+                        n_episodes=200,
+                        max_episode_steps=500)
 
     plot_all(agents_)
     play_best(agents_)
