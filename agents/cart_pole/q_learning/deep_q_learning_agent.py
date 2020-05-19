@@ -1,5 +1,6 @@
-import pickle
+import copy
 from dataclasses import dataclass
+from typing import Dict, Any, Union
 
 import gym
 import numpy as np
@@ -7,8 +8,8 @@ import tensorflow as tf
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from tensorflow import keras
-from tqdm import tqdm
 
+from agents.agent_base import AgentBase
 from agents.cart_pole.environment_processing.clipper import Clipper
 from agents.cart_pole.q_learning.components.epsilon_greedy import EpsilonGreedy
 from agents.cart_pole.q_learning.components.replay_buffer import ReplayBuffer
@@ -16,14 +17,17 @@ from agents.plotting.training_history import TrainingHistory
 
 
 @dataclass
-class DQNAgent:
-    env: gym.Env
+class DQNAgent(AgentBase):
+    env_spec: str = "CartPole-v0"
+    name: str = 'DQNAgent'
     eps: EpsilonGreedy = None
     gamma: float = 0.99
+    plot_during_training: bool = True
     replay_buffer: ReplayBuffer = None
     replay_buffer_samples: int = 75
-    name: str = 'DQNAgent'
-    plot_during_training: bool = False
+
+    _action_model_weights: Union[np.ndarray, None] = None
+    _value_model_weights: Union[np.ndarray, None] = None
 
     def __post_init__(self) -> None:
         self.history = TrainingHistory(plotting_on=self.plot_during_training,
@@ -41,10 +45,11 @@ class DQNAgent:
             # Prepare the default ReplayBuffer if one is not specified.
             self.replay_buffer = ReplayBuffer(buffer_size=200)
 
+        self._set_env()
         self._build_pp()
-        self._build_models()
+        self._build_model()
 
-    def _build_models(self) -> None:
+    def _build_model(self) -> None:
         """
         Prepare two of the same model.
 
@@ -54,8 +59,17 @@ class DQNAgent:
 
         :return:
         """
-        self._action_model = self._build_model('action_model')
-        self._value_model = self._build_model('value_model')
+        self._action_model = self._build_model_copy('action_model')
+        self._value_model = self._build_model_copy('value_model')
+
+        # If existing model weights have been passed at object instantiation, apply these. This is likely will only
+        # be done when unpickling or when preparing to pickle this object.
+        if self._action_model_weights is not None:
+            self._action_model.set_weights(self._action_model_weights)
+            self._action_model_weights = None
+        if self._value_model_weights is not None:
+            self._value_model.set_weights(self._value_model_weights)
+            self._value_model_weights = None
 
     def _build_pp(self) -> None:
         """
@@ -73,7 +87,7 @@ class DQNAgent:
 
         self.pp = pipe
 
-    def _build_model(self, model_name: str) -> keras.Model:
+    def _build_model_copy(self, model_name: str) -> keras.Model:
         """
         Prepare the neural network architecture for the action model (and it's less-often-updated value model copy).
         state -> NN -> [action value 1, action value 2]
@@ -146,7 +160,7 @@ class DQNAgent:
         for i, (state, action, reward, done, state_) in enumerate(zip(ss, aa, rr, dd, ss_)):
             if done:
                 # If done, reward is just this step. For cart-pole can only be done if agent has failed, so punish.
-                g = - 1
+                g = - 10
             else:
                 # Otherwise, it's the reward plus the predicted max value of next action
                 g = reward + self.gamma * np.max(y_future[i, :])
@@ -193,7 +207,7 @@ class DQNAgent:
 
         The value model is updated less often to aid stability.
         """
-        self._value_model.set_weights(self._value_model.get_weights())
+        self._value_model.set_weights(self._action_model.get_weights())
 
     def play_episode(self, max_episode_steps: int = 500,
                      training: bool = False, render: bool = True) -> float:
@@ -208,8 +222,7 @@ class DQNAgent:
         obs = self.env.reset()
         total_reward = 0
         for _ in range(max_episode_steps):
-            action = self.get_action(obs,
-                                     training=training)
+            action = self.get_action(obs, training=training)
             prev_obs = obs
             obs, reward, done, info = self.env.step(action)
             total_reward += reward
@@ -228,41 +241,65 @@ class DQNAgent:
 
     def train(self, n_episodes: int = 100, max_episode_steps: int = 500,
               verbose: bool = True, render: bool = True) -> None:
+        """
+        Run the training loop. It's the same as the linear agent version, + the value model update.
+
+        :param n_episodes: Number of episodes to run.
+        :param max_episode_steps: Max steps before stopping, overrides any time limit set by Gym.
+        :param verbose:  If verbose, use tqdm and print last episode score for feedback during training.
+        :param render: Bool to indicate whether or not to call env.render() each training step.
+        """
         self.env._max_episode_steps = max_episode_steps
+        self._set_tqdm(verbose)
 
-        if not verbose:
-            # If in silent mode, don't show tqdm bar.
-            _tqdm = lambda x: x
-        else:
-            _tqdm = tqdm
-
-        for _ in _tqdm(range(n_episodes)):
+        for _ in self._tqdm(range(n_episodes)):
             total_reward = self.play_episode(max_episode_steps,
                                              training=True, render=render)
             # Value model is at the end of each episode
             self.update_value_model()
-            self.history.append(total_reward)
 
-            if verbose:
-                print(total_reward)
-                self.history.training_plot()
+            self._update_history(total_reward, verbose)
 
-    def save(self, fn: str) -> None:
-        """Apparently compiled Keras model can be pickled now?"""
-        pickle.dump(self, open(fn, 'wb'))
+    def __getstate__(self) -> Dict[str, Any]:
+        """
+        Prepare object for pickling.
 
-    @classmethod
-    def load(cls, fn: str) -> "DQNAgent":
-        """Eat pickle"""
-        return pickle.load(open(fn, 'rb'))
+        The env and Keras model objects can't be pickled with pickle. Remove these, but put them back afterwards
+        so this object is effectively unchanged.
+
+        Build models will do the same thing here as when the model is unpicked. With the _action_model_weights and
+        _value_model_weights attributes/kwargs set, it'll make the model architecture and set these weights.
+        """
+
+        # Remove things
+        for m in ['_action_model', '_value_model']:
+            self.__dict__[f"{m}_weights"] = self.__dict__[m].get_weights()
+            self.__dict__[m] = None
+        self.__dict__["env"] = None
+
+        # Get object spec to pickle
+        object_state_dict = copy.deepcopy(self.__dict__)
+
+        # Put this object back how it was
+        self._set_env()
+        self._build_model()
+
+        return object_state_dict
 
 
 if __name__ == "__main__":
 
-    tf.config.experimental.set_virtual_device_configuration(tf.config.experimental.list_physical_devices('GPU')[0],
-                                                            [tf.config.experimental.VirtualDeviceConfiguration(
-                                                                memory_limit=1024)])
+    try:
+        tf.config.experimental.set_virtual_device_configuration(tf.config.experimental.list_physical_devices('GPU')[0],
+                                                                [tf.config.experimental.VirtualDeviceConfiguration(
+                                                                    memory_limit=1024)])
+    except (IndexError, AttributeError):
+        # Either no GPU available or virtual device config failed for some reason. Can probably continue.
+        pass
 
-    env = gym.make("CartPole-v0")
-    agent = DQNAgent(env)
-    agent.train(verbose=True, render=True)
+    agent = DQNAgent("CartPole-v0")
+    agent.train(verbose=True, render=False, n_episodes=5)
+
+    agent.save('asd')
+    agent_2 = DQNAgent.load('asd')
+

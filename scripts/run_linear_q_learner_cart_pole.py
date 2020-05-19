@@ -43,8 +43,8 @@ def plot_all(agents: List[LinearQLearningAgent]) -> None:
     y_std = np.std(hist, axis=1)
     plt.plot(y_mean)
     plt.fill_between(range(len(y_mean)),
-                     [min(0, s) for s in y_mean - y_std],
-                     [min(len(y_mean), s) for s in y_mean + y_std],
+                     [max(0, s) for s in y_mean - y_std],
+                     [min(500, s) for s in y_mean + y_std],
                      color='lightgray')
     plt.title(f'{agents[0].name}', fontweight='bold')
     plt.xlabel('N episodes', fontweight='bold')

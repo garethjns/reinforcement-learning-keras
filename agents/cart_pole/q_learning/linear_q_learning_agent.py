@@ -1,4 +1,4 @@
-import pickle
+from dataclasses import dataclass
 from typing import Dict
 
 import gym
@@ -7,23 +7,21 @@ from sklearn.kernel_approximation import RBFSampler
 from sklearn.linear_model import SGDRegressor
 from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.preprocessing import StandardScaler
-from tqdm import tqdm
 
+from agents.agent_base import AgentBase
 from agents.cart_pole.environment_processing.clipper import Clipper
 from agents.cart_pole.q_learning.components.epsilon_greedy import EpsilonGreedy
 from agents.plotting.training_history import TrainingHistory
-from dataclasses import dataclass
 
 
 @dataclass
-class LinearQLearningAgent:
-    env: gym.Env
-    gamma: float = 0.99
-    eps: EpsilonGreedy = None
-    log_exemplar_space: bool = False
-    plot_during_training: bool = False
+class LinearQLearningAgent(AgentBase):
+    env_spec: str = "CartPole-v0"
     name: str = 'LinearQAgent'
-    plot_during_training: bool = False
+    eps: EpsilonGreedy = None
+    gamma: float = 0.99
+    plot_during_training: bool = True
+    log_exemplar_space: bool = False
 
     def __post_init__(self, ) -> None:
         self.history = TrainingHistory(plotting_on=self.plot_during_training,
@@ -34,10 +32,11 @@ class LinearQLearningAgent:
         if self.eps is None:
             # Prepare the default EpsilonGreedy sampler if one is not specified.
             self.eps = EpsilonGreedy(eps_initial=0.5,
-                                eps_min=0.01)
+                                     eps_min=0.01)
 
+        self._set_env()
         self._build_pp()
-        self._build_models()
+        self._build_model()
 
     def _build_pp(self) -> None:
         """
@@ -65,7 +64,7 @@ class LinearQLearningAgent:
 
         self.pp = pipe
 
-    def _build_models(self) -> None:
+    def _build_model(self) -> None:
         """
         Build the models to estimate Q(a|s).
 
@@ -176,13 +175,13 @@ class LinearQLearningAgent:
 
         :param max_episode_steps: Max steps before stopping, overrides any time limit set by Gym.
         :param training: Bool to indicate whether or not to use this experience to update the model.
+        :param render: Bool to indicate whether or not to call env.render() each training step.
         :return: The total real reward for the episode.
         """
         obs = self.env.reset()
         total_reward = 0
         for _ in range(max_episode_steps):
-            action = self.get_action(obs,
-                                     training=training)
+            action = self.get_action(obs, training=training)
             prev_obs = obs
             obs, reward, done, info = self.env.step(action)
             total_reward += reward
@@ -200,32 +199,21 @@ class LinearQLearningAgent:
 
     def train(self, n_episodes: int = 10000, max_episode_steps: int = 500,
               verbose: bool = True, render: bool = True) -> None:
+        """
+        Run the training loop
+
+        :param n_episodes: Number of episodes to run.
+        :param max_episode_steps: Max steps before stopping, overrides any time limit set by Gym.
+        :param verbose:  If verbose, use tqdm and print last episode score for feedback during training.
+        :param render: Bool to indicate whether or not to call env.render() each training step.
+        """
         self.env._max_episode_steps = max_episode_steps
+        self._set_tqdm(verbose)
 
-        if not verbose:
-            # If in silent mode, don't show tqdm bar.
-            _tqdm = lambda x: x
-        else:
-            _tqdm = tqdm
-
-        for _ in _tqdm(range(n_episodes)):
+        for _ in self._tqdm(range(n_episodes)):
             total_reward = self.play_episode(max_episode_steps,
                                              training=True, render=render)
-            self.history.append(total_reward)
-
-            if verbose:
-                # Using PyCharm so tqdm is going to line break every iteration anyway, might as well print reward
-                print(total_reward)
-                self.history.training_plot()
-
-    def save(self, fn: str):
-        """Pickle agent."""
-        pickle.dump(self, open(fn, 'wb'))
-
-    @classmethod
-    def load(cls, fn: str) -> "LinearQLearningAgent":
-        """Eat pickle"""
-        return pickle.load(open(fn, 'rb'))
+            self._update_history(total_reward, verbose)
 
 
 if __name__ == "__main__":
