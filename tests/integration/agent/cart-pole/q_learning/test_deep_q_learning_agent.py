@@ -19,7 +19,7 @@ class TestDeepQLearningAgent(unittest.TestCase):
             if os.path.exists(f):
                 try:
                     os.remove(f)
-                except PermissionError:
+                except (PermissionError, IsADirectoryError):
                     pass
 
     def test_saving_and_reloading_creates_identical_object(self):
