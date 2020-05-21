@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import Dict
 
-import gym
 import numpy as np
 from sklearn.kernel_approximation import RBFSampler
 from sklearn.linear_model import SGDRegressor
@@ -31,7 +30,7 @@ class LinearQLearningAgent(AgentBase):
 
         if self.eps is None:
             # Prepare the default EpsilonGreedy sampler if one is not specified.
-            self.eps = EpsilonGreedy(eps_initial=0.5,
+            self.eps = EpsilonGreedy(eps_initial=0.4,
                                      eps_min=0.01)
 
         self._set_env()
@@ -57,7 +56,7 @@ class LinearQLearningAgent(AgentBase):
                          ('rbfs', fu)])
 
         # Sample observations from env and fit pipeline
-        obs = np.array([self.env.observation_space.sample() for _ in range(10000)])
+        obs = np.array([self._env.observation_space.sample() for _ in range(10000)])
         if self.log_exemplar_space:
             obs = np.sign(obs) * np.log(np.abs(obs))
         pipe.fit(obs)
@@ -73,9 +72,9 @@ class LinearQLearningAgent(AgentBase):
 
         # Create SGDRegressor for each action in space and initialise by calling .partial_fit for the first time on
         # dummy data
-        mods = {a: SGDRegressor() for a in range(self.env.action_space.n)}
+        mods = {a: SGDRegressor() for a in range(self._env.action_space.n)}
         for mod in mods.values():
-            mod.partial_fit(self.transform(self.env.reset()), [0])
+            mod.partial_fit(self.transform(self._env.reset()), [0])
 
         self.mods = mods
 
@@ -142,7 +141,7 @@ class LinearQLearningAgent(AgentBase):
         :return: The selected action.
         """
         action = self.eps.select(greedy_option=lambda: self.get_best_action(s),
-                                 random_option=lambda: self.env.action_space.sample(),
+                                 random_option=lambda: self._env.action_space.sample(),
                                  training=training)
 
         return action
@@ -178,16 +177,17 @@ class LinearQLearningAgent(AgentBase):
         :param render: Bool to indicate whether or not to call env.render() each training step.
         :return: The total real reward for the episode.
         """
-        obs = self.env.reset()
+        self._set_env()
+        obs = self._env.reset()
         total_reward = 0
         for _ in range(max_episode_steps):
             action = self.get_action(obs, training=training)
             prev_obs = obs
-            obs, reward, done, info = self.env.step(action)
+            obs, reward, done, info = self._env.step(action)
             total_reward += reward
 
             if render:
-                self.env.render()
+                self._env.render()
 
             if training:
                 self.update_model(s=prev_obs, a=action, r=reward, d=done, s_=obs)
@@ -207,7 +207,7 @@ class LinearQLearningAgent(AgentBase):
         :param verbose:  If verbose, use tqdm and print last episode score for feedback during training.
         :param render: Bool to indicate whether or not to call env.render() each training step.
         """
-        self.env._max_episode_steps = max_episode_steps
+        self._env._max_episode_steps = max_episode_steps
         self._set_tqdm(verbose)
 
         for _ in self._tqdm(range(n_episodes)):
@@ -215,8 +215,14 @@ class LinearQLearningAgent(AgentBase):
                                              training=True, render=render)
             self._update_history(total_reward, verbose)
 
+    @classmethod
+    def example(cls, n_episodes: int = 1000, render: bool = True) -> "LinearQLearningAgent":
+        agent = cls("CartPole-v0")
+        agent.train(verbose=True, render=render,
+                    n_episodes=n_episodes)
+
+        return agent
+
 
 if __name__ == "__main__":
-    env = gym.make("CartPole-v0")
-    agent = LinearQLearningAgent(env)
-    agent.train(verbose=True, render=True)
+    LinearQLearningAgent.example()

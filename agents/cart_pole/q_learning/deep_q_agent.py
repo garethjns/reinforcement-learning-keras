@@ -1,10 +1,9 @@
 import copy
+import pickle
 from dataclasses import dataclass
 from typing import Dict, Any, Union
 
-import gym
 import numpy as np
-import tensorflow as tf
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from tensorflow import keras
@@ -17,7 +16,7 @@ from agents.plotting.training_history import TrainingHistory
 
 
 @dataclass
-class DQNAgent(AgentBase):
+class DeepQAgent(AgentBase):
     env_spec: str = "CartPole-v0"
     name: str = 'DQNAgent'
     eps: EpsilonGreedy = None
@@ -25,9 +24,9 @@ class DQNAgent(AgentBase):
     plot_during_training: bool = True
     replay_buffer: ReplayBuffer = None
     replay_buffer_samples: int = 75
+    learning_rate: float = 0.001
 
     _action_model_weights: Union[np.ndarray, None] = None
-    _value_model_weights: Union[np.ndarray, None] = None
 
     def __post_init__(self) -> None:
         self.history = TrainingHistory(plotting_on=self.plot_during_training,
@@ -37,9 +36,9 @@ class DQNAgent(AgentBase):
 
         if self.eps is None:
             # Prepare the default EpsilonGreedy sampler if one is not specified.
-            self.eps = EpsilonGreedy(eps_initial=0.9,
+            self.eps = EpsilonGreedy(eps_initial=0.05,
                                      decay=0.002,
-                                     eps_min=0.01)
+                                     eps_min=0.002)
 
         if self.replay_buffer is None:
             # Prepare the default ReplayBuffer if one is not specified.
@@ -48,6 +47,49 @@ class DQNAgent(AgentBase):
         self._set_env()
         self._build_pp()
         self._build_model()
+
+    def __getstate__(self) -> Dict[str, Any]:
+        """
+        Prepare object for pickling.
+
+        The env and Keras model objects can't be pickled with pickle. Remove these, but put them back afterwards
+        so this object is effectively unchanged.
+
+        Build models will do the same thing here as when the model is unpicked. With the _action_model_weights
+        attribute/kwarg set, it'll make the model architecture and set these weights on both models.
+        """
+
+        # Remove things
+        self.unready()
+
+        # Get object spec to pickle
+        object_state_dict = copy.deepcopy(self.__dict__)
+
+        # Put this object back how it was
+        self.check_ready()
+
+        return object_state_dict
+
+    def unready(self) -> None:
+        self._env = None
+        if self._action_model is not None:
+            self._action_model_weights = self._action_model.get_weights()
+            self._action_model = None
+            self._value_model = None
+
+    @classmethod
+    def load(cls, fn: str) -> "AgentBase":
+        """Eat pickle"""
+        new_agent = pickle.load(open(fn, 'rb'))
+        new_agent.check_ready()
+
+        return new_agent
+
+    def check_ready(self):
+        """Add model re-complication to ready check, as they may have been dropped (eg. on saving)."""
+        super().check_ready()
+        if self._action_model is None:
+            self._build_model()
 
     def _build_model(self) -> None:
         """
@@ -66,10 +108,8 @@ class DQNAgent(AgentBase):
         # be done when unpickling or when preparing to pickle this object.
         if self._action_model_weights is not None:
             self._action_model.set_weights(self._action_model_weights)
+            self._value_model.set_weights(self._action_model_weights)
             self._action_model_weights = None
-        if self._value_model_weights is not None:
-            self._value_model.set_weights(self._value_model_weights)
-            self._value_model_weights = None
 
     def _build_pp(self) -> None:
         """
@@ -79,7 +119,7 @@ class DQNAgent(AgentBase):
         """
 
         # Sample observations from environment to train scaler.
-        obs = np.array([self.env.observation_space.sample() for _ in range(100000)])
+        obs = np.array([self._env.observation_space.sample() for _ in range(100000)])
 
         pipe = Pipeline([('clip', Clipper(lim=(-100, 100))),
                          ('ss', StandardScaler())])
@@ -95,12 +135,12 @@ class DQNAgent(AgentBase):
         :param model_name: Model name.
         """
 
-        state_input = keras.layers.Input(name='input', shape=self.env.observation_space.shape)
+        state_input = keras.layers.Input(name='input', shape=self._env.observation_space.shape)
         fc1 = keras.layers.Dense(units=16, name='fc1', activation='relu')(state_input)
         fc2 = keras.layers.Dense(units=8, name='fc2', activation='relu')(fc1)
-        output = keras.layers.Dense(units=self.env.action_space.n, name='output', activation=None)(fc2)
+        output = keras.layers.Dense(units=self._env.action_space.n, name='output', activation=None)(fc2)
 
-        opt = keras.optimizers.Adam(learning_rate=0.001)
+        opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
         model = keras.Model(inputs=[state_input], outputs=[output],
                             name=model_name)
         model.compile(opt, loss='mse')
@@ -196,12 +236,12 @@ class DQNAgent(AgentBase):
         :return: The selected action.
         """
         action = self.eps.select(greedy_option=lambda: self.get_best_action(s),
-                                 random_option=lambda: self.env.action_space.sample(),
+                                 random_option=lambda: self._env.action_space.sample(),
                                  training=training)
 
         return action
 
-    def update_value_model(self):
+    def update_value_model(self) -> None:
         """
         Update the value model with the weights of the action model (which is updated each step).
 
@@ -219,16 +259,17 @@ class DQNAgent(AgentBase):
         :param render: Bool to indicate whether or not to call env.render() each training step.
         :return: The total real reward for the episode.
         """
-        obs = self.env.reset()
+
+        obs = self._env.reset()
         total_reward = 0
         for _ in range(max_episode_steps):
             action = self.get_action(obs, training=training)
             prev_obs = obs
-            obs, reward, done, info = self.env.step(action)
+            obs, reward, done, info = self._env.step(action)
             total_reward += reward
 
             if render:
-                self.env.render()
+                self._env.render()
 
             if training:
                 self.update_experience(s=prev_obs, a=action, r=reward, d=done)
@@ -249,7 +290,7 @@ class DQNAgent(AgentBase):
         :param verbose:  If verbose, use tqdm and print last episode score for feedback during training.
         :param render: Bool to indicate whether or not to call env.render() each training step.
         """
-        self.env._max_episode_steps = max_episode_steps
+        self._set_env()
         self._set_tqdm(verbose)
 
         for _ in self._tqdm(range(n_episodes)):
@@ -260,46 +301,16 @@ class DQNAgent(AgentBase):
 
             self._update_history(total_reward, verbose)
 
-    def __getstate__(self) -> Dict[str, Any]:
-        """
-        Prepare object for pickling.
+    @classmethod
+    def example(cls, n_episodes: int = 500, render: bool = True) -> "DeepQAgent":
+        """Run a quick example with n_episodes and otherwise default settings."""
+        cls.set_tf(256)
+        agent = cls("CartPole-v0")
+        agent.train(verbose=True, render=render,
+                    n_episodes=n_episodes)
 
-        The env and Keras model objects can't be pickled with pickle. Remove these, but put them back afterwards
-        so this object is effectively unchanged.
-
-        Build models will do the same thing here as when the model is unpicked. With the _action_model_weights and
-        _value_model_weights attributes/kwargs set, it'll make the model architecture and set these weights.
-        """
-
-        # Remove things
-        for m in ['_action_model', '_value_model']:
-            self.__dict__[f"{m}_weights"] = self.__dict__[m].get_weights()
-            self.__dict__[m] = None
-        self.__dict__["env"] = None
-
-        # Get object spec to pickle
-        object_state_dict = copy.deepcopy(self.__dict__)
-
-        # Put this object back how it was
-        self._set_env()
-        self._build_model()
-
-        return object_state_dict
+        return agent
 
 
 if __name__ == "__main__":
-
-    try:
-        tf.config.experimental.set_virtual_device_configuration(tf.config.experimental.list_physical_devices('GPU')[0],
-                                                                [tf.config.experimental.VirtualDeviceConfiguration(
-                                                                    memory_limit=1024)])
-    except (IndexError, AttributeError):
-        # Either no GPU available or virtual device config failed for some reason. Can probably continue.
-        pass
-
-    agent = DQNAgent("CartPole-v0")
-    agent.train(verbose=True, render=False, n_episodes=5)
-
-    agent.save('asd')
-    agent_2 = DQNAgent.load('asd')
-
+    DeepQAgent.example()
