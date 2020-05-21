@@ -72,7 +72,7 @@ agent.train(verbose=True, render=True)
 ````
 
 ## Deep Q learner
-![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgent.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgentAgent.png)  
+![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgent.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgent.png)  
 
 Model:
 State -> action model -> [value for action 1, value for action 2] 
