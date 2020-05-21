@@ -30,7 +30,7 @@ class LinearQLearningAgent(AgentBase):
 
         if self.eps is None:
             # Prepare the default EpsilonGreedy sampler if one is not specified.
-            self.eps = EpsilonGreedy(eps_initial=0.5,
+            self.eps = EpsilonGreedy(eps_initial=0.4,
                                      eps_min=0.01)
 
         self._set_env()
@@ -177,6 +177,7 @@ class LinearQLearningAgent(AgentBase):
         :param render: Bool to indicate whether or not to call env.render() each training step.
         :return: The total real reward for the episode.
         """
+        self._set_env()
         obs = self._env.reset()
         total_reward = 0
         for _ in range(max_episode_steps):

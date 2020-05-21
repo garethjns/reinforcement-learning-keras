@@ -31,7 +31,7 @@ class AgentBase(abc.ABC):
         self._env = None
 
     @classmethod
-    def set_tf(cls, gpu_memory_limit: int = 512, gpu_device_id: int = 0) -> None:
+    def set_tf(cls, gpu_memory_limit: int = 512, gpu_device_id: int = 0) -> bool:
         """
         Helper function for training on tf. Reduces GPU memory footprint for keras/tf models.
 
@@ -41,28 +41,43 @@ class AgentBase(abc.ABC):
                                  avoid out of memory errors on some set ups when TF tries to allocate too much memory
                                  (seems to be a bug).
         :param gpu_device_id: Integer device identifier for the real GPU the virtual GPU should use.
+        :return: Bool indicating if TF appears to be running on GPU. Can be used, for example, to avoid using
+                 multiprocessing in the caller when running on GPU. This will likely result in an exception, but may
+                 result in hanging forever, so probably best avoided.
         """
         import tensorflow as tf
 
+        gpu = True
         try:
             # Handle running on GPU: If available, reduce memory commitment to avoid over-committing error in 2.2.0 and
-            # for also for convenience.
+            # for also for general convenience.
             tf.config.experimental.set_virtual_device_configuration(
                 tf.config.experimental.list_physical_devices('GPU')[gpu_device_id],
                 [tf.config.experimental.VirtualDeviceConfiguration(
                     memory_limit=gpu_memory_limit)])
-        except (IndexError, AttributeError):
-            # Either no GPU available or virtual device config failed for some reason. Can probably continue.
+        except AttributeError:
+            # Assuming not using GPU
+            gpu = False
+        except IndexError:
+            # Assuming using GPU but indexed device not found. Continue with default GPU settings.
             pass
+
+        return gpu
 
     @classmethod
     def example(cls):
         """Optional example function using this agent."""
         raise NotImplementedError
 
-    def _set_env(self):
+    def _set_env(self, env: gym.Env = None):
         """Create a new env object from the requested spec."""
-        self._env = gym.make(self.env_spec)
+
+        if env is None:
+            self._env = gym.make(self.env_spec)
+        else:
+            self._env = env
+
+        self._env._max_episode_steps = float('inf')
 
     def _build_pp(self):
         """Prepare pre-processor for the raw state, if needed."""

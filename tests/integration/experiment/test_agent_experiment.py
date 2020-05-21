@@ -1,6 +1,6 @@
 import unittest
 
-from agents.cart_pole.q_learning.linear_q_learning_agent import LinearQLearningAgent
+from agents.cart_pole.q_learning.linear_q_agent import LinearQLearningAgent
 from experiment.agent_experiment import AgentExperiment
 
 

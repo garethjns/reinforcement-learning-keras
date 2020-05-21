@@ -1,7 +1,7 @@
 import unittest
 from typing import List
 
-from agents.cart_pole.q_learning.linear_q_learning_agent import LinearQLearningAgent
+from agents.cart_pole.q_learning.linear_q_agent import LinearQLearningAgent
 
 
 class TestLinearQLearningAgent(unittest.TestCase):

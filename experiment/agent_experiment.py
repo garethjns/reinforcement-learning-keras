@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from joblib import Parallel, delayed
+from joblib.externals.loky.process_executor import BrokenProcessPool
 
 from agents.agent_base import AgentBase
 
@@ -57,7 +58,15 @@ class AgentExperiment:
                                 for _ in range(self.n_reps))
 
     def run(self) -> None:
-        self._run()
+        try:
+            # All agents support pickling, so joblib can run some in parallel...
+            self._run()
+        except BrokenProcessPool:
+            # ... Except for TF models running on GPU, they'll probably crap out. Run 1 by 1.
+            # OR it'll crash Chrome, and Python, and hang for all eternity. It's best not to reply on this.
+            self.n_jobs = 1
+            self._run()
+
         self.plot()
         self.play_best()
 
@@ -68,13 +77,18 @@ class AgentExperiment:
         y_mean = np.mean(full_history, axis=1)
         y_std = np.std(full_history, axis=1)
 
-        plt.plot(self.best_agent.history.history, label='Best', ls='--', color='#d62728', lw=0.35)
-        plt.plot(self.worst_agent.history.history, label='Worst', ls='--', color='#9467bd', lw=0.35)
-        plt.plot(y_mean, label='Mean score', lw=2.5)
+        plt.plot(y_mean, label='Mean score', lw=1.75)
+        # 5% moving avg
+        mv_avg_pts = max(1, int(len(y_mean) * 0.05))
+        plt.plot(np.convolve(self.best_agent.history.history, np.ones(mv_avg_pts), 'valid') / mv_avg_pts,
+                 label='Best (mv avg)', ls='--', color='#d62728', lw=0.35)
+        plt.plot(np.convolve(self.worst_agent.history.history, np.ones(mv_avg_pts), 'valid') / mv_avg_pts,
+                 label='Worst (mv avg)', ls='--', color='#9467bd', lw=0.35)
         plt.fill_between(range(len(y_mean)),
                          [max(0, s) for s in y_mean - y_std],
-                         [min(500, s) for s in y_mean + y_std],
+                         [min(len(y_mean), s) for s in y_mean + y_std],
                          color='lightgray', label='Score std')
+
         plt.title(f'{self._trained_agents[0].name}', fontweight='bold')
         plt.xlabel('N episodes', fontweight='bold')
         plt.ylabel('Score', fontweight='bold')
@@ -85,7 +99,9 @@ class AgentExperiment:
     def play_best(self):
         best_agent = copy.deepcopy(self.best_agent)
         best_agent.check_ready()
-        best_agent._env = gym.wrappers.Monitor(best_agent._env, 'monitor_dir', force=True)
+        best_agent._set_env(gym.wrappers.Monitor(best_agent._env,
+                                                 f'{self._trained_agents[0].name}_monitor_dir',
+                                                 force=True))
         try:
             best_agent.play_episode(training=False, render=False, max_episode_steps=self.max_episode_steps)
         except gym.error.DependencyNotInstalled as e:

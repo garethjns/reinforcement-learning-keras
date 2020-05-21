@@ -16,7 +16,7 @@ from agents.plotting.training_history import TrainingHistory
 
 
 @dataclass
-class DQNAgent(AgentBase):
+class DeepQAgent(AgentBase):
     env_spec: str = "CartPole-v0"
     name: str = 'DQNAgent'
     eps: EpsilonGreedy = None
@@ -24,6 +24,7 @@ class DQNAgent(AgentBase):
     plot_during_training: bool = True
     replay_buffer: ReplayBuffer = None
     replay_buffer_samples: int = 75
+    learning_rate: float = 0.001
 
     _action_model_weights: Union[np.ndarray, None] = None
 
@@ -35,9 +36,9 @@ class DQNAgent(AgentBase):
 
         if self.eps is None:
             # Prepare the default EpsilonGreedy sampler if one is not specified.
-            self.eps = EpsilonGreedy(eps_initial=0.9,
+            self.eps = EpsilonGreedy(eps_initial=0.05,
                                      decay=0.002,
-                                     eps_min=0.01)
+                                     eps_min=0.002)
 
         if self.replay_buffer is None:
             # Prepare the default ReplayBuffer if one is not specified.
@@ -139,7 +140,7 @@ class DQNAgent(AgentBase):
         fc2 = keras.layers.Dense(units=8, name='fc2', activation='relu')(fc1)
         output = keras.layers.Dense(units=self._env.action_space.n, name='output', activation=None)(fc2)
 
-        opt = keras.optimizers.Adam(learning_rate=0.001)
+        opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
         model = keras.Model(inputs=[state_input], outputs=[output],
                             name=model_name)
         model.compile(opt, loss='mse')
@@ -258,6 +259,7 @@ class DQNAgent(AgentBase):
         :param render: Bool to indicate whether or not to call env.render() each training step.
         :return: The total real reward for the episode.
         """
+
         obs = self._env.reset()
         total_reward = 0
         for _ in range(max_episode_steps):
@@ -288,7 +290,7 @@ class DQNAgent(AgentBase):
         :param verbose:  If verbose, use tqdm and print last episode score for feedback during training.
         :param render: Bool to indicate whether or not to call env.render() each training step.
         """
-        self._env._max_episode_steps = max_episode_steps
+        self._set_env()
         self._set_tqdm(verbose)
 
         for _ in self._tqdm(range(n_episodes)):
@@ -300,7 +302,7 @@ class DQNAgent(AgentBase):
             self._update_history(total_reward, verbose)
 
     @classmethod
-    def example(cls, n_episodes: int = 500, render: bool = True) -> "DQNAgent":
+    def example(cls, n_episodes: int = 500, render: bool = True) -> "DeepQAgent":
         """Run a quick example with n_episodes and otherwise default settings."""
         cls.set_tf(256)
         agent = cls("CartPole-v0")
@@ -311,4 +313,4 @@ class DQNAgent(AgentBase):
 
 
 if __name__ == "__main__":
-    DQNAgent.example()
+    DeepQAgent.example()

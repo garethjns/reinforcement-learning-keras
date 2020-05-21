@@ -48,6 +48,7 @@ Using cart-pole-v0 with step limit increased from 200 to 500.
 ## Linear Q learner
 ![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/LinearQAgent.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/LinearQAgent.png)  
 
+Model:
 State -> model for action 1 -> value for action 1    
 State -> model for action 2 -> value for action 2
 
@@ -62,37 +63,57 @@ python3 -m agents.cart_pole.q_learning.linear_q_learning_agent
 ````
 or
 ````python
-import gym
 from agents.cart_pole.q_learning.components.epsilon_greedy import EpsilonGreedy
-from agents.cart_pole.q_learning.linear_q_learning_agent import LinearQLearningAgent
+from agents.cart_pole.q_learning.linear_q_agent import LinearQLearningAgent
 
-env = gym.make("CartPole-v0")
-agent = LinearQLearningAgent(env, eps=EpsilonGreedy(eps_initial=0.5, eps_min=0.01))
+agent = LinearQLearningAgent(env_spec="CartPole-v0", 
+                             eps=EpsilonGreedy(eps_initial=0.5, eps_min=0.01))
 agent.train(verbose=True, render=True)
 ````
 
-
 ## Deep Q learner
+![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgent.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgentAgent.png)  
+
+Model:
 State -> action model -> [value for action 1, value for action 2] 
 
 A deep Q learning agent that uses small neural network to approximate Q(s, a). It includes a replay buffer that allows for batched training updates, this is important for 2 reasons:
  - As this method is off-policy (the action is selected as argmax(action values)), it can train on data collected during previous episodes. This reduces correlation in the training data.
  - This is important for performance, especially when using a GPU. Calling multiple predict/train operations on single rows inside a loop is very inefficient. 
 
-This agent uses two copies of it's model.
+### Run example
+````bash
+python3 -m agents.cart_pole.q_learning.linear_q_learning_agent
+````
+or
+````python
+from agents.cart_pole.q_learning.components.epsilon_greedy import EpsilonGreedy
+from agents.cart_pole.q_learning.components.replay_buffer import ReplayBuffer
+from agents.cart_pole.q_learning.deep_q_agent import DeepQAgent
 
-### Dueling version
+DeepQAgent.set_tf(256)  # Optional, limit tensorflow memory commitment to 256MB
+agent = DeepQAgent(env_spec="CartPole-v0", 
+                   eps=EpsilonGreedy(eps_initial=0.05, decay=0.002, eps_min=0.002),
+                   replay_buffer=ReplayBuffer(buffer_size=200))
+agent.train(verbose=True, render=True)
+````
+
+This agent uses two copies of its model:
+ - One to predict the value of the next action, which us updated every episode step (with a batch sampled from the replay buffer)
+ - One to predict value of the actions in the current and next state for calculating the discounted reward. This model is updated with the weights from the first model at the end of each episode.
+
+## Dueling DQN
 State -> action model -> [value for action 1, value for action 2] 
 
 The dueling version is exactly the same, expect with slightly different model architecture. The second to last layer is split into two layers with the units=1 and units=n_actions. The idea is that the model might learn V(s) and action advantages (A(s)) separately, which can speed up convergence.  
 
-The output of the network is still action values, however preceding layers are not fully connected; the values are now V(s) + A(s) which is calculated using a keras lambda layer.
+The output of the network is still action values, however preceding layers are not fully connected; the values are now V(s) + A(s) and a subsequent Keras lambda layer is used to calculate the action advantages.
  
-## Vanilla policy gradient
+## Vanilla policy gradient (REINFORCE)
 State -> model -> [probability of action 1, probability of action 2]
 
-Policy gradient models move the action selection policy into the model, rather than using argmax(action values). Model outputs are action probabilities rather than values (π(a|s)), making these methods inherently stochastic and removing the need for epsilon greedy action selection. 
+Policy gradient models move the action selection policy into the model, rather than using argmax(action values). Model outputs are action probabilities rather than values (π(a|s), where π is the policy), making these methods inherently stochastic and removing the need for epsilon greedy action selection. 
 
 This agent uses a small neural network to predict action probabilities given a state. Updates are done in a Monte-Carlo fashion - ie. using all steps from a single episode. This removes the need for a complex replay buffer (list.append() does the job). However as the method is on-policy it requires data from the current policy for training. This means training data can't be collected across episodes (assuming policy is updated at the end of each). This means the training data in each batch (episode) is highly correlated, which slows convergence.
 
-This model doesn't use any scaling or clipping for environment pre-processing. For some reason, this prevented it converging. The cart-pole environment can potentially return really huge values when sampling from the observation space, but these are rarely seen during training. It seems to be fine to pretend they don't exist, rather than scaling inputs based environment samples (this is done in the other methods).
+This model doesn't use any scaling or clipping for environment pre-processing. For some reason, using the same pre-processing as with the DQN models prevents it from converging. The cart-pole environment can potentially return really huge values when sampling from the observation space, but these are rarely seen during training. It seems to be fine to pretend they don't exist, rather than scaling inputs based environment samples, as done with in the other methods.

@@ -2,11 +2,11 @@ import os
 import unittest
 from typing import List
 
-from agents.cart_pole.q_learning.deep_q_learning_agent import DQNAgent
+from agents.cart_pole.q_learning.deep_q_agent import DeepQAgent
 
 
 class TestDeepQLearningAgent(unittest.TestCase):
-    _sut = DQNAgent
+    _sut = DeepQAgent
     _created_files: List[str] = []
 
     @classmethod
