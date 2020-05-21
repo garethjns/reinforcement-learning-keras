@@ -2,12 +2,16 @@ import os
 import unittest
 from typing import List
 
-from agents.cart_pole.q_learning.linear_q_agent import LinearQLearningAgent
+from agents.cart_pole.policy_gradient.reinforce_agent import ReinforceAgent
 
 
-class TestLinearQLearningAgent(unittest.TestCase):
-    _sut = LinearQLearningAgent
+class TestReinforceAgent(unittest.TestCase):
+    _sut = ReinforceAgent
     _created_files: List[str] = []
+
+    @classmethod
+    def setUp(cls):
+        cls._sut.set_tf(256)
 
     @classmethod
     def tearDown(cls):
@@ -22,7 +26,7 @@ class TestLinearQLearningAgent(unittest.TestCase):
         # Arrange
         agent = self._sut("CartPole-v0")
         agent.train(verbose=True, render=False, n_episodes=2)
-        fn = 'test_linear_save.agent'
+        fn = 'test_reinforce_save.agent'
         self._created_files += fn
 
         # Act
@@ -33,8 +37,9 @@ class TestLinearQLearningAgent(unittest.TestCase):
         # Assert
         self.assertEqual(agent, agent_2)
 
-    def test_linear_agent_example(self):
-        agent = self._sut.example(20, render=False)
+    def test_dqn_example(self):
+        # Act
+        agent = self._sut.example(16, render=False)
 
         # Assert
-        self.assertEqual(20, len(agent.history.history))
+        self.assertEqual(16, len(agent.history.history))
