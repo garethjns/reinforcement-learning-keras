@@ -37,7 +37,7 @@ class TestReinforceAgent(unittest.TestCase):
         # Assert
         self.assertEqual(agent, agent_2)
 
-    def test_dqn_example(self):
+    def test_reinforce_example(self):
         # Act
         agent = self._sut.example(16, render=False)
 

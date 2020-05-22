@@ -108,7 +108,7 @@ class AgentBase(abc.ABC):
         """Run the any pre-processing on raw state, if used."""
         return s
 
-    def update_experience(self, s: Any, a: int, r: float, d: bool) -> None:
+    def update_experience(self, *args) -> None:
         """Remember an experience, if used by agent."""
         pass
 

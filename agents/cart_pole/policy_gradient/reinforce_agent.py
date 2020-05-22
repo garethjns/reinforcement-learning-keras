@@ -1,4 +1,3 @@
-import copy
 from dataclasses import dataclass
 from typing import List, Tuple, Union, Dict, Any
 
@@ -22,7 +21,7 @@ class ReinforceAgent(AgentBase):
 
     _model_weights: Union[np.ndarray, None] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.history = TrainingHistory(plotting_on=self.plot_during_training,
                                        plot_every=25,
                                        rolling_average=12,
@@ -41,12 +40,12 @@ class ReinforceAgent(AgentBase):
             self._weights = self._model.get_weights()
             self._model = None
 
-    def check_ready(self):
+    def check_ready(self) -> None:
         super().check_ready()
         if self._model is None:
             self._build_model()
 
-    def clear_memory(self):
+    def clear_memory(self) -> None:
         self._states: List[np.ndarray] = []
         self._action_probs: List[np.ndarray] = []
         self._actions: List[int] = []
@@ -96,7 +95,7 @@ class ReinforceAgent(AgentBase):
         return actions_probs, np.random.choice(range(self._env.action_space.n),
                                                p=actions_probs)
 
-    def update_experience(self, s: np.ndarray, a_p: np.ndarray, a: int, r: float):
+    def update_experience(self, s: np.ndarray, a: int, r: float, a_p: np.ndarray) -> None:
         self._states.append(s)
         self._action_probs.append(a_p)
         self._actions.append(a)
@@ -119,7 +118,7 @@ class ReinforceAgent(AgentBase):
 
         return np.vstack(disc_rr_norm)
 
-    def update_model(self):
+    def update_model(self) -> None:
         # Calc discounted rewards for last episode in buffer
         disc_rr_norm = self.calc_discounted_rewards(self._rewards)
 

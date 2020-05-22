@@ -5,7 +5,7 @@ from agents.cart_pole.policy_gradient.reinforce_agent import ReinforceAgent
 from experiment.agent_experiment import AgentExperiment
 
 
-def run_exp(n_episodes: int = 500, max_episode_steps: int = 500):
+def run_exp(n_episodes: int = 1000, max_episode_steps: int = 500):
     gpu = ReinforceAgent.set_tf(256)
 
     exp = AgentExperiment(env_spec="CartPole-v0",
@@ -19,4 +19,4 @@ def run_exp(n_episodes: int = 500, max_episode_steps: int = 500):
 
 
 if __name__ == "__main__":
-    run_exp(n_episodes=500)
+    run_exp(n_episodes=1000)
