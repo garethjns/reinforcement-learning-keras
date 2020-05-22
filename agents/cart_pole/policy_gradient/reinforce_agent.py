@@ -150,7 +150,7 @@ class ReinforceAgent(AgentBase):
                 self._env.render()
 
             if training:
-                self.update_experience(prev_obs, action_probs, action, reward)
+                self.update_experience(prev_obs, action, reward, action_probs)
 
             if done:
                 break
