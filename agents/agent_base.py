@@ -1,6 +1,7 @@
 import abc
+import copy
 import pickle
-from typing import Any, Callable, Union
+from typing import Any, Callable, Union, Dict
 
 import gym
 from tqdm import tqdm
@@ -14,6 +15,26 @@ class AgentBase(abc.ABC):
     name: str
     _env: Union[None, gym.Env]
     _tqdm: Callable
+
+    def _pickle_compatible_getstate(self) -> Dict[str, Any]:
+        """
+        Prepare a agent with a keras model object for pickling.
+
+        Calls .unready to prepare this object for pickling, and .check_ready to put it back how it was after pickling.
+        By default, just the env is removed. GPU models can modify .unready and .check_ready to handle complied Keras
+        models, which also can't be pickled.
+        """
+
+        # Remove things
+        self.unready()
+
+        # Get object spec to pickle
+        object_state_dict = copy.deepcopy(self.__dict__)
+
+        # Put this object back how it was
+        self.check_ready()
+
+        return object_state_dict
 
     def check_ready(self) -> None:
         """
@@ -87,7 +108,7 @@ class AgentBase(abc.ABC):
         """Run the any pre-processing on raw state, if used."""
         return s
 
-    def update_experience(self, s: Any, a: int, r: float, d: bool) -> None:
+    def update_experience(self, *args) -> None:
         """Remember an experience, if used by agent."""
         pass
 
@@ -163,4 +184,7 @@ class AgentBase(abc.ABC):
     @classmethod
     def load(cls, fn: str) -> "AgentBase":
         """Eat pickle"""
-        return pickle.load(open(fn, 'rb'))
+        new_agent = pickle.load(open(fn, 'rb'))
+        new_agent.check_ready()
+
+        return new_agent

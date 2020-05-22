@@ -49,26 +49,7 @@ class DeepQAgent(AgentBase):
         self._build_model()
 
     def __getstate__(self) -> Dict[str, Any]:
-        """
-        Prepare object for pickling.
-
-        The env and Keras model objects can't be pickled with pickle. Remove these, but put them back afterwards
-        so this object is effectively unchanged.
-
-        Build models will do the same thing here as when the model is unpicked. With the _action_model_weights
-        attribute/kwarg set, it'll make the model architecture and set these weights on both models.
-        """
-
-        # Remove things
-        self.unready()
-
-        # Get object spec to pickle
-        object_state_dict = copy.deepcopy(self.__dict__)
-
-        # Put this object back how it was
-        self.check_ready()
-
-        return object_state_dict
+        return self._pickle_compatible_getstate()
 
     def unready(self) -> None:
         self._env = None
@@ -77,16 +58,7 @@ class DeepQAgent(AgentBase):
             self._action_model = None
             self._value_model = None
 
-    @classmethod
-    def load(cls, fn: str) -> "AgentBase":
-        """Eat pickle"""
-        new_agent = pickle.load(open(fn, 'rb'))
-        new_agent.check_ready()
-
-        return new_agent
-
     def check_ready(self):
-        """Add model re-complication to ready check, as they may have been dropped (eg. on saving)."""
         super().check_ready()
         if self._action_model is None:
             self._build_model()
@@ -273,6 +245,7 @@ class DeepQAgent(AgentBase):
 
             if training:
                 self.update_experience(s=prev_obs, a=action, r=reward, d=done)
+                # Action model is updated in TD(λ) fashion
                 self.update_model()
 
             if done:
@@ -296,7 +269,7 @@ class DeepQAgent(AgentBase):
         for _ in self._tqdm(range(n_episodes)):
             total_reward = self.play_episode(max_episode_steps,
                                              training=True, render=render)
-            # Value model is at the end of each episode
+            # Value model synced with action model at the end of each episode
             self.update_value_model()
 
             self._update_history(total_reward, verbose)
