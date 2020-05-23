@@ -80,8 +80,8 @@ class AgentBase(abc.ABC):
             # Assuming not using GPU
             gpu = False
         except IndexError:
-            # Assuming using GPU but indexed device not found. Continue with default GPU settings.
-            pass
+            # Assuming using GPU but indexed device not found.
+            gpu = False
 
         return gpu
 
