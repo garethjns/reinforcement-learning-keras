@@ -15,7 +15,7 @@ This repo aims to implement various reinforcement learning agents using Keras (t
           - [ ] Multiple environments
           - [ ] Double DQN
     - [ ] Policy gradient methods
-        - [x] Vanilla policy gradient
+        - [x] REINFORCE
         - [ ] Actor-critic
 - [ ] Pong
    - [ ] Q-learning
@@ -103,6 +103,8 @@ This agent uses two copies of its model:
  - One to predict value of the actions in the current and next state for calculating the discounted reward. This model is updated with the weights from the first model at the end of each episode.
 
 ## Dueling DQN
+![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DuelingDQNAgent.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DuelingDQNAgent.png)  
+
 State -> action model -> [value for action 1, value for action 2] 
 
 The [dueling](https://arxiv.org/abs/1511.06581) version is exactly the same as the DQN, expect with slightly different model architecture. The second to last layer is split into two layers with the units=1 and units=n_actions. The idea is that the model might learn V(s) and action advantages (A(s)) separately, which can speed up convergence.  
@@ -127,6 +129,9 @@ agent.train(verbose=True, render=True)
 ````
  
 ## REINFORCE (policy gradient)
+![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/REINFORCEAgent.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/REINFORCEAgent.png)  
+
+
 Model:  
 State -> model -> [probability of action 1, probability of action 2]  
 Refs:  

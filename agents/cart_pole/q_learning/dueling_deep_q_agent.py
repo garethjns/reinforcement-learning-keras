@@ -7,7 +7,9 @@ from agents.cart_pole.q_learning.deep_q_agent import DeepQAgent
 
 class DuelingDeepQAgent(DeepQAgent):
     """Exactly the same as the DQN but with a slightly modified model architecture."""
-    name: str = 'DuelingDQNAgent'
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.name: str = 'DuelingDQNAgent'
 
     def _build_model_copy(self, model_name: str) -> keras.Model:
         input = keras.layers.Input(name='input', shape=self._env.observation_space.shape)

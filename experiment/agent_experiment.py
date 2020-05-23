@@ -102,6 +102,7 @@ class AgentExperiment:
         best_agent._set_env(gym.wrappers.Monitor(best_agent._env,
                                                  f'{self._trained_agents[0].name}_monitor_dir',
                                                  force=True))
+
         try:
             best_agent.play_episode(training=False, render=False, max_episode_steps=self.max_episode_steps)
         except gym.error.DependencyNotInstalled as e:
