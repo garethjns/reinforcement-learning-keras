@@ -90,15 +90,13 @@ class AgentBase(abc.ABC):
         """Optional example function using this agent."""
         raise NotImplementedError
 
-    def _set_env(self, env: gym.Env = None):
+    def _set_env(self, env: gym.Env = None, time_limit: int = 500):
         """Create a new env object from the requested spec."""
 
         if env is None:
             self._env = gym.make(self.env_spec)
         else:
             self._env = env
-
-        self._env._max_episode_steps = float('inf')
 
     def _build_pp(self):
         """Prepare pre-processor for the raw state, if needed."""
@@ -144,18 +142,22 @@ class AgentBase(abc.ABC):
         """
         pass
 
-    @abc.abstractmethod
-    def train(self, n_episodes: int = 100, max_episode_steps: int = 500,
+    def train(self, n_episodes: int = 10000, max_episode_steps: int = 500,
               verbose: bool = True, render: bool = True) -> None:
         """
-        Defines the training loop for the agent.
+        Run the default training loop
 
         :param n_episodes: Number of episodes to run.
         :param max_episode_steps: Max steps before stopping, overrides any time limit set by Gym.
         :param verbose:  If verbose, use tqdm and print last episode score for feedback during training.
         :param render: Bool to indicate whether or not to call env.render() each training step.
         """
-        pass
+        self._set_tqdm(verbose)
+
+        for _ in self._tqdm(range(n_episodes)):
+            total_reward = self.play_episode(max_episode_steps,
+                                             training=True, render=render)
+            self._update_history(total_reward, verbose)
 
     def _set_tqdm(self, verbose: bool = False) -> None:
         """Turn tqdm on or of depending on verbosity setting."""

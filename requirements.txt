@@ -8,3 +8,4 @@ seaborn
 joblib
 numpy
 coverage
+mock

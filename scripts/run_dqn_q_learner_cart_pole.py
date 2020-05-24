@@ -11,11 +11,12 @@ def run_exp(n_episodes: int = 500, max_episode_steps: int = 500):
     exp = AgentExperiment(env_spec="CartPole-v0",
                           agent_class=DeepQAgent,
                           n_reps=5,
-                          n_jobs=1 if gpu else -2,
+                          n_jobs=1 if gpu else 5,
                           n_episodes=n_episodes,
                           max_episode_steps=max_episode_steps)
 
     exp.run()
+    exp.save(fn=f"{DeepQAgent.__name__}_experiment.pkl")
 
 
 if __name__ == "__main__":

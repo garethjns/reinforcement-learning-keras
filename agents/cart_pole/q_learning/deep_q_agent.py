@@ -1,5 +1,3 @@
-import copy
-import pickle
 from dataclasses import dataclass
 from typing import Dict, Any, Union
 
@@ -231,7 +229,7 @@ class DeepQAgent(AgentBase):
         :param render: Bool to indicate whether or not to call env.render() each training step.
         :return: The total real reward for the episode.
         """
-
+        self._env._max_episode_steps = max_episode_steps
         obs = self._env.reset()
         total_reward = 0
         for _ in range(max_episode_steps):
@@ -251,28 +249,11 @@ class DeepQAgent(AgentBase):
             if done:
                 break
 
-        return total_reward
-
-    def train(self, n_episodes: int = 100, max_episode_steps: int = 500,
-              verbose: bool = True, render: bool = True) -> None:
-        """
-        Run the training loop. It's the same as the linear agent version, + the value model update.
-
-        :param n_episodes: Number of episodes to run.
-        :param max_episode_steps: Max steps before stopping, overrides any time limit set by Gym.
-        :param verbose:  If verbose, use tqdm and print last episode score for feedback during training.
-        :param render: Bool to indicate whether or not to call env.render() each training step.
-        """
-        self._set_env()
-        self._set_tqdm(verbose)
-
-        for _ in self._tqdm(range(n_episodes)):
-            total_reward = self.play_episode(max_episode_steps,
-                                             training=True, render=render)
-            # Value model synced with action model at the end of each episode
+        # Value model synced with action model at the end of each episode
+        if training:
             self.update_value_model()
 
-            self._update_history(total_reward, verbose)
+        return total_reward
 
     @classmethod
     def example(cls, n_episodes: int = 500, render: bool = True) -> "DeepQAgent":
