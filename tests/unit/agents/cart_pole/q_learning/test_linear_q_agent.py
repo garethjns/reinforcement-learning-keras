@@ -1,17 +1,38 @@
-import unittest
-from unittest.mock import patch
+import copy
+from typing import List
+
+import numpy as np
+from numpy.testing import assert_array_almost_equal
 
 from agents.cart_pole.q_learning.linear_q_agent import LinearQAgent
+from tests.unit.agents.cart_pole.random.test_random_agent import TestRandomAgent
 
 
-class TestLinearQAgent(unittest.TestCase):
+class TestLinearQAgent(TestRandomAgent):
     _sut = LinearQAgent
 
-    def test_env_set_during_init(self):
-        # Act
-        agent = self._sut()
+    def _agent_specific_set_up(self):
+        """This agent requires no specific set up, however this method should still be set."""
+        pass
 
-        # Assert
+    @staticmethod
+    def _checkpoint_model(agent: LinearQAgent) -> List[np.ndarray]:
+        """Get coefs from each model"""
+        return [copy.deepcopy(m.coef_) for m in agent.mods.values()]
+
+    def _assert_model_unchanged(self, agent: LinearQAgent, checkpoint: List[np.ndarray]):
+        for previous_coefs, current_coefs in zip([m.coef_ for m in agent.mods.values()], checkpoint):
+            assert_array_almost_equal(previous_coefs, current_coefs)
+
+    def _assert_model_changed(self, agent: LinearQAgent, checkpoint: List[np.ndarray]):
+        changes_to_single_action_model = []
+        for previous_coefs, current_coefs in zip([m.coef_ for m in agent.mods.values()], checkpoint):
+            changes_to_single_action_model.append(np.any(np.not_equal(previous_coefs.round(8),
+                                                                      current_coefs.round(8))))
+
+        self.assertTrue(np.any(changes_to_single_action_model))
+
+    def _assert_agent_ready(self, agent: LinearQAgent) -> None:
         self.assertIsNotNone(agent._env)
 
     def test_model_set_during_init(self):
@@ -22,87 +43,3 @@ class TestLinearQAgent(unittest.TestCase):
         self.assertIsInstance(agent.mods, dict)
         self.assertIsNotNone(agent.mods[0])
         self.assertIsNotNone(agent.mods[1])
-
-    def test_history_set_during_init(self):
-        # Act
-        agent = self._sut()
-
-        # Assert
-        self.assertIsNotNone(agent.history)
-
-    def test_unready_detaches_env_and_models(self):
-        # Arrange
-        agent = self._sut()
-
-        # Act
-        agent.unready()
-
-        # Assert
-        self.assertIsNone(agent._env)
-
-    def test_ready_restores_matching_object(self):
-        # Arrange
-        agent = self._sut()
-        agent.unready()
-
-        # Act
-        agent.check_ready()
-
-        # Assert
-        # TODO: Not quite what test says it does but fine for now
-        self.assertIsNotNone(agent._env)
-
-    def test_play_episode_steps_returns_reward_when_not_training(self):
-        # Arrange
-        agent = self._sut()
-
-        # Act
-        reward = agent.play_episode(max_episode_steps=3, training=False, render=False)
-
-        # Assert
-        self.assertIsInstance(reward, float)
-
-    def test_play_episode_steps_does_not_call_update_models_when_not_training(self):
-        # Arrange
-        agent = self._sut()
-
-        # Act
-        with patch.object(agent, 'update_model') as mocked_update_model:
-            _ = agent.play_episode(max_episode_steps=3, training=False, render=False)
-
-        # Assert
-        self.assertEqual(0, mocked_update_model.call_count)
-        self.assertEqual(3, agent._env._max_episode_steps)
-
-    def test_play_episode_steps_returns_reward_and_updates_model_when_training(self):
-        # Arrange
-        agent = self._sut()
-
-        # Act
-        reward = agent.play_episode(max_episode_steps=6, training=True, render=False)
-
-        # Assert
-        self.assertIsInstance(reward, float)
-
-    def test_play_episode_steps_calls_update_models_when_training(self):
-        # Arrange
-        agent = self._sut()
-
-        # Act
-        with patch.object(agent, 'update_model') as mocked_update_model:
-            _ = agent.play_episode(max_episode_steps=4, training=True, render=False)
-
-        # Assert
-        self.assertEqual(4, mocked_update_model.call_count)
-
-    def test_train_runs_multiple_episodes(self):
-        # Arrange
-        agent = self._sut()
-
-        # Act
-        with patch.object(agent, 'play_episode') as mocked_play_episode:
-            _ = agent.train(n_episodes=3, max_episode_steps=3, render=False)
-
-        # Assert
-        self.assertEqual(3, len(agent.history.history))
-        self.assertEqual(3, mocked_play_episode.call_count)

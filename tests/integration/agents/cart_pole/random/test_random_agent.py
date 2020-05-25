@@ -2,17 +2,21 @@ import os
 import unittest
 from typing import List
 
-from agents.cart_pole.policy_gradient.reinforce_agent import ReinforceAgent
+from agents.cart_pole.random.random_agent import RandomAgent
 
 
 class TestRandomAgent(unittest.TestCase):
-    _sut = ReinforceAgent
-    _created_files: List[str] = []
-    _fn: str = 'test_reinforce_save.agents'
+    """
+    The random agent is basically a non-abstract version of AgentBase. It's used here to define the general integration
+    test interface, as if it's a mocked AgentBase.
 
-    @classmethod
-    def setUp(cls):
-        cls._sut.set_tf(256)
+    These tests are standard across agents, which just need to set the _sut accordingly, and handle calling
+    Agent.set_tf in a set up set, where required.
+    """
+
+    _sut = RandomAgent
+    _created_files: List[str] = []
+    _fn: str = 'test_random_save.agent'
 
     @classmethod
     def tearDown(cls):

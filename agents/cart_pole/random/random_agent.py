@@ -9,6 +9,11 @@ from agents.plotting.training_history import TrainingHistory
 
 @dataclass
 class RandomAgent(AgentBase):
+    """
+    A non-abstract agent implementing AgentBase interface but acts randomly and learns nothing.
+
+    Useful as a baseline and for testing.
+    """
     env_spec: str = "CartPole-v0"
     name: str = 'RandomAgent'
     plot_during_training: bool = True
