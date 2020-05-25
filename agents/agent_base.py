@@ -18,7 +18,7 @@ class AgentBase(abc.ABC):
 
     def _pickle_compatible_getstate(self) -> Dict[str, Any]:
         """
-        Prepare a agent with a keras model object for pickling.
+        Prepare agent with a keras model object for pickling.
 
         Calls .unready to prepare this object for pickling, and .check_ready to put it back how it was after pickling.
         By default, just the env is removed. GPU models can modify .unready and .check_ready to handle complied Keras
@@ -90,7 +90,7 @@ class AgentBase(abc.ABC):
         """Optional example function using this agent."""
         raise NotImplementedError
 
-    def _set_env(self, env: gym.Env = None, time_limit: int = 500):
+    def _set_env(self, env: gym.Env = None):
         """Create a new env object from the requested spec."""
 
         if env is None:

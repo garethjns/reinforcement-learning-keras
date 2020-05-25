@@ -10,7 +10,7 @@ import seaborn as sns
 class TrainingHistory:
     plotting_on: bool = False
     plot_every: int = 50
-    agent_name: str = 'Unnamed agent'
+    agent_name: str = 'Unnamed agents'
     rolling_average: int = 10
 
     def __post_init__(self):

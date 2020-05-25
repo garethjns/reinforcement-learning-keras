@@ -50,8 +50,6 @@ class TestAgentExperiment(unittest.TestCase):
         gpu = DeepQAgent.set_tf(256)
         if not gpu:
             self._run_exp(DeepQAgent)
-        else:
-            unittest.skip('GPU + Joblib parallel not supported')
 
     def test_short_dueling_deep_q_agent_run_completes_with_expected_outputs(self):
         DuelingDeepQAgent.set_tf(256)
@@ -61,8 +59,6 @@ class TestAgentExperiment(unittest.TestCase):
         gpu = DuelingDeepQAgent.set_tf(256)
         if not gpu:
             self._run_exp(DuelingDeepQAgent)
-        else:
-            unittest.skip('GPU + Joblib parallel not supported')
 
     def test_short_reinforce_agent_run_completes_with_expected_outputs(self):
         ReinforceAgent.set_tf(256)
@@ -72,5 +68,3 @@ class TestAgentExperiment(unittest.TestCase):
         gpu = ReinforceAgent.set_tf(256)
         if not gpu:
             self._run_exp(ReinforceAgent)
-        else:
-            unittest.skip('GPU + Joblib parallel not supported')

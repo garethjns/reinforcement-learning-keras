@@ -1,12 +1,11 @@
 import unittest
-from typing import Callable
 from unittest.mock import patch
 
-from agents.cart_pole.random.random_agent import RandomAgent
+from agents.cart_pole.q_learning.linear_q_agent import LinearQAgent
 
 
-class TestDeepQAgent(unittest.TestCase):
-    _sut = RandomAgent
+class TestLinearQAgent(unittest.TestCase):
+    _sut = LinearQAgent
 
     def test_env_set_during_init(self):
         # Act
@@ -20,7 +19,9 @@ class TestDeepQAgent(unittest.TestCase):
         agent = self._sut()
 
         # Assert
-        self.assertIsInstance(agent.model, Callable)
+        self.assertIsInstance(agent.mods, dict)
+        self.assertIsNotNone(agent.mods[0])
+        self.assertIsNotNone(agent.mods[1])
 
     def test_history_set_during_init(self):
         # Act
@@ -92,7 +93,7 @@ class TestDeepQAgent(unittest.TestCase):
             _ = agent.play_episode(max_episode_steps=4, training=True, render=False)
 
         # Assert
-        self.assertEqual(0, mocked_update_model.call_count)
+        self.assertEqual(4, mocked_update_model.call_count)
 
     def test_train_runs_multiple_episodes(self):
         # Arrange
@@ -102,6 +103,6 @@ class TestDeepQAgent(unittest.TestCase):
         with patch.object(agent, 'play_episode') as mocked_play_episode:
             _ = agent.train(n_episodes=3, max_episode_steps=3, render=False)
 
-        # Asser
+        # Assert
         self.assertEqual(3, len(agent.history.history))
         self.assertEqual(3, mocked_play_episode.call_count)

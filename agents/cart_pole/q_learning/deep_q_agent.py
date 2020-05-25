@@ -169,7 +169,7 @@ class DeepQAgent(AgentBase):
         y = []
         for i, (state, action, reward, done, state_) in enumerate(zip(ss, aa, rr, dd, ss_)):
             if done:
-                # If done, reward is just this step. For cart-pole can only be done if agent has failed, so punish.
+                # If done, reward is just this step. For cart pole can only be done if agent has failed, so punish.
                 g = - 10
             else:
                 # Otherwise, it's the reward plus the predicted max value of next action

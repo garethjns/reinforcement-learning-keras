@@ -1,16 +1,12 @@
-import copy
 import unittest
+from typing import Callable
 from unittest.mock import patch
 
-import numpy as np
-from numpy.testing import assert_array_almost_equal
-
-from agents.cart_pole.q_learning.components.replay_buffer import ReplayBuffer
-from agents.cart_pole.q_learning.linear_q_agent import LinearQAgent
+from agents.cart_pole.random.random_agent import RandomAgent
 
 
-class TestDeepQAgent(unittest.TestCase):
-    _sut = LinearQAgent
+class TestRandomAgent(unittest.TestCase):
+    _sut = RandomAgent
 
     def test_env_set_during_init(self):
         # Act
@@ -24,9 +20,7 @@ class TestDeepQAgent(unittest.TestCase):
         agent = self._sut()
 
         # Assert
-        self.assertIsInstance(agent.mods, dict)
-        self.assertIsNotNone(agent.mods[0])
-        self.assertIsNotNone(agent.mods[1])
+        self.assertIsInstance(agent.model, Callable)
 
     def test_history_set_during_init(self):
         # Act
@@ -98,7 +92,7 @@ class TestDeepQAgent(unittest.TestCase):
             _ = agent.play_episode(max_episode_steps=4, training=True, render=False)
 
         # Assert
-        self.assertEqual(4, mocked_update_model.call_count)
+        self.assertEqual(0, mocked_update_model.call_count)
 
     def test_train_runs_multiple_episodes(self):
         # Arrange

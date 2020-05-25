@@ -29,6 +29,7 @@ class RandomAgent(AgentBase):
         self.model = self._model_f
 
     def update_model(self, *args, **kwargs) -> None:
+        """No model to update."""
         pass
 
     def get_action(self, s: Any, **kwargs) -> int:
