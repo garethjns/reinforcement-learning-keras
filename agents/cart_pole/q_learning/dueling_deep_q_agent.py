@@ -1,12 +1,12 @@
-from typing import List
-
 from tensorflow import keras
 from tensorflow.keras import backend as K
+
 from agents.cart_pole.q_learning.deep_q_agent import DeepQAgent
 
 
 class DuelingDeepQAgent(DeepQAgent):
     """Exactly the same as the DQN but with a slightly modified model architecture."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name: str = 'DuelingDQNAgent'

@@ -1,4 +1,5 @@
 import copy
+import pickle
 import warnings
 from dataclasses import dataclass
 from typing import Callable
@@ -105,5 +106,14 @@ class AgentExperiment:
 
         try:
             best_agent.play_episode(training=False, render=False, max_episode_steps=self.max_episode_steps)
-        except gym.error.DependencyNotInstalled as e:
+        except (ImportError, gym.error.DependencyNotInstalled) as e:
             print(f"Monitor wrapper failed, not saving video: \n{e}")
+
+    def save(self, fn: str):
+        pickle.dump(self, open(fn, 'wb'))
+
+    def save_best_agent(self, fn: str = None):
+        if fn is None:
+            fn = f"{self.best_agent.name}.pkl"
+
+        pickle.dump(self.best_agent, open(fn, 'wb'))

@@ -64,9 +64,9 @@ python3 -m agents.cart_pole.q_learning.linear_q_learning_agent
 or
 ````python
 from agents.cart_pole.q_learning.components.epsilon_greedy import EpsilonGreedy
-from agents.cart_pole.q_learning.linear_q_agent import LinearQLearningAgent
+from agents.cart_pole.q_learning.linear_q_agent import LinearQAgent
 
-agent = LinearQLearningAgent(env_spec="CartPole-v0", 
+agent = LinearQAgent(env_spec="CartPole-v0", 
                              eps=EpsilonGreedy(eps_initial=0.5, eps_min=0.01))
 agent.train(verbose=True, render=True)
 ````
@@ -130,7 +130,6 @@ agent.train(verbose=True, render=True)
  
 ## REINFORCE (policy gradient)
 ![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/REINFORCEAgent.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/REINFORCEAgent.png)  
-
 
 Model:  
 State -> model -> [probability of action 1, probability of action 2]  

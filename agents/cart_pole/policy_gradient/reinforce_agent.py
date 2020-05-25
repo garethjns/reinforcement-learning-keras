@@ -37,7 +37,7 @@ class ReinforceAgent(AgentBase):
     def unready(self) -> None:
         super().unready()
         if self._model is not None:
-            self._weights = self._model.get_weights()
+            self._model_weights = self._model.get_weights()
             self._model = None
 
     def check_ready(self) -> None:
@@ -136,6 +136,7 @@ class ReinforceAgent(AgentBase):
 
     def play_episode(self, max_episode_steps: int = 500,
                      training: bool = False, render: bool = True) -> float:
+        self._env._max_episode_steps = max_episode_steps
         self.clear_memory()
 
         obs = self._env.reset()
@@ -155,28 +156,11 @@ class ReinforceAgent(AgentBase):
             if done:
                 break
 
-        return total_reward
-
-    def train(self, n_episodes: int = 100, max_episode_steps: int = 500,
-              verbose: bool = True, render: bool = True) -> None:
-        """
-        Run the training loop. It's the same as the linear agent version, + the value model update.
-
-        :param n_episodes: Number of episodes to run.
-        :param max_episode_steps: Max steps before stopping, overrides any time limit set by Gym.
-        :param verbose:  If verbose, use tqdm and print last episode score for feedback during training.
-        :param render: Bool to indicate whether or not to call env.render() each training step.
-        """
-        self._set_env()
-        self._set_tqdm(verbose)
-
-        for _ in self._tqdm(range(n_episodes)):
-            total_reward = self.play_episode(max_episode_steps,
-                                             training=True, render=render)
-            # Monte-Carlo update of policy model is updated (ie. after each full episode)
+        # Monte-Carlo update of policy model is updated (ie. after each full episode)
+        if training:
             self.update_model()
 
-            self._update_history(total_reward, verbose)
+        return total_reward
 
     @classmethod
     def example(cls, n_episodes: int = 500, render: bool = True) -> "ReinforceAgent":

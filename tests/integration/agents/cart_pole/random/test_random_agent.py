@@ -2,16 +2,21 @@ import os
 import unittest
 from typing import List
 
-from agents.cart_pole.q_learning.deep_q_agent import DeepQAgent
+from agents.cart_pole.random.random_agent import RandomAgent
 
 
-class TestDeepQLearningAgent(unittest.TestCase):
-    _sut = DeepQAgent
+class TestRandomAgent(unittest.TestCase):
+    """
+    The random agent is basically a non-abstract version of AgentBase. It's used here to define the general integration
+    test interface, as if it's a mocked AgentBase.
+
+    These tests are standard across agents, which just need to set the _sut accordingly, and handle calling
+    Agent.set_tf in a set up set, where required.
+    """
+
+    _sut = RandomAgent
     _created_files: List[str] = []
-
-    @classmethod
-    def setUp(cls):
-        cls._sut.set_tf(256)
+    _fn: str = 'test_random_save.agent'
 
     @classmethod
     def tearDown(cls):
@@ -26,18 +31,17 @@ class TestDeepQLearningAgent(unittest.TestCase):
         # Arrange
         agent = self._sut("CartPole-v0")
         agent.train(verbose=True, render=False, n_episodes=2)
-        fn = 'test_save.agent'
-        self._created_files += fn
+        self._created_files += self._fn
 
         # Act
-        agent.save(fn)
-        agent_2 = self._sut.load(fn)
+        agent.save(self._fn)
+        agent_2 = self._sut.load(self._fn)
         agent_2.check_ready()
 
         # Assert
         self.assertEqual(agent, agent_2)
 
-    def test_dqn_example(self):
+    def test_reinforce_example(self):
         # Act
         agent = self._sut.example(16, render=False)
 
