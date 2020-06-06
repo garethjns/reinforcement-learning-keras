@@ -1,9 +1,11 @@
 import abc
 import copy
 import pickle
-from typing import Any, Callable, Union, Dict
+from functools import reduce
+from typing import Any, Callable, Union, Dict, List
 
 import gym
+import numpy as np
 from tqdm import tqdm
 
 from agents.plotting.training_history import TrainingHistory
@@ -13,7 +15,9 @@ class AgentBase(abc.ABC):
     history: TrainingHistory
     env_spec: str
     name: str
-    _env: Union[None, gym.Env]
+    gamma: float
+
+    _env: Union[None, gym.Env] = None
     _tqdm: Callable
 
     def _pickle_compatible_getstate(self) -> Dict[str, Any]:
@@ -21,15 +25,24 @@ class AgentBase(abc.ABC):
         Prepare agent with a keras model object for pickling.
 
         Calls .unready to prepare this object for pickling, and .check_ready to put it back how it was after pickling.
-        By default, just the env is removed. GPU models can modify .unready and .check_ready to handle complied Keras
-        models, which also can't be pickled.
+        In addition to what's defined in the unready method, it avoids trying to copy the env. We can't copy this,
+        but we also don't want to make a new one (like we can with the models). This would cause a new render window
+        per episode...
+
+        The default unready method in AgentBase does nothing. The GPU models should modify .unready and .check_ready to
+        handle complied Keras, which also can't be pickled.
+
+        Object that need to use this should implement their own __getstate__:
+        def __getstate__(self) -> Dict[str, Any]:
+            return self._pickle_compatible_getstate()
+        It's not implemented in AgentBase as the standard __getstate__ is required by the deepcopy below.
         """
 
         # Remove things
         self.unready()
 
-        # Get object spec to pickle
-        object_state_dict = copy.deepcopy(self.__dict__)
+        # Get object spec to pickle, everything left except env
+        object_state_dict = copy.deepcopy({k: v for k, v in self.__dict__.items() if k not in ["_env", "env"]})
 
         # Put this object back how it was
         self.check_ready()
@@ -48,57 +61,42 @@ class AgentBase(abc.ABC):
         self._set_env()
 
     def unready(self) -> None:
-        """Remove anything that causes issues with pickling, such as the env or keras models."""
-        self._env = None
+        """Remove anything that causes issues with pickling, such as keras models."""
+        pass
 
     @classmethod
-    def set_tf(cls, gpu_memory_limit: int = 512, gpu_device_id: int = 0) -> bool:
-        """
-        Helper function for training on tf. Reduces GPU memory footprint for keras/tf models.
-
-        Creates a virtual device on the request GPU with limited memory. Will fail gracefully if GPU isn't available.
-
-        :param gpu_memory_limit: Max memory in MB for  virtual device. Setting LOWER than total available this can help
-                                 avoid out of memory errors on some set ups when TF tries to allocate too much memory
-                                 (seems to be a bug).
-        :param gpu_device_id: Integer device identifier for the real GPU the virtual GPU should use.
-        :return: Bool indicating if TF appears to be running on GPU. Can be used, for example, to avoid using
-                 multiprocessing in the caller when running on GPU. This will likely result in an exception, but may
-                 result in hanging forever, so probably best avoided.
-        """
-        import tensorflow as tf
-
-        gpu = True
-        try:
-            # Handle running on GPU: If available, reduce memory commitment to avoid over-committing error in 2.2.0 and
-            # for also for general convenience.
-            tf.config.experimental.set_virtual_device_configuration(
-                tf.config.experimental.list_physical_devices('GPU')[gpu_device_id],
-                [tf.config.experimental.VirtualDeviceConfiguration(
-                    memory_limit=gpu_memory_limit)])
-        except AttributeError:
-            # Assuming not using GPU
-            gpu = False
-        except IndexError:
-            # Assuming using GPU but indexed device not found.
-            gpu = False
-
-        return gpu
-
-    @classmethod
-    def example(cls):
+    def example(cls) -> "AgentBase":
         """Optional example function using this agent."""
         raise NotImplementedError
 
-    def _set_env(self, env: gym.Env = None):
-        """Create a new env object from the requested spec."""
+    @property
+    def env_wrappers(self) -> List[Callable]:
+        return []
 
-        if env is None:
-            self._env = gym.make(self.env_spec)
-        else:
+    def _set_env(self, env: Union[None, gym.Env] = None) -> None:
+        """
+        Create a new env object from the spec, or set a new one.
+
+        Can specify a new env, this is useful, for example, to add a Monitor wrapper.
+        """
+
+        if env is not None:
             self._env = env
 
-    def _build_pp(self):
+        if self._env is None:
+            # Make the gym environment and apply the wrappers one by one
+            self._env = reduce(lambda inner_env, wrapper: wrapper(inner_env),
+                               self.env_wrappers,
+                               gym.make(self.env_spec))
+
+    @property
+    def env(self) -> gym.Env:
+        """Use to access env, if not ready also makes it ready."""
+        self._set_env()
+
+        return self._env
+
+    def _build_pp(self) -> None:
         """Prepare pre-processor for the raw state, if needed."""
         pass
 
@@ -120,6 +118,38 @@ class AgentBase(abc.ABC):
         """Update the agents model(s)."""
         pass
 
+    @staticmethod
+    def _final_reward(reward: float) -> float:
+        """
+        Use this to define reward for end of an episode. Default is just the reward for this step.
+
+        For example:
+          - cart pole: Something negative as end is always bad (assuming not a timeout)
+          - Pong: Perhaps not negative - could win!
+        """
+        return reward
+
+    def _discounted_reward(self, reward: float, estimated_future_action_rewards: np.ndarray) -> float:
+        """Use this to define the discounted reward for unfinished episodes, default is 1 step TD."""
+        return reward + self.gamma * np.max(estimated_future_action_rewards)
+
+    def _get_reward(self, reward: float, estimated_future_action_rewards: np.ndarray, done: bool) -> float:
+        """
+        Calculate discounted reward for a single step.
+
+        :param reward: Last real reward.
+        :param estimated_future_action_rewards: Estimated future values of actions taken on next step.
+        :param done: Flag indicating if this is the last step on an episode.
+        :return: Reward.
+        """
+
+        if done:
+            # If done, reward is just this step. Can finish because agent has won or lost.
+            return self._final_reward(reward)
+        else:
+            # Otherwise, it's the reward plus the predicted max value of next action
+            return self._discounted_reward(reward, estimated_future_action_rewards)
+
     @abc.abstractmethod
     def get_action(self, s: Any, **kwargs) -> int:
         """
@@ -130,8 +160,7 @@ class AgentBase(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def play_episode(self, max_episode_steps: int = 500,
-                     training: bool = False, render: bool = True) -> float:
+    def play_episode(self, max_episode_steps: int = 500, training: bool = False, render: bool = True) -> float:
         """
         Play a single episode with the agent (run multiple steps).
 
@@ -142,8 +171,8 @@ class AgentBase(abc.ABC):
         """
         pass
 
-    def train(self, n_episodes: int = 10000, max_episode_steps: int = 500,
-              verbose: bool = True, render: bool = True) -> None:
+    def train(self, n_episodes: int = 10000, max_episode_steps: int = 500, verbose: bool = True, render: bool = True,
+              checkpoint_every: Union[bool, int] = 10, update_every: Union[bool, int] = 1) -> None:
         """
         Run the default training loop
 
@@ -151,19 +180,52 @@ class AgentBase(abc.ABC):
         :param max_episode_steps: Max steps before stopping, overrides any time limit set by Gym.
         :param verbose:  If verbose, use tqdm and print last episode score for feedback during training.
         :param render: Bool to indicate whether or not to call env.render() each training step.
+        :param checkpoint_every: Save the model every n steps while training. Set to 0 or false to turn off.
+        :param update_every: Run the _after_episode_update() step every n episodes.
         """
         self._set_tqdm(verbose)
 
-        for _ in self._tqdm(range(n_episodes)):
+        for ep in self._tqdm(range(n_episodes)):
             total_reward = self.play_episode(max_episode_steps,
-                                             training=True, render=render)
+                                             training=True,
+                                             render=render)
             self._update_history(total_reward, verbose)
+
+            if (update_every > 0) and not (ep % update_every):
+                # Run the after-episode update step
+                self._after_episode_update()
+
+            if (checkpoint_every > 0) and not (ep % checkpoint_every):
+                self.save(f"{self.name}_{self.env_spec}_checkpoint.pkl")
+
+    def _after_episode_update(self) -> None:
+        """
+        Run an update step after an episode completes.
+
+        In the default implementation of .train, update_every parameter can be used to control how often this method
+        runs.
+
+        Eg.
+         - For DQN, synchronize target and value models
+         - For REINFORCE do MC model training step
+         - For random agent this is passed
+
+         Note this there is no equivalent "during episode update" method as each agent defines it's own play_episode
+         method, which can call model specific updates as needed (eg.f or DQN this sample from buffer + training
+         step, for REINFORCE do nothing, etc.)
+        """
+        pass
+
+    @staticmethod
+    def _fake_tqdm(x: Any) -> Any:
+        return x
 
     def _set_tqdm(self, verbose: bool = False) -> None:
         """Turn tqdm on or of depending on verbosity setting."""
-        _tqdm = tqdm if verbose else lambda x: x
-
-        self._tqdm = _tqdm
+        if verbose:
+            self._tqdm = tqdm
+        else:
+            self._tqdm = self._fake_tqdm
 
     def _update_history(self, total_reward: float, verbose: bool = True) -> None:
         """
@@ -180,13 +242,13 @@ class AgentBase(abc.ABC):
             self.history.training_plot()
 
     def save(self, fn: str) -> None:
-        """Apparently compiled Keras model can be pickled now?"""
-        pickle.dump(self, open(fn, 'wb'))
+        with open(fn, 'wb') as f:
+            pickle.dump(self, f)
 
     @classmethod
     def load(cls, fn: str) -> "AgentBase":
-        """Eat pickle"""
-        new_agent = pickle.load(open(fn, 'rb'))
+        with open(fn, 'rb') as f:
+            new_agent = pickle.load(f)
         new_agent.check_ready()
 
         return new_agent

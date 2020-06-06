@@ -11,6 +11,7 @@ from agents.cart_pole.environment_processing.clipper import Clipper
 from agents.cart_pole.q_learning.components.epsilon_greedy import EpsilonGreedy
 from agents.cart_pole.q_learning.components.replay_buffer import ReplayBuffer
 from agents.plotting.training_history import TrainingHistory
+from agents.virtual_gpu import VirtualGPU
 
 
 @dataclass
@@ -50,7 +51,6 @@ class DeepQAgent(AgentBase):
         return self._pickle_compatible_getstate()
 
     def unready(self) -> None:
-        self._env = None
         if self._action_model is not None:
             self._action_model_weights = self._action_model.get_weights()
             self._action_model = None
@@ -89,7 +89,7 @@ class DeepQAgent(AgentBase):
         """
 
         # Sample observations from environment to train scaler.
-        obs = np.array([self._env.observation_space.sample() for _ in range(100000)])
+        obs = np.array([self.env.observation_space.sample() for _ in range(100000)])
 
         pipe = Pipeline([('clip', Clipper(lim=(-100, 100))),
                          ('ss', StandardScaler())])
@@ -105,10 +105,10 @@ class DeepQAgent(AgentBase):
         :param model_name: Model name.
         """
 
-        state_input = keras.layers.Input(name='input', shape=self._env.observation_space.shape)
+        state_input = keras.layers.Input(name='input', shape=self.env.observation_space.shape)
         fc1 = keras.layers.Dense(units=16, name='fc1', activation='relu')(state_input)
         fc2 = keras.layers.Dense(units=8, name='fc2', activation='relu')(fc1)
-        output = keras.layers.Dense(units=self._env.action_space.n, name='output', activation=None)(fc2)
+        output = keras.layers.Dense(units=self.env.action_space.n, name='output', activation=None)(fc2)
 
         opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
         model = keras.Model(inputs=[state_input], outputs=[output],
@@ -159,7 +159,7 @@ class DeepQAgent(AgentBase):
             return
 
         # Else sample batch from buffer
-        ss, aa, rr, dd, ss_ = self.replay_buffer.sample(self.replay_buffer_samples)
+        ss, aa, rr, dd, ss_ = self.replay_buffer.sample_batch(self.replay_buffer_samples)
 
         # For each sample, calculate targets using Bellman eq and value/target network
         states1 = np.vstack(ss)
@@ -206,7 +206,7 @@ class DeepQAgent(AgentBase):
         :return: The selected action.
         """
         action = self.eps.select(greedy_option=lambda: self.get_best_action(s),
-                                 random_option=lambda: self._env.action_space.sample(),
+                                 random_option=lambda: self.env.action_space.sample(),
                                  training=training)
 
         return action
@@ -229,17 +229,17 @@ class DeepQAgent(AgentBase):
         :param render: Bool to indicate whether or not to call env.render() each training step.
         :return: The total real reward for the episode.
         """
-        self._env._max_episode_steps = max_episode_steps
-        obs = self._env.reset()
+        self.env._max_episode_steps = max_episode_steps
+        obs = self.env.reset()
         total_reward = 0
         for _ in range(max_episode_steps):
             action = self.get_action(obs, training=training)
             prev_obs = obs
-            obs, reward, done, info = self._env.step(action)
+            obs, reward, done, info = self.env.step(action)
             total_reward += reward
 
             if render:
-                self._env.render()
+                self.env.render()
 
             if training:
                 self.update_experience(s=prev_obs, a=action, r=reward, d=done)
@@ -248,20 +248,22 @@ class DeepQAgent(AgentBase):
 
             if done:
                 break
-
-        # Value model synced with action model at the end of each episode
-        if training:
-            self.update_value_model()
-
         return total_reward
+
+    def _after_episode_update(self) -> None:
+        """Value model synced with action model at the end of each episode."""
+        print('Syncing_models')
+        self.update_value_model()
 
     @classmethod
     def example(cls, n_episodes: int = 500, render: bool = True) -> "DeepQAgent":
         """Run a quick example with n_episodes and otherwise default settings."""
-        cls.set_tf(256)
+        VirtualGPU(256)
         agent = cls("CartPole-v0")
         agent.train(verbose=True, render=render,
-                    n_episodes=n_episodes)
+                    n_episodes=n_episodes,
+                    update_every=10,
+                    checkpoint_every=10)
 
         return agent
 

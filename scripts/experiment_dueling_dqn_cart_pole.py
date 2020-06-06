@@ -11,9 +11,9 @@ def run_exp(n_episodes: int = 500, max_episode_steps: int = 500):
     exp = AgentExperiment(env_spec="CartPole-v0",
                           agent_class=DuelingDeepQAgent,
                           n_reps=4,
-                          n_jobs=1 if gpu else 4,
-                          n_episodes=n_episodes,
-                          max_episode_steps=max_episode_steps)
+                          n_jobs=1 if gpu.on else 4,
+                          training_options={"n_episodes": n_episodes,
+                                            "max_episode_steps": max_episode_steps})
 
     exp.run()
     exp.save(fn=f"{DuelingDeepQAgent.__name__}_experiment.pkl")

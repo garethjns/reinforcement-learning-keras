@@ -1,4 +1,3 @@
-import os
 import unittest
 from typing import List
 
@@ -18,20 +17,10 @@ class TestRandomAgent(unittest.TestCase):
     _created_files: List[str] = []
     _fn: str = 'test_random_save.agent'
 
-    @classmethod
-    def tearDown(cls):
-        for f in cls._created_files:
-            if os.path.exists(f):
-                try:
-                    os.remove(f)
-                except (PermissionError, IsADirectoryError):
-                    pass
-
     def test_saving_and_reloading_creates_identical_object(self):
         # Arrange
         agent = self._sut("CartPole-v0")
         agent.train(verbose=True, render=False, n_episodes=2)
-        self._created_files += self._fn
 
         # Act
         agent.save(self._fn)
@@ -41,7 +30,7 @@ class TestRandomAgent(unittest.TestCase):
         # Assert
         self.assertEqual(agent, agent_2)
 
-    def test_reinforce_example(self):
+    def test_example(self):
         # Act
         agent = self._sut.example(16, render=False)
 

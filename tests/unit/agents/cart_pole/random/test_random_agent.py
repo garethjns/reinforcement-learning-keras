@@ -17,19 +17,20 @@ class TestRandomAgent(unittest.TestCase):
     """
     _sut = RandomAgent
 
-    def _standard_set_up(self):
+    def _standard_set_up(self) -> None:
         self._n_step = 4
         self._n_episodes = 3
+        # These are the calls during .play_episode (not .train)
         self._expected_model_update_during_training_episode: int = self._n_step
         self._expected_model_update_during_playing_episode: int = 0
         self._expected_play_episode_calls = self._n_episodes
 
-    def _agent_specific_set_up(self):
+    def _agent_specific_set_up(self) -> None:
         # This agent doesn't bother calling update_model as it doesn't have one.
         self._expected_model_update_during_training_episode: int = 0
         self._expected_model_update_after_training_episode: int = 0
 
-    def setUp(self):
+    def setUp(self) -> None:
         self._standard_set_up()
         self._agent_specific_set_up()
 
@@ -45,12 +46,25 @@ class TestRandomAgent(unittest.TestCase):
         """No model to compare, nothing to assert."""
         pass
 
+    def _assert_buffer_changed(self, agent: AgentBase, checkpoint: None) -> None:
+        pass
+
     def _assert_model_changed(self, agent: AgentBase, checkpoint: None) -> None:
         """No model to compare, nothing to assert."""
         pass
 
+    def _assert_relevant_play_episode_change(self, agent: AgentBase, checkpoint: None) -> None:
+        """This can differ between MC and TD agents. In MC case model might not be updated but buffer is."""
+        self._assert_buffer_changed(agent, checkpoint)
+        self._assert_model_changed(agent, checkpoint)
+
+    def _assert_relevant_after_play_episode_change(self, agent: AgentBase, checkpoint: None) -> None:
+        """This can differ between MC and TD agents. In MC case buffer might not be updated but model is."""
+        self._assert_buffer_changed(agent, checkpoint)
+        self._assert_model_changed(agent, checkpoint)
+
     def _assert_agent_unready(self, agent: AgentBase) -> None:
-        self.assertIsNone(agent._env)
+        pass
 
     def _assert_agent_ready(self, agent: RandomAgent) -> None:
         self.assertIsNotNone(agent._env)
@@ -110,7 +124,7 @@ class TestRandomAgent(unittest.TestCase):
         # Assert
         self.assertIsInstance(reward, float)
 
-    def test_play_episode_steps_does_not_call_update_models_when_not_training(self):
+    def test_play_episode_steps_does_not_call_update_models_when_not_training(self) -> None:
         # Arrange
         agent = self._ready_agent()
 
@@ -122,7 +136,7 @@ class TestRandomAgent(unittest.TestCase):
         self.assertEqual(self._expected_model_update_during_playing_episode, mocked_update_model.call_count)
         self.assertEqual(self._n_step, agent._env._max_episode_steps)
 
-    def test_play_episode_steps_does_not_update_models_when_not_training(self):
+    def test_play_episode_steps_does_not_update_models_when_not_training(self)-> None:
         # Arrange
         agent = self._ready_agent()
         checkpoint = self._checkpoint_model(agent)
@@ -163,16 +177,44 @@ class TestRandomAgent(unittest.TestCase):
         _ = agent.play_episode(max_episode_steps=self._n_step, training=True, render=False)
 
         # Assert
-        self._assert_model_changed(agent, checkpoint)
+        self._assert_relevant_play_episode_change(agent, checkpoint)
 
     def test_train_runs_multiple_episodes(self) -> None:
         # Arrange
         agent = self._sut()
 
         # Act
-        with patch.object(agent, 'play_episode') as mocked_play_episode:
-            agent.train(n_episodes=self._n_episodes, max_episode_steps=self._n_step, render=False)
+        with patch.object(agent, 'play_episode') as mocked_play_episode, \
+                patch.object(agent, '_after_episode_update') as after_ep_update:
+            agent.train(n_episodes=self._n_episodes, max_episode_steps=self._n_step, render=False, checkpoint_every=0)
 
         # Assert
         self.assertEqual(self._n_episodes, len(agent.history.history))
         self.assertEqual(self._n_episodes, mocked_play_episode.call_count)
+        self.assertEqual(self._n_episodes, after_ep_update.call_count)
+
+    def test_train_calls_after_episode_updates_model_as_expected(self) -> None:
+        # Arrange
+        agent = self._sut()
+        checkpoint = self._checkpoint_model(agent)
+
+        # Act
+        agent.train(n_episodes=self._n_episodes, max_episode_steps=self._n_step, render=False, checkpoint_every=0)
+
+        # Assert
+        self._assert_relevant_after_play_episode_change(agent, checkpoint)
+
+    def test_train_calls_after_episode_update_as_expected_with_delayed(self) -> None:
+        # Arrange
+        agent = self._sut()
+
+        # Act
+        with patch.object(agent, 'play_episode') as mocked_play_episode, \
+                patch.object(agent, '_after_episode_update') as after_ep_update:
+            agent.train(n_episodes=self._n_episodes, max_episode_steps=self._n_step, render=False, checkpoint_every=0,
+                        update_every=2)
+
+        # Assert
+        self.assertEqual(self._n_episodes, len(agent.history.history))
+        self.assertEqual(self._n_episodes, mocked_play_episode.call_count)
+        self.assertEqual(2, after_ep_update.call_count)

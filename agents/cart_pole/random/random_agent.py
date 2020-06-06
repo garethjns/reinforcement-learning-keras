@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Dict
 
 import numpy as np
 
@@ -26,8 +26,11 @@ class RandomAgent(AgentBase):
         self._set_env()
         self._build_model()
 
+    def __getstate__(self) -> Dict[str, Any]:
+        return self._pickle_compatible_getstate()
+
     def _model_f(self):
-        return int(np.random.randint(0, self._env.action_space.n, 1))
+        return int(np.random.randint(0, self.env.action_space.n, 1))
 
     def _build_model(self) -> None:
         """Set model function. Note using a lambda breaks pickle support."""
@@ -50,43 +53,31 @@ class RandomAgent(AgentBase):
         :param render: Bool to indicate whether or not to call env.render() each training step.
         :return: The total real reward for the episode.
         """
-        self._env._max_episode_steps = max_episode_steps
-        _ = self._env.reset()
+        self.env._max_episode_steps = max_episode_steps
+        _ = self.env.reset()
         total_reward = 0
         for _ in range(max_episode_steps):
             action = self.get_action(None)
-            _, reward, done, _ = self._env.step(action)
+            _, reward, done, _ = self.env.step(action)
             total_reward += reward
 
             if render:
-                self._env.render()
+                self.env.render()
 
             if done:
                 break
 
         return total_reward
 
-    def train(self, n_episodes: int = 10000, max_episode_steps: int = 500,
-              verbose: bool = True, render: bool = True) -> None:
-        """
-        Run the training loop
-
-        :param n_episodes: Number of episodes to run.
-        :param max_episode_steps: Max steps before stopping, overrides any time limit set by Gym.
-        :param verbose:  If verbose, use tqdm and print last episode score for feedback during training.
-        :param render: Bool to indicate whether or not to call env.render() each training step.
-        """
-        self._set_tqdm(verbose)
-
-        for _ in self._tqdm(range(n_episodes)):
-            total_reward = self.play_episode(max_episode_steps,
-                                             training=True, render=render)
-            self._update_history(total_reward, verbose)
-
     @classmethod
     def example(cls, n_episodes: int = 1000, render: bool = True) -> "RandomAgent":
         agent = cls("CartPole-v0")
         agent.train(verbose=True, render=render,
-                    n_episodes=n_episodes)
+                    n_episodes=n_episodes,
+                    checkpoint_every=False)
 
         return agent
+
+
+if __name__ == "__main__":
+    RandomAgent.example()

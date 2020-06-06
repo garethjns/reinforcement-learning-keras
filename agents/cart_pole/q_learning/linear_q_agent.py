@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict
+from typing import Any, Dict
 
 import numpy as np
 from sklearn.kernel_approximation import RBFSampler
@@ -37,6 +37,9 @@ class LinearQAgent(AgentBase):
         self._build_pp()
         self._build_model()
 
+    def __getstate__(self) -> Dict[str, Any]:
+        return self._pickle_compatible_getstate()
+
     def _build_pp(self) -> None:
         """
         Create and fit the pre-processing pipeline.
@@ -56,7 +59,7 @@ class LinearQAgent(AgentBase):
                          ('rbfs', fu)])
 
         # Sample observations from env and fit pipeline
-        obs = np.array([self._env.observation_space.sample() for _ in range(10000)])
+        obs = np.array([self.env.observation_space.sample() for _ in range(10000)])
         if self.log_exemplar_space:
             obs = np.sign(obs) * np.log(np.abs(obs))
         pipe.fit(obs)
@@ -72,9 +75,9 @@ class LinearQAgent(AgentBase):
 
         # Create SGDRegressor for each action in space and initialise by calling .partial_fit for the first time on
         # dummy data
-        mods = {a: SGDRegressor() for a in range(self._env.action_space.n)}
+        mods = {a: SGDRegressor() for a in range(self.env.action_space.n)}
         for mod in mods.values():
-            mod.partial_fit(self.transform(self._env.reset()), [0])
+            mod.partial_fit(self.transform(self.env.reset()), [0])
 
         self.mods = mods
 
@@ -141,7 +144,7 @@ class LinearQAgent(AgentBase):
         :return: The selected action.
         """
         action = self.eps.select(greedy_option=lambda: self.get_best_action(s),
-                                 random_option=lambda: self._env.action_space.sample(),
+                                 random_option=lambda: self.env.action_space.sample(),
                                  training=training)
 
         return action
@@ -177,17 +180,17 @@ class LinearQAgent(AgentBase):
         :param render: Bool to indicate whether or not to call env.render() each training step.
         :return: The total real reward for the episode.
         """
-        self._env._max_episode_steps = max_episode_steps
-        obs = self._env.reset()
+        self.env._max_episode_steps = max_episode_steps
+        obs = self.env.reset()
         total_reward = 0
         for _ in range(max_episode_steps):
             action = self.get_action(obs, training=training)
             prev_obs = obs
-            obs, reward, done, info = self._env.step(action)
+            obs, reward, done, info = self.env.step(action)
             total_reward += reward
 
             if render:
-                self._env.render()
+                self.env.render()
 
             if training:
                 self.update_model(s=prev_obs, a=action, r=reward, d=done, s_=obs)
@@ -201,7 +204,8 @@ class LinearQAgent(AgentBase):
     def example(cls, n_episodes: int = 1000, render: bool = True) -> "LinearQAgent":
         agent = cls("CartPole-v0")
         agent.train(verbose=True, render=render,
-                    n_episodes=n_episodes)
+                    n_episodes=n_episodes,
+                    checkpoint_every=10)
 
         return agent
 
