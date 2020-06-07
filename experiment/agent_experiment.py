@@ -105,7 +105,7 @@ class AgentExperiment:
 
     def play_best(self, episode_steps: int = None):
         if episode_steps is None:
-            episode_steps = self.training_options["episode_steps"]
+            episode_steps = self.training_options["max_episode_steps"]
 
         best_agent = copy.deepcopy(self.best_agent)
         best_agent.check_ready()
