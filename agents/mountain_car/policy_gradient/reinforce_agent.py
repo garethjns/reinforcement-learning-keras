@@ -1,5 +1,5 @@
 from agents.cart_pole.policy_gradient.reinforce_agent import ReinforceAgent as CartReinforceAgent
-from agents.virtual_gpu import VirtualGPU
+from agents.agent_helpers.virtual_gpu import VirtualGPU
 
 
 class ReinforceAgent(CartReinforceAgent):
@@ -24,5 +24,5 @@ class ReinforceAgent(CartReinforceAgent):
 
 
 if __name__ == "__main__":
-    ReinforceAgent.example(render=True)
+    ReinforceAgent.example(render=False)
     

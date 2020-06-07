@@ -21,4 +21,4 @@ def run_exp(n_episodes: int = 500, max_episode_steps: int = 500):
 
 
 if __name__ == "__main__":
-    run_exp(n_episodes=10)
+    run_exp(n_episodes=500)

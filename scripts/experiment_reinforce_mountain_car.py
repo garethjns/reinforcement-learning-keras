@@ -1,7 +1,7 @@
 """Train and few DeepQAgents, plot the results, and run an episode on the best agent."""
 
 from agents.mountain_car.policy_gradient.reinforce_agent import ReinforceAgent
-from agents.agent_helpersvirtual_gpu import VirtualGPU
+from agents.agent_helpers.virtual_gpu import VirtualGPU
 
 from experiment.agent_experiment import AgentExperiment
 

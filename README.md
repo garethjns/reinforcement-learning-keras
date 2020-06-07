@@ -59,7 +59,7 @@ Environment observations are preprocessed in an sklearn pipeline that clips, sca
 
 ### Run example
 ````bash
-python3 -m agents.cart_pole.q_learning.linear_q_learning_agent
+python3 -m agents.cart_pole.q_learning.linear_q_agent
 ````
 or
 ````python
@@ -153,3 +153,24 @@ ReinforceAgent.set_tf(256)  # Optional, limit tensorflow memory commitment to 25
 agent = ReinforceAgent(env_spec="CartPole-v0")
 agent.train(verbose=True, render=True)
 ````
+
+
+# Mountain car
+
+## Linear Q learner
+![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/LinearQAgentMC.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/LinearQAgentMC.png)  
+
+### Run example
+````bash
+python3 -m agents.mountain_car.q_learning.linear_q_agent
+````
+or
+````python
+from agents.mountain_car.q_learning.linear_q_agent import LinearQAgent
+
+agent = LinearQAgent(env_spec="MountainCar-v0")
+agent.train(verbose=True, render=True)
+````
+
+## Linear Q learner
+![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgent.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgent.png)  
