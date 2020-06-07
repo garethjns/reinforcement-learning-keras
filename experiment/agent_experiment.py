@@ -93,9 +93,7 @@ class AgentExperiment:
                  label='Best (mv avg)', ls='--', color='#d62728', lw=0.5)
         plt.plot(np.convolve(self.worst_agent.history.history, np.ones(mv_avg_pts), 'valid') / mv_avg_pts,
                  label='Worst (mv avg)', ls='--', color='#9467bd', lw=0.5)
-        plt.fill_between(range(len(y_mean)),
-                         [max(0, s) for s in y_mean - y_std],
-                         [min(len(y_mean), s) for s in y_mean + y_std],
+        plt.fill_between(range(len(y_mean)), y_mean - y_std, y_mean + y_std,
                          color='lightgray', label='Score std')
 
         plt.title(f'{self._trained_agents[0].name}', fontweight='bold')
@@ -105,7 +103,10 @@ class AgentExperiment:
         plt.tight_layout()
         plt.savefig(f'{self.name}_{self.env_spec}_{self._trained_agents[0].name}.png')
 
-    def play_best(self, episode_steps: int = 500):
+    def play_best(self, episode_steps: int = None):
+        if episode_steps is None:
+            episode_steps = self.training_options["episode_steps"]
+
         best_agent = copy.deepcopy(self.best_agent)
         best_agent.check_ready()
         best_agent._env_builder.set_env(gym.wrappers.Monitor(best_agent.env,

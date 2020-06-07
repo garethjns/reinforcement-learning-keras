@@ -14,7 +14,7 @@ class LinearQAgent(CartLinearQAgent):
         agent.train(verbose=True, render=render,
                     max_episode_steps=2000,
                     n_episodes=n_episodes,
-                    checkpoint_every=10)
+                    checkpoint_every=25)
 
         return agent
 

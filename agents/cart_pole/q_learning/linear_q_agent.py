@@ -205,7 +205,7 @@ class LinearQAgent(AgentBase):
         agent = cls("CartPole-v0")
         agent.train(verbose=True, render=render,
                     n_episodes=n_episodes,
-                    checkpoint_every=10)
+                    checkpoint_every=20)
 
         return agent
 

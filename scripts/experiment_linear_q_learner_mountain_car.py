@@ -5,7 +5,7 @@ from agents.mountain_car.q_learning.linear_q_agent import LinearQAgent
 from experiment.agent_experiment import AgentExperiment
 
 
-def run_exp(n_episodes: int = 1000, max_episode_steps: int = 1000):
+def run_exp(n_episodes: int = 500, max_episode_steps: int = 1000):
     exp = AgentExperiment(env_spec="MountainCar-v0",
                           agent_class=LinearQAgent,
                           n_reps=6,
