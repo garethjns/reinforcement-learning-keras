@@ -1,52 +1,35 @@
-from functools import partial
 from typing import List, Callable
 
 import numpy as np
 from tensorflow import keras
 
-from agents.cart_pole.q_learning.components.epsilon_greedy import EpsilonGreedy
-from agents.cart_pole.q_learning.components.replay_buffer import ReplayBuffer
 from agents.cart_pole.q_learning.deep_q_agent import DeepQAgent as CartDeepQAgent
-from agents.plotting.training_history import TrainingHistory
-from agents.pong.environment_processing.fire_start_wrapper import FireStartWrapper
-from agents.pong.environment_processing.frame_buffer_wrapper import FrameBufferWrapper
-from agents.pong.environment_processing.image_process_wrapper import ImageProcessWrapper
-from agents.pong.environment_processing.max_and_skip_wrapper import MaxAndSkipWrapper
+from agents.pong.pong_environment_templates import WRAPPERS_DIFF, WRAPPERS_STACK
 from agents.virtual_gpu import VirtualGPU
 
 
 class DeepQAgent(CartDeepQAgent):
+    """
+    DeepQAgent set up for the Pong environment.
+
+    frame_depth controls two available modes for the FrameBufferWrapper. This wrapper buffers frames before (before the agent sees them) and can either return a sequence of frames or the diff between the last two frames.
+     - frame_depth = 1 uses 'diff' mode of FrameBufferWrapper to return diff of last two frames in shape (84, 84, 1)
+     - frame_depth > 1 returns sequence of n frames as channels shape (84, 84, n)
+    """
     env_spec: str = "Pong-v0"
     learning_rate: float = 0.1
-
-    def __post_init__(self) -> None:
-        self.history = TrainingHistory(plotting_on=self.plot_during_training,
-                                       plot_every=10,
-                                       rolling_average=10,
-                                       agent_name=self.name)
-
-        if self.eps is None:
-            # Prepare the default EpsilonGreedy sampler if one is not specified.
-            self.eps = EpsilonGreedy(eps_initial=0.2,
-                                     decay=0.002,
-                                     eps_min=0.002)
-
-        if self.replay_buffer is None:
-            # Prepare the default ReplayBuffer if one is not specified.
-            self.replay_buffer = ReplayBuffer(buffer_size=200)
-
-        self._set_env()
-        self._build_pp()
-        self._build_model()
+    frame_depth: int = 1
 
     @property
     def env_wrappers(self) -> List[Callable]:
-        # Wrappers to add to environment when built. Order is [Applied first (inner), ...,  applied last (outer)]
-        # self.env_wrappers = [MaxAndSkipWrapper, ImageProcessWrapper, FireStartWrapper, FrameBufferWrapper]
-        return [MaxAndSkipWrapper, ImageProcessWrapper, FireStartWrapper,
-                partial(FrameBufferWrapper,
-                        buffer_length=2,
-                        buffer_function='diff')]
+        """
+        Wrappers to add to environment when built. Order is [Applied first (inner), ...,  applied last (outer)]
+
+        :return: List of wrappers. Can include partial functions.
+
+        Here frame_buffer param sets diff or sequence mode of FrameBufferWrapper.
+        """
+        return WRAPPERS_DIFF if self.frame_depth == 1 else WRAPPERS_STACK
 
     def _build_pp(self) -> None:
         """Prepare pre-processor for the raw state, if needed."""
@@ -60,32 +43,32 @@ class DeepQAgent(CartDeepQAgent):
         return s
 
     def _build_model_copy(self, model_name: str):
-        # frame_input = keras.layers.Input(name='input', shape=(84, 84, 3))
-        frame_input = keras.layers.Input(name='input', shape=(84, 84, 1))
-        conv1 = keras.layers.Conv2D(32, kernel_size=(9, 9),
-                                    strides=(4, 4),
+        frame_input = keras.layers.Input(name='input', shape=(84, 84, self.frame_depth))
+        conv1 = keras.layers.Conv2D(16, kernel_size=(9, 9),
+                                    strides=(2, 2),
                                     name='conv1',
                                     padding='same',
                                     activation='relu')(frame_input)
-        # max_pool1 = keras.layers.MaxPooling2D(pool_size=(2, 2), name='max_pool1')(conv1)
-        conv2 = keras.layers.Conv2D(16, kernel_size=(9, 9),
-                                    strides=(2, 2),
+        conv2 = keras.layers.Conv2D(32, kernel_size=(6, 6),
+                                    strides=(1, 1),
                                     name='conv2',
                                     padding='same',
                                     activation='relu')(conv1)
-        # max_pool3 = keras.layers.MaxPooling2D(pool_size=(2, 2), name='max_pool3')(conv2)
-
-        flatten = keras.layers.Flatten(name='flatten')(conv2)
-        fc1 = keras.layers.Dense(units=400, name='fc1', activation='relu')(flatten)
+        conv3 = keras.layers.Conv2D(64, kernel_size=(3, 3),
+                                    strides=(1, 1),
+                                    name='conv2',
+                                    padding='same',
+                                    activation='relu')(conv2)
+        flatten = keras.layers.Flatten(name='flatten')(conv3)
+        fc1 = keras.layers.Dense(units=300, name='fc1', activation='relu')(flatten)
         fc2 = keras.layers.Dense(units=64, name='fc2', activation='relu')(fc1)
-        output = keras.layers.Dense(units=self.env.action_space.n, name='output', activation=None)(fc2)
+        action_value_output = keras.layers.Dense(units=self.env.action_space.n, name='output',
+                                                 activation=None)(fc2)
 
         opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
-        model = keras.Model(inputs=[frame_input], outputs=[output],
+        model = keras.Model(inputs=[frame_input], outputs=[action_value_output],
                             name=model_name)
         model.compile(opt, loss='mse')
-
-        # keras.utils.plot_model(model, to_file=f'{model_name}.png')
 
         return model
 
@@ -154,5 +137,4 @@ class DeepQAgent(CartDeepQAgent):
 
 
 if __name__ == "__main__":
-    agent = DeepQAgent.example(render=True)
-    agent.save("test_pong_dqn.pkl")
+    agent_ = DeepQAgent.example(render=True)

@@ -40,7 +40,7 @@ class TestLinearQAgent(TestRandomAgent):
         self._assert_model_changed(agent, checkpoint)
 
     def _assert_agent_ready(self, agent: LinearQAgent) -> None:
-        self.assertIsNotNone(agent._env)
+        self.assertIsNotNone(agent._env_builder._env)
 
     def test_model_set_during_init(self) -> None:
         # Act

@@ -8,6 +8,8 @@ import gym
 import numpy as np
 from tqdm import tqdm
 
+from agents.agent_helpers.env_builder import EnvBuilder
+from agents.agent_helpers.tqdm_handler import TQDMHandler
 from agents.plotting.training_history import TrainingHistory
 
 
@@ -17,8 +19,13 @@ class AgentBase(abc.ABC):
     name: str
     gamma: float
 
-    _env: Union[None, gym.Env] = None
-    _tqdm: Callable
+    def __post_init__(self) -> None:
+        self._tqdm = TQDMHandler()
+        self._env_builder = EnvBuilder(self.env_spec, self.env_wrappers)
+
+    @property
+    def env(self) -> gym.Env:
+        return self._env_builder.env
 
     def _pickle_compatible_getstate(self) -> Dict[str, Any]:
         """
@@ -42,7 +49,7 @@ class AgentBase(abc.ABC):
         self.unready()
 
         # Get object spec to pickle, everything left except env
-        object_state_dict = copy.deepcopy({k: v for k, v in self.__dict__.items() if k not in ["_env", "env"]})
+        object_state_dict = copy.deepcopy({k: v for k, v in self.__dict__.items() if k not in ["_env_builder", "env"]})
 
         # Put this object back how it was
         self.check_ready()
@@ -58,7 +65,8 @@ class AgentBase(abc.ABC):
         Example of other model specific steps that might need doing:
          - For Keras models, check model is ready, for example if it needs recompiling after loading.
         """
-        self._set_env()
+        self._env_builder = EnvBuilder(self.env_spec, self.env_wrappers)
+        self._env_builder.set_env()
 
     def unready(self) -> None:
         """Remove anything that causes issues with pickling, such as keras models."""
@@ -72,29 +80,6 @@ class AgentBase(abc.ABC):
     @property
     def env_wrappers(self) -> List[Callable]:
         return []
-
-    def _set_env(self, env: Union[None, gym.Env] = None) -> None:
-        """
-        Create a new env object from the spec, or set a new one.
-
-        Can specify a new env, this is useful, for example, to add a Monitor wrapper.
-        """
-
-        if env is not None:
-            self._env = env
-
-        if self._env is None:
-            # Make the gym environment and apply the wrappers one by one
-            self._env = reduce(lambda inner_env, wrapper: wrapper(inner_env),
-                               self.env_wrappers,
-                               gym.make(self.env_spec))
-
-    @property
-    def env(self) -> gym.Env:
-        """Use to access env, if not ready also makes it ready."""
-        self._set_env()
-
-        return self._env
 
     def _build_pp(self) -> None:
         """Prepare pre-processor for the raw state, if needed."""
@@ -183,9 +168,9 @@ class AgentBase(abc.ABC):
         :param checkpoint_every: Save the model every n steps while training. Set to 0 or false to turn off.
         :param update_every: Run the _after_episode_update() step every n episodes.
         """
-        self._set_tqdm(verbose)
+        self._tqdm.set_tqdm(verbose)
 
-        for ep in self._tqdm(range(n_episodes)):
+        for ep in self._tqdm.tqdm_runner(range(n_episodes)):
             total_reward = self.play_episode(max_episode_steps,
                                              training=True,
                                              render=render)
@@ -215,17 +200,6 @@ class AgentBase(abc.ABC):
          step, for REINFORCE do nothing, etc.)
         """
         pass
-
-    @staticmethod
-    def _fake_tqdm(x: Any) -> Any:
-        return x
-
-    def _set_tqdm(self, verbose: bool = False) -> None:
-        """Turn tqdm on or of depending on verbosity setting."""
-        if verbose:
-            self._tqdm = tqdm
-        else:
-            self._tqdm = self._fake_tqdm
 
     def _update_history(self, total_reward: float, verbose: bool = True) -> None:
         """

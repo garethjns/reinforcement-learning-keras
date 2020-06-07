@@ -1,7 +1,7 @@
 import unittest
 
 from agents.cart_pole.q_learning.dueling_deep_q_agent import DuelingDeepQAgent
-from agents.virtual_gpu import VirtualGPU
+from agents.agent_helpers.virtual_gpu import VirtualGPU
 
 
 class TestDeepQLearningAgent(unittest.TestCase):

@@ -5,7 +5,7 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal
 
 from agents.cart_pole.policy_gradient.reinforce_agent import ReinforceAgent
-from agents.virtual_gpu import VirtualGPU
+from agents.agent_helpers.virtual_gpu import VirtualGPU
 from tests.unit.agents.cart_pole.random.test_random_agent import TestRandomAgent
 
 
@@ -50,6 +50,6 @@ class TestReinforceAgent(TestRandomAgent):
         self.assertIsNotNone(agent._model_weights)
 
     def _assert_agent_ready(self, agent: ReinforceAgent) -> None:
-        self.assertIsNotNone(agent._env)
+        self.assertIsNotNone(agent._env_builder._env)
         self.assertIsNotNone(agent._model)
         self.assertIsNone(agent._model_weights)

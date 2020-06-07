@@ -23,6 +23,7 @@ class LinearQAgent(AgentBase):
     log_exemplar_space: bool = False
 
     def __post_init__(self, ) -> None:
+        super().__post_init__()
         self.history = TrainingHistory(plotting_on=self.plot_during_training,
                                        plot_every=200,
                                        rolling_average=12,
@@ -33,7 +34,6 @@ class LinearQAgent(AgentBase):
             self.eps = EpsilonGreedy(eps_initial=0.4,
                                      eps_min=0.01)
 
-        self._set_env()
         self._build_pp()
         self._build_model()
 

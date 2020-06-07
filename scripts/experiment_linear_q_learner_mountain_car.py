@@ -8,8 +8,8 @@ from experiment.agent_experiment import AgentExperiment
 def run_exp(n_episodes: int = 1000, max_episode_steps: int = 1000):
     exp = AgentExperiment(env_spec="MountainCar-v0",
                           agent_class=LinearQAgent,
-                          n_reps=8,
-                          n_jobs=4,
+                          n_reps=6,
+                          n_jobs=6,
                           training_options={"n_episodes": n_episodes,
                                             "max_episode_steps": max_episode_steps})
 

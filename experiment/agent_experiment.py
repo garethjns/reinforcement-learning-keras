@@ -50,11 +50,11 @@ class AgentExperiment:
         return self._trained_agents[int(np.argmin(self.agent_scores))]
 
     @staticmethod
-    def _fit_agent(agent_class: Callable, training_options: Dict[str, Any]):
+    def _fit_agent(agent_class: Callable, env_spec: str, training_options: Dict[str, Any]):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', FutureWarning)
 
-            agent = agent_class(env_spec="CartPole-v0")
+            agent = agent_class(env_spec=env_spec)
             agent.train(**training_options)
             agent.unready()
 
@@ -63,7 +63,7 @@ class AgentExperiment:
     def _run(self) -> None:
         self._trained_agents = Parallel(
             backend='loky', verbose=10,
-            n_jobs=self.n_jobs)(delayed(self._fit_agent)(self.agent_class, self.training_options)
+            n_jobs=self.n_jobs)(delayed(self._fit_agent)(self.agent_class, self.env_spec, self.training_options)
                                 for _ in range(self.n_reps))
 
     def run(self) -> None:
@@ -105,12 +105,12 @@ class AgentExperiment:
         plt.tight_layout()
         plt.savefig(f'{self.name}_{self.env_spec}_{self._trained_agents[0].name}.png')
 
-    def play_best(self, episode_steps: int=500):
+    def play_best(self, episode_steps: int = 500):
         best_agent = copy.deepcopy(self.best_agent)
         best_agent.check_ready()
-        best_agent._set_env(gym.wrappers.Monitor(best_agent._env,
-                                                 f'{self._trained_agents[0].name}_monitor_dir',
-                                                 force=True))
+        best_agent._env_builder.set_env(gym.wrappers.Monitor(best_agent.env,
+                                                             f'{self._trained_agents[0].name}_monitor_dir',
+                                                             force=True))
 
         try:
             best_agent.play_episode(training=False, render=False, max_episode_steps=episode_steps)

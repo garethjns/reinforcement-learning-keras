@@ -1,7 +1,7 @@
 import unittest
 
 from agents.cart_pole.policy_gradient.reinforce_agent import ReinforceAgent
-from agents.virtual_gpu import VirtualGPU
+from agents.agent_helpers.virtual_gpu import VirtualGPU
 
 
 class TestReinforceAgent(unittest.TestCase):

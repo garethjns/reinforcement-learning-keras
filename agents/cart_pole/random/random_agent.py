@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 from typing import Any, Dict
 
-import numpy as np
-
 from agents.agent_base import AgentBase
+from agents.cart_pole.random.random_model import RandomModel
 from agents.plotting.training_history import TrainingHistory
 
 
@@ -18,30 +17,27 @@ class RandomAgent(AgentBase):
     name: str = 'RandomAgent'
     plot_during_training: bool = True
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
+        super().__post_init__()
         self.history = TrainingHistory(plotting_on=self.plot_during_training,
                                        plot_every=25,
                                        rolling_average=12,
                                        agent_name=self.name)
-        self._set_env()
         self._build_model()
 
     def __getstate__(self) -> Dict[str, Any]:
         return self._pickle_compatible_getstate()
 
-    def _model_f(self):
-        return int(np.random.randint(0, self.env.action_space.n, 1))
-
     def _build_model(self) -> None:
         """Set model function. Note using a lambda breaks pickle support."""
-        self.model = self._model_f
+        self.model = RandomModel(self.env.action_space.n)
 
     def update_model(self, *args, **kwargs) -> None:
         """No model to update."""
         pass
 
     def get_action(self, s: Any, **kwargs) -> int:
-        return self.model()
+        return self.model.predict()
 
     def play_episode(self, max_episode_steps: int = 500,
                      training: bool = False, render: bool = True) -> float:

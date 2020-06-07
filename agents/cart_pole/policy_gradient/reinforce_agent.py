@@ -8,7 +8,7 @@ from tensorflow.keras import backend as K
 
 from agents.agent_base import AgentBase
 from agents.plotting.training_history import TrainingHistory
-from agents.virtual_gpu import VirtualGPU
+from agents.agent_helpers.virtual_gpu import VirtualGPU
 
 
 @dataclass
@@ -33,6 +33,7 @@ class ReinforceAgent(AgentBase):
     _model_weights: Union[np.ndarray, None] = None
 
     def __post_init__(self) -> None:
+        super().__post_init__()
         self.history = TrainingHistory(plotting_on=self.plot_during_training,
                                        plot_every=25,
                                        rolling_average=12,
@@ -41,7 +42,6 @@ class ReinforceAgent(AgentBase):
         # Keep track of number of trained episodes, only used for IDing episodes in buffer.
         self._ep_tracker: int = -1
 
-        self._set_env()
         self._build_model()
         self.clear_memory()
 
@@ -217,8 +217,7 @@ class ReinforceAgent(AgentBase):
         return total_reward
 
     def _after_episode_update(self) -> None:
-        # Monte-Carlo update of policy model is updated (ie. after each full episode, or more)
-        print("running_update_step")
+        """Monte-Carlo update of policy model is updated (ie. after each full episode, or more)"""
         self.update_model()
         self.clear_memory()
 

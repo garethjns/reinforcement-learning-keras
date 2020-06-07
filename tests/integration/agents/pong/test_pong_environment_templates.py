@@ -1,9 +1,11 @@
+"""TODO: Not finished. Can use to check if outputs look correct manually..."""
+
 import unittest
 
 import numpy as np
 
-from agents.pong.pong_environment import ENV_DIFF
-from agents.pong.pong_environment import ENV_STACK
+from agents.pong.pong_environment_templates import ENV_DIFF
+from agents.pong.pong_environment_templates import ENV_STACK
 
 
 class TestPongStackEnvironment(unittest.TestCase):
@@ -66,7 +68,7 @@ class TestPongStackEnvironment(unittest.TestCase):
 
             # Manually assert
             self._plot_obs(obs,
-                           show=True)
+                           show=False)
 
 
 class TestPongDiffEnv(TestPongStackEnvironment):

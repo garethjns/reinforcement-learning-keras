@@ -1,9 +1,9 @@
 import unittest
-from typing import Callable
 from unittest.mock import patch
 
 from agents.agent_base import AgentBase
 from agents.cart_pole.random.random_agent import RandomAgent
+from agents.cart_pole.random.random_model import RandomModel
 
 
 class TestRandomAgent(unittest.TestCase):
@@ -47,6 +47,7 @@ class TestRandomAgent(unittest.TestCase):
         pass
 
     def _assert_buffer_changed(self, agent: AgentBase, checkpoint: None) -> None:
+        """No buffer to change in RandomAgent."""
         pass
 
     def _assert_model_changed(self, agent: AgentBase, checkpoint: None) -> None:
@@ -64,18 +65,19 @@ class TestRandomAgent(unittest.TestCase):
         self._assert_model_changed(agent, checkpoint)
 
     def _assert_agent_unready(self, agent: AgentBase) -> None:
+        """Nothing to unready in RandomAgent."""
         pass
 
     def _assert_agent_ready(self, agent: RandomAgent) -> None:
-        self.assertIsNotNone(agent._env)
-        self.assertIsInstance(agent.model, Callable)
+        self.assertIsNotNone(agent._env_builder._env)
+        self.assertIsInstance(agent.model, RandomModel)
 
     def test_env_set_during_init(self) -> None:
         # Act
         agent = self._ready_agent()
 
         # Assert
-        self.assertIsNotNone(agent._env)
+        self.assertIsNotNone(agent._env_builder._env)
 
     def test_model_set_during_init(self) -> None:
         # Act
@@ -134,9 +136,9 @@ class TestRandomAgent(unittest.TestCase):
 
         # Assert
         self.assertEqual(self._expected_model_update_during_playing_episode, mocked_update_model.call_count)
-        self.assertEqual(self._n_step, agent._env._max_episode_steps)
+        self.assertEqual(self._n_step, agent._env_builder._env._max_episode_steps)
 
-    def test_play_episode_steps_does_not_update_models_when_not_training(self)-> None:
+    def test_play_episode_steps_does_not_update_models_when_not_training(self) -> None:
         # Arrange
         agent = self._ready_agent()
         checkpoint = self._checkpoint_model(agent)

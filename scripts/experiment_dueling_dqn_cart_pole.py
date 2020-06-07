@@ -1,12 +1,12 @@
 """Train and few DeepQAgents, plot the results, and run an episode on the best agent."""
-
+from agents.agent_helpers.virtual_gpu import VirtualGPU
 from agents.cart_pole.q_learning.dueling_deep_q_agent import DuelingDeepQAgent
 
 from experiment.agent_experiment import AgentExperiment
 
 
 def run_exp(n_episodes: int = 500, max_episode_steps: int = 500):
-    gpu = DuelingDeepQAgent.set_tf(256)
+    gpu = VirtualGPU(256)
 
     exp = AgentExperiment(env_spec="CartPole-v0",
                           agent_class=DuelingDeepQAgent,

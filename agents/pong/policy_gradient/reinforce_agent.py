@@ -1,4 +1,3 @@
-from functools import partial
 from typing import List, Callable, Union
 
 import numpy as np
@@ -6,16 +5,14 @@ from tensorflow import keras
 
 from agents.cart_pole.policy_gradient.reinforce_agent import ReinforceAgent as CartReinforceAgent
 from agents.plotting.training_history import TrainingHistory
-from agents.pong.environment_processing.fire_start_wrapper import FireStartWrapper
-from agents.pong.environment_processing.frame_buffer_wrapper import FrameBufferWrapper
-from agents.pong.environment_processing.image_process_wrapper import ImageProcessWrapper
-from agents.pong.environment_processing.max_and_skip_wrapper import MaxAndSkipWrapper
+from agents.pong.pong_environment_templates import WRAPPERS_DIFF, WRAPPERS_STACK
 from agents.virtual_gpu import VirtualGPU
 
 
 class ReinforceAgent(CartReinforceAgent):
     env_spec: str = "Pong-v0"
     env_wrappers: List[Callable] = None
+    frame_depth: int = 1
 
     def __post_init__(self) -> None:
         self.env_spec: str = "Pong-v0"
@@ -30,12 +27,14 @@ class ReinforceAgent(CartReinforceAgent):
 
     @property
     def env_wrappers(self) -> List[Callable]:
-        # Wrappers to add to environment when built. Order is [Applied first (inner), ...,  applied last (outer)]
-        # self.env_wrappers = [MaxAndSkipWrapper, ImageProcessWrapper, FireStartWrapper, FrameBufferWrapper]
-        return [MaxAndSkipWrapper, ImageProcessWrapper, FireStartWrapper,
-                partial(FrameBufferWrapper,
-                        buffer_length=2,
-                        buffer_function='diff')]
+        """
+        Wrappers to add to environment when built. Order is [Applied first (inner), ...,  applied last (outer)]
+
+        :return: List of wrappers. Can include partial functions.
+
+        Here frame_buffer param sets diff or sequence mode of FrameBufferWrapper.
+        """
+        return WRAPPERS_DIFF if self.frame_depth == 1 else WRAPPERS_STACK
 
     def _build_pp(self) -> None:
         """Prepare pre-processor for the raw state, if needed."""
@@ -52,20 +51,17 @@ class ReinforceAgent(CartReinforceAgent):
         return s
 
     def _build_model(self):
-        # frame_input = keras.layers.Input(name='input', shape=(84, 84, 3))
         frame_input = keras.layers.Input(name='input', shape=(84, 84, 1))
         conv1 = keras.layers.Conv2D(32, kernel_size=(6, 6),
                                     strides=(2, 2),
                                     name='conv1',
                                     padding='same',
                                     activation='relu')(frame_input)
-        # max_pool1 = keras.layers.MaxPooling2D(pool_size=(2, 2), name='max_pool1')(conv1)
         conv2 = keras.layers.Conv2D(16, kernel_size=(6, 6),
                                     strides=(2, 2),
                                     name='conv2',
                                     padding='same',
                                     activation='relu')(conv1)
-        # max_pool3 = keras.layers.MaxPooling2D(pool_size=(2, 2), name='max_pool3')(conv2)
 
         flatten = keras.layers.Flatten(name='flatten')(conv2)
         fc1 = keras.layers.Dense(units=128, name='fc1', activation='relu')(flatten)

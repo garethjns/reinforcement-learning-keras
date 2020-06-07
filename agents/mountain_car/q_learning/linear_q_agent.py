@@ -6,13 +6,13 @@ class LinearQAgent(CartLinearQAgent):
 
     @staticmethod
     def _final_reward(reward: float) -> float:
-        return 250
+        return 500
 
     @classmethod
     def example(cls, n_episodes: int = 1000, render: bool = True) -> "LinearQAgent":
         agent = cls("MountainCar-v0")
         agent.train(verbose=True, render=render,
-                    max_episode_steps=1000,
+                    max_episode_steps=2000,
                     n_episodes=n_episodes,
                     checkpoint_every=10)
 

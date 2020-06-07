@@ -6,7 +6,7 @@ from agents.cart_pole.q_learning.deep_q_agent import DeepQAgent
 from agents.cart_pole.q_learning.dueling_deep_q_agent import DuelingDeepQAgent
 from agents.cart_pole.q_learning.linear_q_agent import LinearQAgent
 from agents.cart_pole.random.random_agent import RandomAgent
-from agents.virtual_gpu import VirtualGPU
+from agents.agent_helpers.virtual_gpu import VirtualGPU
 from experiment.agent_experiment import AgentExperiment
 
 

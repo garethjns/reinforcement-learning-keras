@@ -7,7 +7,7 @@ from numpy.testing import assert_array_almost_equal
 
 from agents.cart_pole.q_learning.components.replay_buffer import ReplayBuffer
 from agents.cart_pole.q_learning.deep_q_agent import DeepQAgent
-from agents.virtual_gpu import VirtualGPU
+from agents.agent_helpers.virtual_gpu import VirtualGPU
 from tests.unit.agents.cart_pole.random.test_random_agent import TestRandomAgent
 
 
@@ -43,18 +43,26 @@ class TestDeepQAgent(TestRandomAgent):
         self._assert_buffer_changed(agent, checkpoint)
 
     def _assert_relevant_after_play_episode_change(self, agent: DeepQAgent, checkpoint: List[np.ndarray]) -> None:
+        """TODO: self._assert_value_model_changed(agent, checkpoint) (?)"""
         pass
 
     def _assert_buffer_changed(self, agent: DeepQAgent, checkpoint: List[np.ndarray]) -> None:
         # TODO
         pass
 
-    def _assert_model_changed(self, agent: DeepQAgent, checkpoint: List[np.ndarray]) -> None:
+    def _assert_action_model_changed(self, agent: DeepQAgent, checkpoint: List[np.ndarray]) -> None:
         action_weights = agent._action_model.get_weights()
-        value_weights = agent._value_model.get_weights()
         for w in range(len(checkpoint)):
             self.assertFalse(np.all(action_weights[w].round(6) == checkpoint[w].round(6)))
+
+    def _assert_value_model_changed(self, agent: DeepQAgent, checkpoint: List[np.ndarray]) -> None:
+        value_weights = agent._value_model.get_weights()
+        for w in range(len(checkpoint)):
             self.assertFalse(np.all(value_weights[w].round(6) == checkpoint[w].round(6)))
+
+    def _assert_model_changed(self, agent: DeepQAgent, checkpoint: List[np.ndarray]) -> None:
+        self._assert_action_model_changed(agent, checkpoint)
+        self._assert_value_model_changed(agent, checkpoint)
 
     def _assert_agent_unready(self, agent: DeepQAgent) -> None:
         self.assertIsNone(agent._action_model)
@@ -78,7 +86,7 @@ class TestDeepQAgent(TestRandomAgent):
         # Assert
         self.assertEqual(self._expected_model_update_during_playing_episode, mocked_update_model.call_count)
         self.assertEqual(self._expected_model_update_after_playing_episode, mocked_update_value_model.call_count)
-        self.assertEqual(self._n_step, agent._env._max_episode_steps)
+        self.assertEqual(self._n_step, agent._env_builder._env._max_episode_steps)
 
     def test_play_episode_steps_calls_update_models_when_training(self) -> None:
         # Arrange
@@ -92,4 +100,4 @@ class TestDeepQAgent(TestRandomAgent):
         # Assert
         self.assertEqual(self._expected_model_update_during_training_episode, mocked_update_model.call_count)
         self.assertEqual(self._expected_model_update_after_training_episode, mocked_update_value_model.call_count)
-        self.assertEqual(self._n_step, agent._env._max_episode_steps)
+        self.assertEqual(self._n_step, agent._env_builder._env._max_episode_steps)

@@ -1,7 +1,7 @@
 """Train and few DeepQAgents, plot the results, and run an episode on the best agent."""
 
 from agents.mountain_car.q_learning.deep_q_agent import DeepQAgent
-from agents.virtual_gpu import VirtualGPU
+from agents.agent_helpers.virtual_gpu import VirtualGPU
 
 from experiment.agent_experiment import AgentExperiment
 
@@ -21,4 +21,4 @@ def run_exp(n_episodes: int = 500, max_episode_steps: int = 1000):
 
 
 if __name__ == "__main__":
-    run_exp(n_episodes=500)
+    run_exp(n_episodes=10)

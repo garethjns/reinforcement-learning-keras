@@ -1,8 +1,8 @@
 from agents.agent_helpers.virtual_gpu import VirtualGPU
-from agents.cart_pole.q_learning.deep_q_agent import DeepQAgent as CartDeepQAgent
+from agents.cart_pole.q_learning.dueling_deep_q_agent import DuelingDeepQAgent as CartDuelingDeepQAgent
 
 
-class DeepQAgent(CartDeepQAgent):
+class DeepQAgent(CartDuelingDeepQAgent):
     env_spec: str = "MountainCar-v0"
     learning_rate: float = 0.001
 

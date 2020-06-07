@@ -11,7 +11,7 @@ from agents.cart_pole.environment_processing.clipper import Clipper
 from agents.cart_pole.q_learning.components.epsilon_greedy import EpsilonGreedy
 from agents.cart_pole.q_learning.components.replay_buffer import ReplayBuffer
 from agents.plotting.training_history import TrainingHistory
-from agents.virtual_gpu import VirtualGPU
+from agents.agent_helpers.virtual_gpu import VirtualGPU
 
 
 @dataclass
@@ -28,6 +28,7 @@ class DeepQAgent(AgentBase):
     _action_model_weights: Union[np.ndarray, None] = None
 
     def __post_init__(self) -> None:
+        super().__post_init__()
         self.history = TrainingHistory(plotting_on=self.plot_during_training,
                                        plot_every=25,
                                        rolling_average=12,
@@ -43,7 +44,6 @@ class DeepQAgent(AgentBase):
             # Prepare the default ReplayBuffer if one is not specified.
             self.replay_buffer = ReplayBuffer(buffer_size=200)
 
-        self._set_env()
         self._build_pp()
         self._build_model()
 
@@ -248,11 +248,11 @@ class DeepQAgent(AgentBase):
 
             if done:
                 break
+
         return total_reward
 
     def _after_episode_update(self) -> None:
         """Value model synced with action model at the end of each episode."""
-        print('Syncing_models')
         self.update_value_model()
 
     @classmethod

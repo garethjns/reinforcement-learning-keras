@@ -34,7 +34,7 @@ class ReplayBuffer:
         self._other_queue.append(items[1::])
 
     def get_batch(self, idxs: Iterable[int]) -> Tuple[List[np.ndarray], List[np.ndarray],
-                                                      List[int], List[float], List[np.ndarray]]:
+                                                      List[float], List[bool], List[np.ndarray]]:
         ss = [self._state_queue[i] for i in idxs]
         ss_ = [self._state_queue[i + 1] for i in idxs]
 
@@ -46,7 +46,7 @@ class ReplayBuffer:
         return ss, aa, rr, dd, ss_
 
     def sample_batch(self, n: int) -> Tuple[List[np.ndarray], List[np.ndarray],
-                                            List[int], List[float], List[np.ndarray]]:
+                                            List[float], List[bool], List[np.ndarray]]:
         if n > self.n:
             raise ValueError
 
