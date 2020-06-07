@@ -171,6 +171,3 @@ from agents.mountain_car.q_learning.linear_q_agent import LinearQAgent
 agent = LinearQAgent(env_spec="MountainCar-v0")
 agent.train(verbose=True, render=True)
 ````
-
-## Linear Q learner
-![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgent.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgent.png)  
