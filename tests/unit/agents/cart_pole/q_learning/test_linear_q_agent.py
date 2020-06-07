@@ -20,11 +20,11 @@ class TestLinearQAgent(TestRandomAgent):
         """Get coefs from each model"""
         return [copy.deepcopy(m.coef_) for m in agent.mods.values()]
 
-    def _assert_model_unchanged(self, agent: LinearQAgent, checkpoint: List[np.ndarray]):
+    def _assert_model_unchanged(self, agent: LinearQAgent, checkpoint: List[np.ndarray]) -> None:
         for previous_coefs, current_coefs in zip([m.coef_ for m in agent.mods.values()], checkpoint):
             assert_array_almost_equal(previous_coefs, current_coefs)
 
-    def _assert_model_changed(self, agent: LinearQAgent, checkpoint: List[np.ndarray]):
+    def _assert_model_changed(self, agent: LinearQAgent, checkpoint: List[np.ndarray]) -> None:
         changes_to_single_action_model = []
         for previous_coefs, current_coefs in zip([m.coef_ for m in agent.mods.values()], checkpoint):
             changes_to_single_action_model.append(np.any(np.not_equal(previous_coefs.round(8),
@@ -32,10 +32,17 @@ class TestLinearQAgent(TestRandomAgent):
 
         self.assertTrue(np.any(changes_to_single_action_model))
 
-    def _assert_agent_ready(self, agent: LinearQAgent) -> None:
-        self.assertIsNotNone(agent._env)
+    def _assert_relevant_play_episode_change(self, agent: LinearQAgent, checkpoint: List[np.ndarray]) -> None:
+        """This can differ between MC and TD agents. In MC case model might not be updated but buffer is."""
+        self._assert_model_changed(agent, checkpoint)
 
-    def test_model_set_during_init(self):
+    def _assert_relevant_after_play_episode_change(self, agent: LinearQAgent, checkpoint: List[np.ndarray]) -> None:
+        self._assert_model_changed(agent, checkpoint)
+
+    def _assert_agent_ready(self, agent: LinearQAgent) -> None:
+        self.assertIsNotNone(agent._env_builder._env)
+
+    def test_model_set_during_init(self) -> None:
         # Act
         agent = self._sut()
 

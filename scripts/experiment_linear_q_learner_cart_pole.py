@@ -10,11 +10,12 @@ def run_exp(n_episodes: int = 1000, max_episode_steps: int = 500):
                           agent_class=LinearQAgent,
                           n_reps=8,
                           n_jobs=4,
-                          n_episodes=n_episodes,
-                          max_episode_steps=max_episode_steps)
+                          training_options={"n_episodes": n_episodes,
+                                            "max_episode_steps": max_episode_steps})
 
     exp.run()
     exp.save(fn=f"{LinearQAgent.__name__}_experiment.pkl")
+
 
 if __name__ == "__main__":
     run_exp()

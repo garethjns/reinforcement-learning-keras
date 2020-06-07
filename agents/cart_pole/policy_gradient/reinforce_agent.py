@@ -8,10 +8,21 @@ from tensorflow.keras import backend as K
 
 from agents.agent_base import AgentBase
 from agents.plotting.training_history import TrainingHistory
+from agents.agent_helpers.virtual_gpu import VirtualGPU
 
 
 @dataclass
 class ReinforceAgent(AgentBase):
+    """
+    Uses a simple replay buffer.
+
+    Has 2 components:
+      - _current_ : List of steps being collected for current episode
+      - _buffer_ : Dict containing backlog of completed episodes not yet used for training model
+
+    At the end of an episode, the current episode is moved to the backlog. This is cleared after updating model,
+    which can occur less often.
+    """
     env_spec: str = "CartPole-v0"
     name: str = 'REINFORCEAgent'
     lr: float = 0.001
@@ -22,12 +33,15 @@ class ReinforceAgent(AgentBase):
     _model_weights: Union[np.ndarray, None] = None
 
     def __post_init__(self) -> None:
+        super().__post_init__()
         self.history = TrainingHistory(plotting_on=self.plot_during_training,
                                        plot_every=25,
                                        rolling_average=12,
                                        agent_name=self.name)
 
-        self._set_env()
+        # Keep track of number of trained episodes, only used for IDing episodes in buffer.
+        self._ep_tracker: int = -1
+
         self._build_model()
         self.clear_memory()
 
@@ -45,11 +59,34 @@ class ReinforceAgent(AgentBase):
         if self._model is None:
             self._build_model()
 
+    def _clear_current_episode(self) -> None:
+        """Clear buffer for current episode."""
+        self._current_states: List[np.ndarray] = []
+        self._current_action_probs: List[np.ndarray] = []
+        self._current_actions: List[int] = []
+        self._current_rewards: List[float] = []
+
+    def _clear_buffer_backlog(self) -> None:
+        """Clear backlog of collected episodes not yet trained on."""
+        self._buffer_states: Dict[int, List[np.ndarray]] = {}
+        self._buffer_action_probs: Dict[int, List[np.ndarray]] = {}
+        self._buffer_actions: Dict[int, np.ndarray] = {}
+        self._buffer_rewards: Dict[int, np.ndarray] = {}
+        self._buffer_discounted_rewards: Dict[int, np.ndarray] = {}
+
+    def _move_current_episode_to_backlog(self, episode: int):
+        """Move current episode to backlog, calc discounted rewards, and clear."""
+        self._buffer_states[episode] = self._current_states
+        self._buffer_action_probs[episode] = self._current_action_probs
+        self._buffer_actions[episode] = np.array(self._current_actions)
+        self._buffer_rewards[episode] = np.array(self._current_rewards)
+        self._buffer_discounted_rewards[episode] = self._calc_discounted_rewards(self._current_rewards)
+        self._clear_current_episode()
+
     def clear_memory(self) -> None:
-        self._states: List[np.ndarray] = []
-        self._action_probs: List[np.ndarray] = []
-        self._actions: List[int] = []
-        self._rewards: List[float] = []
+        """Clear current episode and backlog buffers."""
+        self._clear_current_episode()
+        self._clear_buffer_backlog()
 
     @staticmethod
     def _loss(y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
@@ -60,10 +97,10 @@ class ReinforceAgent(AgentBase):
         """
         State -> model -> action probs
         """
-        state_input = keras.layers.Input(shape=self._env.observation_space.shape)
+        state_input = keras.layers.Input(shape=self.env.observation_space.shape)
         fc1 = keras.layers.Dense(24, activation='relu')(state_input)
         fc2 = keras.layers.Dense(12, activation='relu')(fc1)
-        action_output = keras.layers.Dense(self._env.action_space.n, activation='softmax')(fc2)
+        action_output = keras.layers.Dense(self.env.action_space.n, activation='softmax')(fc2)
 
         opt = keras.optimizers.Adam(learning_rate=self.learning_rate)
         model = keras.Model(state_input, action_output)
@@ -77,7 +114,7 @@ class ReinforceAgent(AgentBase):
             self._model.set_weights(self._model_weights)
             self._model_weights = None
 
-    def transform(self, s: Union[np.ndarray, List[np.ndarray]]) -> np.ndarray:
+    def transform(self, s: Union[List[np.ndarray], np.ndarray]) -> np.ndarray:
         """No transforming of state here, just stacking and dimension checking.
         """
         if not isinstance(s, np.ndarray):
@@ -92,17 +129,25 @@ class ReinforceAgent(AgentBase):
         Sample actions using the probabilities provided by the action model.
         """
         actions_probs = self._model.predict(self.transform(s)).squeeze()
-        return actions_probs, np.random.choice(range(self._env.action_space.n),
+        return actions_probs, np.random.choice(range(self.env.action_space.n),
                                                p=actions_probs)
 
     def update_experience(self, s: np.ndarray, a: int, r: float, a_p: np.ndarray) -> None:
-        self._states.append(s)
-        self._action_probs.append(a_p)
-        self._actions.append(a)
-        self._rewards.append(r)
+        """
+        Add step of experience to the buffer.
 
-    def calc_discounted_rewards(self, rr) -> np.ndarray:
-        """Calculate discounted rewards for whole episode and normalise."""
+        :param s: State
+        :param a: Action
+        :param r: Reward
+        :param a_p: Action probabilities
+        """
+        self._current_states.append(s)
+        self._current_action_probs.append(a_p)
+        self._current_actions.append(a)
+        self._current_rewards.append(r)
+
+    def _calc_discounted_rewards(self, rr: List[float]) -> np.ndarray:
+        """Calculate discounted rewards for a whole episode and normalise."""
 
         # Full episode returns
         disc_rr = np.zeros_like(rr)
@@ -118,60 +163,75 @@ class ReinforceAgent(AgentBase):
 
         return np.vstack(disc_rr_norm)
 
+    @staticmethod
+    def _flatten_list(nested_list: List[List[Any]]) -> List[Any]:
+        return [item for sublist in nested_list for item in sublist]
+
     def update_model(self) -> None:
-        # Calc discounted rewards for last episode in buffer
-        disc_rr_norm = self.calc_discounted_rewards(self._rewards)
+        # Stack all available episodes
+
+        states = np.concatenate(list(self._buffer_states.values()))
+        disc_rewards = np.concatenate(list(self._buffer_discounted_rewards.values()))
+        actions = np.concatenate(list(self._buffer_actions.values())).reshape(-1, 1)
+        action_probs = np.vstack(list(self._buffer_action_probs.values()))
 
         # One hot actions
-        actions_oh = K.one_hot(self._actions,
-                               num_classes=self._env.action_space.n)
+        actions_oh = K.one_hot(actions,
+                               num_classes=self.env.action_space.n)
 
         # Calculate prob updates
-        dlogps = (actions_oh - np.vstack(self._action_probs)) * disc_rr_norm
-        y = np.vstack(self._action_probs) + self.lr * dlogps
+        dlogps = (actions_oh - action_probs) * disc_rewards
+        y = action_probs + self.lr * dlogps
 
         # Train
-        x = self.transform(self._states)
+        x = self.transform(states)
         self._model.train_on_batch(x, y)
 
     def play_episode(self, max_episode_steps: int = 500,
                      training: bool = False, render: bool = True) -> float:
-        self._env._max_episode_steps = max_episode_steps
-        self.clear_memory()
+        self.env._max_episode_steps = max_episode_steps
 
-        obs = self._env.reset()
+        obs = self.env.reset()
         total_reward = 0
+
         for _ in range(max_episode_steps):
             action_probs, action = self.get_action(obs)
             prev_obs = obs
-            obs, reward, done, _ = self._env.step(action)
+            obs, reward, done, _ = self.env.step(action)
             total_reward += reward
 
             if render:
-                self._env.render()
+                self.env.render()
 
             if training:
-                self.update_experience(prev_obs, action, reward, action_probs)
+                self.update_experience(s=prev_obs, a=action, r=reward, a_p=action_probs)
 
             if done:
                 break
 
-        # Monte-Carlo update of policy model is updated (ie. after each full episode)
         if training:
-            self.update_model()
+            # Only keep episode buffer if actually training
+            self._ep_tracker += 1
+            self._move_current_episode_to_backlog(self._ep_tracker)
 
         return total_reward
 
+    def _after_episode_update(self) -> None:
+        """Monte-Carlo update of policy model is updated (ie. after each full episode, or more)"""
+        self.update_model()
+        self.clear_memory()
+
     @classmethod
-    def example(cls, n_episodes: int = 500, render: bool = True) -> "ReinforceAgent":
+    def example(cls, n_episodes: int = 1000, render: bool = True) -> "ReinforceAgent":
         """Run a quick example with n_episodes and otherwise default settings."""
-        cls.set_tf(256)
+        VirtualGPU(256)
         agent = cls("CartPole-v0")
         agent.train(verbose=True, render=render,
+                    update_every=3,
                     n_episodes=n_episodes)
 
         return agent
 
 
 if __name__ == "__main__":
-    ReinforceAgent.example()
+    ReinforceAgent.example(render=False)

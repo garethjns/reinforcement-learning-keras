@@ -1,19 +1,21 @@
 """Train and few DeepQAgents, plot the results, and run an episode on the best agent."""
 
 from agents.cart_pole.policy_gradient.reinforce_agent import ReinforceAgent
+from agents.agent_helpers.virtual_gpu import VirtualGPU
 
 from experiment.agent_experiment import AgentExperiment
 
 
 def run_exp(n_episodes: int = 1000, max_episode_steps: int = 500):
-    gpu = ReinforceAgent.set_tf(256)
+    gpu = VirtualGPU(256)
 
     exp = AgentExperiment(env_spec="CartPole-v0",
                           agent_class=ReinforceAgent,
                           n_reps=5,
-                          n_jobs=1 if gpu else 5,
-                          n_episodes=n_episodes,
-                          max_episode_steps=max_episode_steps)
+                          n_jobs=1 if gpu.on else 5,
+                          training_options={"n_episodes": n_episodes,
+                                            "max_episode_steps": max_episode_steps,
+                                            "update_every": 1})
 
     exp.run()
     exp.save(fn=f"{ReinforceAgent.__name__}_experiment.pkl")
