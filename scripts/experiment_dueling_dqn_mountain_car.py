@@ -9,10 +9,10 @@ from experiment.agent_experiment import AgentExperiment
 def run_exp(n_episodes: int = 500, max_episode_steps: int = 500):
     gpu = VirtualGPU(256)
 
-    exp = AgentExperiment(env_spec="CartPole-v0",
+    exp = AgentExperiment(env_spec="MountainCar-v0",
                           agent_class=DuelingDeepQAgent,
-                          n_reps=4,
-                          n_jobs=1 if gpu else 4,
+                          n_reps=5,
+                          n_jobs=1 if gpu.on else 5,
                           training_options={"n_episodes": n_episodes,
                                             "max_episode_steps": max_episode_steps})
 
