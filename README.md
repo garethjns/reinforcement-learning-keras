@@ -4,7 +4,7 @@
 This repo aims to implement various reinforcement learning agents using Keras (tf==2.2.0) and sklearn, for use with OpenAI Gym environments.
   
 # Planned agents
-- [ ] Cart pole
+- [ ] Cart pole and/or MountainCar
     - [ ] Q-learning
         - [x] Linear Q learner (using sklearn.linear_model.SGDRegressor) 
         - [x] Deep Q leaner
@@ -18,6 +18,7 @@ This repo aims to implement various reinforcement learning agents using Keras (t
         - [x] REINFORCE
         - [ ] Actor-critic
 - [ ] Pong
+   - [x] Environment processing
    - [ ] Q-learning
         - [ ] Deep Q-learner 
    - [ ] Policy gradients
@@ -169,5 +170,21 @@ or
 from agents.mountain_car.q_learning.linear_q_agent import LinearQAgent
 
 agent = LinearQAgent(env_spec="MountainCar-v0")
+agent.train(verbose=True, render=True)
+````
+
+## Deep Q learner (not well tuned)
+![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DeepQAgentMC.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DeepQAgentMC.png)  
+
+### Run example
+````bash
+python3 -m agents.mountain_car.q_learning.deep_q_agent 
+````
+or
+````python
+from agents.mountain_car.q_learning.deep_q_agent import DeepQAgent
+
+DeepQAgent.set_tf(256)
+agent = DeepQAgent(env_spec="MountainCar-v0")
 agent.train(verbose=True, render=True)
 ````
