@@ -1,9 +1,9 @@
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 
 from agents.agent_base import AgentBase
 from agents.cart_pole.random.random_model import RandomModel
-from agents.plotting.training_history import TrainingHistory
+from agents.history.training_history import TrainingHistory
 
 
 @dataclass
@@ -39,8 +39,8 @@ class RandomAgent(AgentBase):
     def get_action(self, s: Any, **kwargs) -> int:
         return self.model.predict()
 
-    def play_episode(self, max_episode_steps: int = 500,
-                     training: bool = False, render: bool = True) -> float:
+    def _play_episode(self, max_episode_steps: int = 500,
+                      training: bool = False, render: bool = True) -> Tuple[float, int]:
         """
         Play a single episode and return the total reward.
 
@@ -52,7 +52,7 @@ class RandomAgent(AgentBase):
         self.env._max_episode_steps = max_episode_steps
         _ = self.env.reset()
         total_reward = 0
-        for _ in range(max_episode_steps):
+        for frame in range(max_episode_steps):
             action = self.get_action(None)
             _, reward, done, _ = self.env.step(action)
             total_reward += reward
@@ -63,7 +63,7 @@ class RandomAgent(AgentBase):
             if done:
                 break
 
-        return total_reward
+        return total_reward, frame
 
     @classmethod
     def example(cls, n_episodes: int = 1000, render: bool = True) -> "RandomAgent":

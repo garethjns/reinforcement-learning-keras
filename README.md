@@ -19,8 +19,8 @@ This repo aims to implement various reinforcement learning agents using Keras (t
         - [ ] Actor-critic
 - [ ] Pong
    - [x] Environment processing
-   - [ ] Q-learning
-        - [ ] Deep Q-learner 
+   - [x] Q-learning
+        - [x] Deep Q-learner 
    - [ ] Policy gradients
      - [ ] REINFORCE
      - [ ] Actor-critic
@@ -43,6 +43,13 @@ cd reinforcement-learning-keras
 pip install -r requirements.txt
 ```` 
   
+# Pong
+Pong-NoFrameSkip-v4 with various wrappers.
+
+## Deep Q learner
+![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgentPong.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgentPong.png)  
+
+ 
 # Cart-pole
 Using cart-pole-v0 with step limit increased from 200 to 500.
 
@@ -91,8 +98,9 @@ or
 from agents.cart_pole.q_learning.components.epsilon_greedy import EpsilonGreedy
 from agents.cart_pole.q_learning.components.replay_buffer import ReplayBuffer
 from agents.cart_pole.q_learning.deep_q_agent import DeepQAgent
+from agents.agent_helpers.virtual_gpu import VirtualGPU
 
-DeepQAgent.set_tf(256)  # Optional, limit tensorflow memory commitment to 256MB
+VirtualGPU(256)  # Optional, limit tensorflow memory commitment to 256MB
 agent = DeepQAgent(env_spec="CartPole-v0", 
                    eps=EpsilonGreedy(eps_initial=0.05, decay=0.002, eps_min=0.002),
                    replay_buffer=ReplayBuffer(buffer_size=200))
@@ -121,8 +129,9 @@ or
 from agents.cart_pole.q_learning.components.epsilon_greedy import EpsilonGreedy
 from agents.cart_pole.q_learning.components.replay_buffer import ReplayBuffer
 from agents.cart_pole.q_learning.dueling_deep_q_agent import DuelingDeepQAgent
+from agents.agent_helpers.virtual_gpu import VirtualGPU
 
-DuelingDeepQAgent.set_tf(256)  # Optional, limit tensorflow memory commitment to 256MB
+VirtualGPU(256)  # Optional, limit tensorflow memory commitment to 256MB
 agent = DuelingDeepQAgent(env_spec="CartPole-v0", 
                           eps=EpsilonGreedy(eps_initial=0.05, decay=0.002, eps_min=0.002),
                           replay_buffer=ReplayBuffer(buffer_size=200))
@@ -183,8 +192,9 @@ python3 -m agents.mountain_car.q_learning.deep_q_agent
 or
 ````python
 from agents.mountain_car.q_learning.deep_q_agent import DeepQAgent
+from agents.agent_helpers.virtual_gpu import VirtualGPU
 
-DeepQAgent.set_tf(256)
+VirtualGPU(256)
 agent = DeepQAgent(env_spec="MountainCar-v0")
 agent.train(verbose=True, render=True)
 ````

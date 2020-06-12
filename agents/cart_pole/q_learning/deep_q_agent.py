@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Any, Union
+from typing import Dict, Any, Union, Tuple
 
 import numpy as np
 from sklearn.pipeline import Pipeline
@@ -7,14 +7,14 @@ from sklearn.preprocessing import StandardScaler
 from tensorflow import keras
 
 from agents.agent_base import AgentBase
+from agents.agent_helpers.virtual_gpu import VirtualGPU
 from agents.cart_pole.environment_processing.clipper import Clipper
 from agents.cart_pole.q_learning.components.epsilon_greedy import EpsilonGreedy
 from agents.cart_pole.q_learning.components.replay_buffer import ReplayBuffer
-from agents.plotting.training_history import TrainingHistory
-from agents.agent_helpers.virtual_gpu import VirtualGPU
+from agents.history.training_history import TrainingHistory
 
 
-@dataclass
+@dataclass()
 class DeepQAgent(AgentBase):
     env_spec: str = "CartPole-v0"
     name: str = 'DQNAgent'
@@ -219,8 +219,8 @@ class DeepQAgent(AgentBase):
         """
         self._value_model.set_weights(self._action_model.get_weights())
 
-    def play_episode(self, max_episode_steps: int = 500,
-                     training: bool = False, render: bool = True) -> float:
+    def _play_episode(self, max_episode_steps: int = 500,
+                      training: bool = False, render: bool = True) -> Tuple[float, int]:
         """
         Play a single episode and return the total reward.
 
@@ -232,7 +232,7 @@ class DeepQAgent(AgentBase):
         self.env._max_episode_steps = max_episode_steps
         obs = self.env.reset()
         total_reward = 0
-        for _ in range(max_episode_steps):
+        for frame in range(max_episode_steps):
             action = self.get_action(obs, training=training)
             prev_obs = obs
             obs, reward, done, info = self.env.step(action)
@@ -249,7 +249,7 @@ class DeepQAgent(AgentBase):
             if done:
                 break
 
-        return total_reward
+        return total_reward, frame
 
     def _after_episode_update(self) -> None:
         """Value model synced with action model at the end of each episode."""
@@ -262,11 +262,11 @@ class DeepQAgent(AgentBase):
         agent = cls("CartPole-v0")
         agent.train(verbose=True, render=render,
                     n_episodes=n_episodes,
-                    update_every=10,
-                    checkpoint_every=10)
+                    update_every=10)
 
         return agent
 
 
 if __name__ == "__main__":
-    DeepQAgent.example()
+    agent_ = DeepQAgent.example()
+    agent_.save("deep_q_agent_cart_pole.pkl")

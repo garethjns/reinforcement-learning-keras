@@ -4,7 +4,7 @@ import numpy as np
 from tensorflow import keras
 
 from agents.cart_pole.policy_gradient.reinforce_agent import ReinforceAgent as CartReinforceAgent
-from agents.plotting.training_history import TrainingHistory
+from agents.history.training_history import TrainingHistory
 from agents.pong.pong_environment_templates import WRAPPERS_DIFF, WRAPPERS_STACK
 from agents.virtual_gpu import VirtualGPU
 

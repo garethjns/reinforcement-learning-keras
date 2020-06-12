@@ -4,6 +4,7 @@ from unittest.mock import patch
 from agents.agent_base import AgentBase
 from agents.cart_pole.random.random_agent import RandomAgent
 from agents.cart_pole.random.random_model import RandomModel
+from agents.history.episode_report import EpisodeReport
 
 
 class TestRandomAgent(unittest.TestCase):
@@ -124,7 +125,7 @@ class TestRandomAgent(unittest.TestCase):
         reward = agent.play_episode(max_episode_steps=3, training=False, render=False)
 
         # Assert
-        self.assertIsInstance(reward, float)
+        self.assertIsInstance(reward, EpisodeReport)
 
     def test_play_episode_steps_does_not_call_update_models_when_not_training(self) -> None:
         # Arrange
@@ -157,7 +158,7 @@ class TestRandomAgent(unittest.TestCase):
         reward = agent.play_episode(max_episode_steps=self._n_step, training=True, render=False)
 
         # Assert
-        self.assertIsInstance(reward, float)
+        self.assertIsInstance(reward, EpisodeReport)
 
     def test_play_episode_steps_calls_update_models_as_expected_when_training(self) -> None:
         # Arrange
