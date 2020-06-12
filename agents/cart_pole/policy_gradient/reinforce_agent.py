@@ -7,7 +7,7 @@ from tensorflow import keras
 from tensorflow.keras import backend as K
 
 from agents.agent_base import AgentBase
-from agents.plotting.training_history import TrainingHistory
+from agents.history.training_history import TrainingHistory
 from agents.agent_helpers.virtual_gpu import VirtualGPU
 
 
@@ -187,14 +187,14 @@ class ReinforceAgent(AgentBase):
         x = self.transform(states)
         self._model.train_on_batch(x, y)
 
-    def play_episode(self, max_episode_steps: int = 500,
-                     training: bool = False, render: bool = True) -> float:
+    def _play_episode(self, max_episode_steps: int = 500,
+                     training: bool = False, render: bool = True) -> Tuple[float, int]:
         self.env._max_episode_steps = max_episode_steps
 
         obs = self.env.reset()
         total_reward = 0
 
-        for _ in range(max_episode_steps):
+        for frame in range(max_episode_steps):
             action_probs, action = self.get_action(obs)
             prev_obs = obs
             obs, reward, done, _ = self.env.step(action)
@@ -214,7 +214,7 @@ class ReinforceAgent(AgentBase):
             self._ep_tracker += 1
             self._move_current_episode_to_backlog(self._ep_tracker)
 
-        return total_reward
+        return total_reward, frame
 
     def _after_episode_update(self) -> None:
         """Monte-Carlo update of policy model is updated (ie. after each full episode, or more)"""
@@ -227,11 +227,12 @@ class ReinforceAgent(AgentBase):
         VirtualGPU(256)
         agent = cls("CartPole-v0")
         agent.train(verbose=True, render=render,
-                    update_every=3,
+                    update_every=1,
                     n_episodes=n_episodes)
 
         return agent
 
 
 if __name__ == "__main__":
-    ReinforceAgent.example(render=False)
+    agent_ = ReinforceAgent.example(render=False)
+    agent_.save("reinforce_agent_cart_pole_example.pkl")

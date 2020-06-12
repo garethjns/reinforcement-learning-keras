@@ -10,7 +10,7 @@ class MaxAndSkipWrapper(gym.Wrapper):
 
     def __init__(self, env: gym.Env,
                  frame_buffer_length: int = 2,
-                 n_action_frames: int = 2,
+                 n_action_frames: int = 4,
                  frame_buffer_agg_f: Callable = np.max) -> None:
         """
 

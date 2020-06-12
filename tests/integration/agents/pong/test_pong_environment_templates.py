@@ -4,12 +4,11 @@ import unittest
 
 import numpy as np
 
-from agents.pong.pong_environment_templates import ENV_DIFF
-from agents.pong.pong_environment_templates import ENV_STACK
+from agents.pong.pong_environment_templates import PONG_ENV_DIFF, PONG_ENV_STACK
 
 
 class TestPongStackEnvironment(unittest.TestCase):
-    _sut = ENV_STACK
+    _sut = PONG_ENV_STACK
     _expected_shape = (84, 84, 3)
 
     @staticmethod
@@ -72,7 +71,7 @@ class TestPongStackEnvironment(unittest.TestCase):
 
 
 class TestPongDiffEnv(TestPongStackEnvironment):
-    _sut = ENV_DIFF
+    _sut = PONG_ENV_DIFF
     _expected_shape = (84, 84, 1)
 
     @staticmethod

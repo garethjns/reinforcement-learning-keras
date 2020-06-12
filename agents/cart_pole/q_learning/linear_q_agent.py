@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 
 import numpy as np
 from sklearn.kernel_approximation import RBFSampler
@@ -10,7 +10,7 @@ from sklearn.preprocessing import StandardScaler
 from agents.agent_base import AgentBase
 from agents.cart_pole.environment_processing.clipper import Clipper
 from agents.cart_pole.q_learning.components.epsilon_greedy import EpsilonGreedy
-from agents.plotting.training_history import TrainingHistory
+from agents.history.training_history import TrainingHistory
 
 
 @dataclass
@@ -170,8 +170,8 @@ class LinearQAgent(AgentBase):
         # Update the model s = x, g = y, and a is the model to update
         self.partial_fit(s, a, g)
 
-    def play_episode(self, max_episode_steps: int = 500,
-                     training: bool = False, render: bool = True) -> float:
+    def _play_episode(self, max_episode_steps: int = 500,
+                     training: bool = False, render: bool = True) -> Tuple[float, int]:
         """
         Play a single episode and return the total reward.
 
@@ -183,7 +183,7 @@ class LinearQAgent(AgentBase):
         self.env._max_episode_steps = max_episode_steps
         obs = self.env.reset()
         total_reward = 0
-        for _ in range(max_episode_steps):
+        for frame in range(max_episode_steps):
             action = self.get_action(obs, training=training)
             prev_obs = obs
             obs, reward, done, info = self.env.step(action)
@@ -198,17 +198,17 @@ class LinearQAgent(AgentBase):
             if done:
                 break
 
-        return total_reward
+        return total_reward, frame
 
     @classmethod
     def example(cls, n_episodes: int = 1000, render: bool = True) -> "LinearQAgent":
         agent = cls("CartPole-v0")
         agent.train(verbose=True, render=render,
-                    n_episodes=n_episodes,
-                    checkpoint_every=20)
+                    n_episodes=n_episodes)
 
         return agent
 
 
 if __name__ == "__main__":
-    LinearQAgent.example()
+    agent_ = LinearQAgent.example()
+    agent_.save("linear_q_agent_cart_pole.pkl")

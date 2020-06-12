@@ -82,16 +82,18 @@ class AgentExperiment:
     def plot(self) -> None:
         sns.set()
 
-        full_history = np.hstack([np.vstack(a.history.history) for a in self._trained_agents])
+        full_history = np.hstack([np.vstack(a.history.get_metric('total_reward')) for a in self._trained_agents])
         y_mean = np.mean(full_history, axis=1)
         y_std = np.std(full_history, axis=1)
 
         plt.plot(y_mean, label='Mean score', lw=1.25)
         # 5% moving avg
         mv_avg_pts = max(1, int(len(y_mean) * 0.05))
-        plt.plot(np.convolve(self.best_agent.history.history, np.ones(mv_avg_pts), 'valid') / mv_avg_pts,
+        plt.plot(np.convolve(self.best_agent.history.get_metric('total_reward'),
+                             np.ones(mv_avg_pts), 'valid') / mv_avg_pts,
                  label='Best (mv avg)', ls='--', color='#d62728', lw=0.5)
-        plt.plot(np.convolve(self.worst_agent.history.history, np.ones(mv_avg_pts), 'valid') / mv_avg_pts,
+        plt.plot(np.convolve(self.worst_agent.history.get_metric('total_reward'),
+                             np.ones(mv_avg_pts), 'valid') / mv_avg_pts,
                  label='Worst (mv avg)', ls='--', color='#9467bd', lw=0.5)
         plt.fill_between(range(len(y_mean)), y_mean - y_std, y_mean + y_std,
                          color='lightgray', label='Score std')
