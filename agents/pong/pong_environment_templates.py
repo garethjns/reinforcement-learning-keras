@@ -8,15 +8,16 @@ from agents.pong.environment_processing.image_process_wrapper import ImageProces
 from agents.pong.environment_processing.max_and_skip_wrapper import MaxAndSkipWrapper
 
 # Wrappers as used by models
-WRAPPERS_STACK = [MaxAndSkipWrapper, ImageProcessWrapper, FireStartWrapper, FrameBufferWrapper]
-WRAPPERS_DIFF = [MaxAndSkipWrapper, ImageProcessWrapper, FireStartWrapper,
-                 partial(FrameBufferWrapper,
-                         buffer_length=2,
-                         buffer_function='diff')]
+PONG_WRAPPERS_STACK = [MaxAndSkipWrapper, ImageProcessWrapper, FireStartWrapper, FrameBufferWrapper]
+PONG_WRAPPERS_DIFF = [MaxAndSkipWrapper, ImageProcessWrapper, FireStartWrapper,
+                      partial(FrameBufferWrapper,
+                              buffer_length=2,
+                              buffer_function='diff')]
 
 # Envs as used by models
-GYM_ENV = gym.make("Pong-v0")
-ENV_STACK = FrameBufferWrapper(FireStartWrapper(ImageProcessWrapper(MaxAndSkipWrapper(GYM_ENV))))
-ENV_DIFF = FrameBufferWrapper(FireStartWrapper(ImageProcessWrapper(MaxAndSkipWrapper(GYM_ENV))),
-                              buffer_length=2,
-                              buffer_function='diff')
+PONG_ENV_SPEC = "PongNoFrameskip-v4"
+PONG_ENV = gym.make("PongNoFrameskip-v4")
+PONG_ENV_STACK = FrameBufferWrapper(FireStartWrapper(ImageProcessWrapper(MaxAndSkipWrapper(PONG_ENV))))
+PONG_ENV_DIFF = FrameBufferWrapper(FireStartWrapper(ImageProcessWrapper(MaxAndSkipWrapper(PONG_ENV))),
+                                   buffer_length=2,
+                                   buffer_function='diff')

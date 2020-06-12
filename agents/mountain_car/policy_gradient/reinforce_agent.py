@@ -1,7 +1,10 @@
-from agents.cart_pole.policy_gradient.reinforce_agent import ReinforceAgent as CartReinforceAgent
+from dataclasses import dataclass
+
 from agents.agent_helpers.virtual_gpu import VirtualGPU
+from agents.cart_pole.policy_gradient.reinforce_agent import ReinforceAgent as CartReinforceAgent
 
 
+@dataclass
 class ReinforceAgent(CartReinforceAgent):
     env_spec: str = "MountainCar-v0"
     learning_rate: float = 0.001
@@ -24,5 +27,5 @@ class ReinforceAgent(CartReinforceAgent):
 
 
 if __name__ == "__main__":
-    ReinforceAgent.example(render=False)
-    
+    agent_ = ReinforceAgent.example(render=False)
+    agent_.save("reinforce_agent_mountain_car.pkl")

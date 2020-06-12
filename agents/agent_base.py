@@ -1,8 +1,9 @@
 import abc
 import copy
 import pickle
+import time
 from functools import reduce
-from typing import Any, Callable, Union, Dict, List
+from typing import Any, Callable, Union, Dict, List, Tuple
 
 import gym
 import numpy as np
@@ -10,7 +11,8 @@ from tqdm import tqdm
 
 from agents.agent_helpers.env_builder import EnvBuilder
 from agents.agent_helpers.tqdm_handler import TQDMHandler
-from agents.plotting.training_history import TrainingHistory
+from agents.history.episode_report import EpisodeReport
+from agents.history.training_history import TrainingHistory
 
 
 class AgentBase(abc.ABC):
@@ -145,16 +147,36 @@ class AgentBase(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def play_episode(self, max_episode_steps: int = 500, training: bool = False, render: bool = True) -> float:
+    def _play_episode(self, max_episode_steps: int = 500,
+                      training: bool = False, render: bool = True) -> Tuple[float, int]:
         """
-        Play a single episode with the agent (run multiple steps).
+        Play a single episode with the agent (run multiple steps). Should return reward and n frames.
 
         :param max_episode_steps: Max steps before stopping, overrides any time limit set by Gym.
         :param training: Bool to indicate whether or not to use this experience to update the model.
         :param render: Bool to indicate whether or not to call env.render() each training step.
-        :return: The total real reward for the episode.
+        :return: The total real reward for the episode and number of frames run.
         """
         pass
+
+    def play_episode(self, max_episode_steps: int = 500,
+                     training: bool = False, render: bool = True) -> EpisodeReport:
+        """
+        Run Agent's _play_episode and produce episode report.
+
+        :param max_episode_steps: Max steps before stopping, overrides any time limit set by Gym.
+        :param training: Bool to indicate whether or not to use this experience to update the model.
+        :param render: Bool to indicate whether or not to call env.render() each training step.
+        :return: The total real reward for the episode, number of frames run, and time taken in seconds.
+        """
+        t0 = time.time()
+        total_reward, frames = self._play_episode(max_episode_steps=max_episode_steps, training=training, render=render)
+        t1 = time.time()
+
+        return EpisodeReport(total_reward=total_reward,
+                             frames=frames,
+                             time_taken=np.round(t1 - t0, 2),
+                             epsilon_used=getattr(self, 'eps', None))
 
     def train(self, n_episodes: int = 10000, max_episode_steps: int = 500, verbose: bool = True, render: bool = True,
               checkpoint_every: Union[bool, int] = 10, update_every: Union[bool, int] = 1) -> None:
