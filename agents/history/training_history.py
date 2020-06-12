@@ -28,9 +28,9 @@ class TrainingHistory:
     def get_metric(self, metric: str = "total_reward") -> List[Any]:
         return [getattr(ep, metric) for ep in self.history]
 
-    def plot(self, show: bool = True) -> Tuple[plt.Figure, plt.Axes]:
+    def plot(self, metrics: List[str], show: bool = True) -> Tuple[plt.Figure, plt.Axes]:
         """Plot current history."""
-        return self._plot(show=show)
+        return self._plot(show=show, metrics=metrics)
 
     def training_plot(self, show: bool = True) -> Tuple[plt.Figure, plt.Axes]:
         """Plot if it's turned on and is a plot step."""
