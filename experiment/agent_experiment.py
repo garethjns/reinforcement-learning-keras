@@ -13,12 +13,13 @@ from joblib import Parallel, delayed
 from joblib.externals.loky.process_executor import BrokenProcessPool
 
 from agents.agent_base import AgentBase
+from enviroments.config_base import ConfigBase
 
 
 @dataclass
 class AgentExperiment:
-    env_spec: str
     agent_class: Callable
+    agent_config: ConfigBase
     name: str = "unnamed_experiment"
     n_reps: int = 5
     n_jobs: int = 1
@@ -39,7 +40,7 @@ class AgentExperiment:
 
     @property
     def agent_scores(self):
-        return [a.history.current_performance for a in self._trained_agents]
+        return [a.training_history.current_performance for a in self._trained_agents]
 
     @property
     def best_agent(self) -> AgentBase:
@@ -50,11 +51,11 @@ class AgentExperiment:
         return self._trained_agents[int(np.argmin(self.agent_scores))]
 
     @staticmethod
-    def _fit_agent(agent_class: Callable, env_spec: str, training_options: Dict[str, Any]):
+    def _fit_agent(agent_class: Callable, agent_config: ConfigBase, training_options: Dict[str, Any]):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', FutureWarning)
 
-            agent = agent_class(env_spec=env_spec)
+            agent = agent_class(**agent_config.build())
             agent.train(**training_options)
             agent.unready()
 
@@ -63,7 +64,7 @@ class AgentExperiment:
     def _run(self) -> None:
         self._trained_agents = Parallel(
             backend='loky', verbose=10,
-            n_jobs=self.n_jobs)(delayed(self._fit_agent)(self.agent_class, self.env_spec, self.training_options)
+            n_jobs=self.n_jobs)(delayed(self._fit_agent)(self.agent_class, self.agent_config, self.training_options)
                                 for _ in range(self.n_reps))
 
     def run(self) -> None:
@@ -82,17 +83,18 @@ class AgentExperiment:
     def plot(self) -> None:
         sns.set()
 
-        full_history = np.hstack([np.vstack(a.history.get_metric('total_reward')) for a in self._trained_agents])
+        full_history = np.hstack(
+            [np.vstack(a.training_history.get_metric('total_reward')) for a in self._trained_agents])
         y_mean = np.mean(full_history, axis=1)
         y_std = np.std(full_history, axis=1)
 
         plt.plot(y_mean, label='Mean score', lw=1.25)
         # 5% moving avg
         mv_avg_pts = max(1, int(len(y_mean) * 0.05))
-        plt.plot(np.convolve(self.best_agent.history.get_metric('total_reward'),
+        plt.plot(np.convolve(self.best_agent.training_history.get_metric('total_reward'),
                              np.ones(mv_avg_pts), 'valid') / mv_avg_pts,
                  label='Best (mv avg)', ls='--', color='#d62728', lw=0.5)
-        plt.plot(np.convolve(self.worst_agent.history.get_metric('total_reward'),
+        plt.plot(np.convolve(self.worst_agent.training_history.get_metric('total_reward'),
                              np.ones(mv_avg_pts), 'valid') / mv_avg_pts,
                  label='Worst (mv avg)', ls='--', color='#9467bd', lw=0.5)
         plt.fill_between(range(len(y_mean)), y_mean - y_std, y_mean + y_std,
@@ -103,7 +105,7 @@ class AgentExperiment:
         plt.ylabel('Score', fontweight='bold')
         plt.legend(title='Agents')
         plt.tight_layout()
-        plt.savefig(f'{self.name}_{self.env_spec}_{self._trained_agents[0].name}.png')
+        plt.savefig(f'{self.name}_{self.agent_config.env_spec}_{self._trained_agents[0].name}.png')
 
     def play_best(self, episode_steps: int = None):
         if episode_steps is None:
@@ -111,9 +113,9 @@ class AgentExperiment:
 
         best_agent = copy.deepcopy(self.best_agent)
         best_agent.check_ready()
-        best_agent._env_builder.set_env(gym.wrappers.Monitor(best_agent.env,
-                                                             f'{self._trained_agents[0].name}_monitor_dir',
-                                                             force=True))
+        best_agent.env_builder.set_env(gym.wrappers.Monitor(best_agent.env,
+                                                            f'{self._trained_agents[0].name}_monitor_dir',
+                                                            force=True))
 
         try:
             best_agent.play_episode(training=False, render=False, max_episode_steps=episode_steps)

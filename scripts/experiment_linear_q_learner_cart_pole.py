@@ -1,13 +1,14 @@
 """Train and few LinearQAgents, plot the results, and run an episode on the best agent."""
 
-from agents.cart_pole.q_learning.linear_q_agent import LinearQAgent
+from agents.q_learning.linear_q_agent import LinearQAgent
+from enviroments.cart_pole.cart_pole_config import CartPoleConfig
 
 from experiment.agent_experiment import AgentExperiment
 
 
 def run_exp(n_episodes: int = 1000, max_episode_steps: int = 500):
-    exp = AgentExperiment(env_spec="CartPole-v0",
-                          agent_class=LinearQAgent,
+    exp = AgentExperiment(agent_class=LinearQAgent,
+                          agent_config=CartPoleConfig('linear_q'),
                           n_reps=8,
                           n_jobs=4,
                           training_options={"n_episodes": n_episodes,
