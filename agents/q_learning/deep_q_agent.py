@@ -213,7 +213,7 @@ class DeepQAgent(AgentBase):
 
     @classmethod
     def example(cls, config: ConfigBase, render: bool = True,
-                n_episodes: int = 5, max_episode_steps: int = 500, update_every: int = 10) -> "DeepQAgent":
+                n_episodes: int = 500, max_episode_steps: int = 500, update_every: int = 10) -> "DeepQAgent":
         """Create, train, and save agent for a given config."""
         VirtualGPU(config.gpu_memory)
         config_dict = config.build()
@@ -221,7 +221,8 @@ class DeepQAgent(AgentBase):
         agent = cls(**config_dict)
 
         agent.train(verbose=True, render=render,
-                    n_episodes=n_episodes, max_episode_steps=max_episode_steps, update_every=update_every)
+                    n_episodes=n_episodes, max_episode_steps=max_episode_steps, update_every=update_every,
+                    checkpoint_every=100)
         agent.save(f"{agent.name}_{config_dict['env_spec']}.pkl")
 
         return agent
@@ -236,8 +237,9 @@ if __name__ == "__main__":
     agent_cart_pole = DeepQAgent.example(CartPoleConfig(agent_type='dqn', plot_during_training=True))
     agent_mountain_car = DeepQAgent.example(MountainCarConfig(agent_type='dqn', plot_during_training=True))
     agent_pong = DeepQAgent.example(PongConfig(agent_type='dqn', plot_during_training=True),
-                                    max_episode_steps=10000)
+                                    max_episode_steps=10000, update_every=5)
 
     # Dueling DQNs
-    agent_cart_pole = DeepQAgent.example(CartPoleConfig(agent_type='dueling_dqn', plot_during_training=True))
-    agent_mountain_car = DeepQAgent.example(MountainCarConfig(agent_type='dueling_dqn', plot_during_training=True))
+    dueling_agent_cart_pole = DeepQAgent.example(CartPoleConfig(agent_type='dueling_dqn', plot_during_training=True))
+    dueling_agent_mountain_car = DeepQAgent.example(MountainCarConfig(agent_type='dueling_dqn',
+                                                                      plot_during_training=True))

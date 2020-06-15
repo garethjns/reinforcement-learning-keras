@@ -151,7 +151,7 @@ class AgentBase(abc.ABC):
 
         return EpisodeReport(total_reward=total_reward,
                              frames=frames,
-                             time_taken=np.round(t1 - t0, 2),
+                             time_taken=np.round(t1 - t0, 3),
                              epsilon_used=getattr(self, 'eps', None))
 
     def train(self, n_episodes: int = 10000, max_episode_steps: int = 500, verbose: bool = True, render: bool = True,
@@ -169,10 +169,8 @@ class AgentBase(abc.ABC):
         self._tqdm.set_tqdm(verbose)
 
         for ep in self._tqdm.tqdm_runner(range(n_episodes)):
-            total_reward = self.play_episode(max_episode_steps,
-                                             training=True,
-                                             render=render)
-            self._update_history(total_reward, verbose)
+            episode_report = self.play_episode(max_episode_steps=max_episode_steps, training=True, render=render)
+            self._update_history(episode_report, verbose)
 
             if (update_every > 0) and not (ep % update_every):
                 # Run the after-episode update step
@@ -210,7 +208,7 @@ class AgentBase(abc.ABC):
         self.training_history.append(episode_report)
 
         if verbose:
-            print(episode_report)
+            print(f"{self.name}: {episode_report}")
             self.training_history.training_plot()
 
     def save(self, fn: str) -> None:

@@ -66,7 +66,7 @@ class RandomAgent(AgentBase):
 
     @classmethod
     def example(cls, config: ConfigBase, render: bool = True,
-                n_episodes: int = 300, max_episode_steps: int = 500) -> "RandomAgent":
+                n_episodes: int = 500, max_episode_steps: int = 500) -> "RandomAgent":
         """Create, train, and save agent for a given config."""
         config_dict = config.build()
 
@@ -84,6 +84,10 @@ if __name__ == "__main__":
     from enviroments.cart_pole.cart_pole_config import CartPoleConfig
     from enviroments.mountain_car.mountain_car_config import MountainCarConfig
 
+    agent_mountain_car = RandomAgent.example(
+        MountainCarConfig(agent_type='random', plot_during_training=True), max_episode_steps=1500, render=False)
+
     agent_cart_pole = RandomAgent.example(CartPoleConfig(agent_type='random', plot_during_training=True))
     agent_mountain_car = RandomAgent.example(MountainCarConfig(agent_type='random', plot_during_training=True))
-    agent_pong = RandomAgent.example(PongConfig(agent_type='random', plot_during_training=True))
+    agent_pong = RandomAgent.example(PongConfig(agent_type='random', plot_during_training=True),
+                                     max_episode_steps=10000)

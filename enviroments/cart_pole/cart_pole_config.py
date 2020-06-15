@@ -96,7 +96,8 @@ class CartPoleConfig(ConfigBase):
         from tensorflow import keras
 
         name = 'REINFORCEAgent'
-        return {'env_spec': self.env_spec,
+        return {'name': name,
+                'env_spec': self.env_spec,
                 'env_wrappers': [],
                 'model_architecture': SmallNN(observation_shape=(4,), n_actions=2, output_activation='softmax',
                                               opt=keras.optimizers.Adam(learning_rate=0.001), loss=reinforce_loss),
@@ -110,7 +111,8 @@ class CartPoleConfig(ConfigBase):
 
     def _build_for_random(self):
         name = 'RandomAgent'
-        return {'env_spec': self.env_spec,
+        return {'name': name,
+                'env_spec': self.env_spec,
                 'training_history': TrainingHistory(plotting_on=self.plot_during_training,
                                                     plot_every=25,
                                                     rolling_average=12,

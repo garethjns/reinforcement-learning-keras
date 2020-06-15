@@ -82,7 +82,8 @@ class MountainCarConfig(ConfigBase):
 
     def _build_for_random(self):
         name = 'RandomAgent'
-        return {'env_spec': self.env_spec,
+        return {'name': name,
+                'env_spec': self.env_spec,
                 'training_history': TrainingHistory(plotting_on=self.plot_during_training,
                                                     plot_every=25, rolling_average=12,
                                                     agent_name=name)}

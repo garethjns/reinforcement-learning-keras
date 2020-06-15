@@ -55,7 +55,11 @@ class AgentExperiment:
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', FutureWarning)
 
-            agent = agent_class(**agent_config.build())
+            config_dict = agent_config.build()
+            # Give each agent a unique name for easier tracking with verbose and multiprocessing
+            config_dict["name"] = f"{config_dict.get('name', 'Agent')}_{np.random.randint(0, 2**16)}"
+
+            agent = agent_class(**config_dict)
             agent.train(**training_options)
             agent.unready()
 
