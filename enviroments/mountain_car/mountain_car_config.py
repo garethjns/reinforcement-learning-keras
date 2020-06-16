@@ -54,7 +54,6 @@ class MountainCarConfig(ConfigBase):
                 'model_architecture': SmallNN(observation_shape=(2,), n_actions=3, output_activation=None,
                                               opt=keras.optimizers.Adam(learning_rate=0.001), loss='mse'),
                 'gamma': 0.99,
-                'learning_rate': 0.0005,
                 'final_reward': 650,
                 'replay_buffer_samples': 32,
                 'eps': EpsilonGreedy(eps_initial=0.1,

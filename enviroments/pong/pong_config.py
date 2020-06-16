@@ -66,8 +66,6 @@ class PongConfig(ConfigBase):
                                              output_activation=None,
                                              opt=keras.optimizers.Adam(learning_rate=0.0001), loss='mse'),
                 'gamma': 0.99,
-                'learning_rate': 0.0001,
-                'frame_depth': self.frame_depth,
                 'final_reward': None,
                 # Use eps_initial > 1 here so only random actions used for first steps, which will make filling the
                 # replay buffer more efficient. It'll also avoid decaying eps while not training.

@@ -1,7 +1,9 @@
+import gc
 from dataclasses import dataclass
 from typing import Dict, Any, Union, Tuple, Iterable, Callable
 
 import numpy as np
+from tensorflow import keras
 
 from agents.agent_base import AgentBase
 from agents.components.helpers.env_builder import EnvBuilder
@@ -13,7 +15,7 @@ from enviroments.config_base import ConfigBase
 from enviroments.model_base import ModelBase
 
 
-@dataclass()
+@dataclass
 class DeepQAgent(AgentBase):
     replay_buffer: ContinuousBuffer
     eps: EpsilonGreedy
@@ -23,9 +25,7 @@ class DeepQAgent(AgentBase):
     env_wrappers: Iterable[Callable] = ()
     name: str = 'DQNAgent'
     gamma: float = 0.99
-    frame_depth: int = 1
     replay_buffer_samples: int = 75
-    learning_rate: float = 0.001
     final_reward: Union[float, None] = None
 
     _action_model_weights: Union[np.ndarray, None] = None
@@ -42,6 +42,8 @@ class DeepQAgent(AgentBase):
             self._action_model_weights = self._action_model.get_weights()
             self._action_model = None
             self._value_model = None
+        keras.backend.clear_session()
+        gc.collect()
 
     def check_ready(self):
         super().check_ready()
@@ -69,6 +71,7 @@ class DeepQAgent(AgentBase):
             self._action_model.set_weights(self._action_model_weights)
             self._value_model.set_weights(self._action_model_weights)
             self._action_model_weights = None
+            gc.collect()
 
     def transform(self, s: np.ndarray) -> np.ndarray:
         """Check input shape, add Row dimension if required."""
@@ -213,7 +216,8 @@ class DeepQAgent(AgentBase):
 
     @classmethod
     def example(cls, config: ConfigBase, render: bool = True,
-                n_episodes: int = 500, max_episode_steps: int = 500, update_every: int = 10) -> "DeepQAgent":
+                n_episodes: int = 500, max_episode_steps: int = 500, update_every: int = 10,
+                checkpoint_every: int = 100) -> "DeepQAgent":
         """Create, train, and save agent for a given config."""
         VirtualGPU(config.gpu_memory)
         config_dict = config.build()
@@ -222,7 +226,7 @@ class DeepQAgent(AgentBase):
 
         agent.train(verbose=True, render=render,
                     n_episodes=n_episodes, max_episode_steps=max_episode_steps, update_every=update_every,
-                    checkpoint_every=100)
+                    checkpoint_every=checkpoint_every)
         agent.save(f"{agent.name}_{config_dict['env_spec']}.pkl")
 
         return agent
@@ -233,11 +237,11 @@ if __name__ == "__main__":
     from enviroments.cart_pole.cart_pole_config import CartPoleConfig
     from enviroments.mountain_car.mountain_car_config import MountainCarConfig
 
-    # DQNs
     agent_cart_pole = DeepQAgent.example(CartPoleConfig(agent_type='dqn', plot_during_training=True))
     agent_mountain_car = DeepQAgent.example(MountainCarConfig(agent_type='dqn', plot_during_training=True))
+    # DQNs
     agent_pong = DeepQAgent.example(PongConfig(agent_type='dqn', plot_during_training=True),
-                                    max_episode_steps=10000, update_every=5)
+                                    max_episode_steps=10000, update_every=5, render=False)
 
     # Dueling DQNs
     dueling_agent_cart_pole = DeepQAgent.example(CartPoleConfig(agent_type='dueling_dqn', plot_during_training=True))

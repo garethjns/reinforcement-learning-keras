@@ -67,7 +67,7 @@ class TestPongStackEnvironment(unittest.TestCase):
 
             # Manually assert
             self._plot_obs(obs,
-                           show=False)
+                           show=True)
 
 
 class TestPongDiffEnv(TestPongStackEnvironment):
@@ -75,7 +75,7 @@ class TestPongDiffEnv(TestPongStackEnvironment):
     _expected_shape = (84, 84, 1)
 
     @staticmethod
-    def _plot_obs(obs: np.ndarray, show: bool = False):
+    def _plot_obs(obs: np.ndarray, show: bool = True):
         import matplotlib.pyplot as plt
 
         plt.imshow(obs.squeeze())

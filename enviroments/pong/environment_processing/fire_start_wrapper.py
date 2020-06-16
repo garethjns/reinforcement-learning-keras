@@ -15,4 +15,5 @@ class FireStartWrapper(gym.Wrapper):
     def reset(self) -> np.ndarray:
         self.env.reset()
         obs, _, done, _ = self.env.step(self.fire_action_id)
+
         return obs

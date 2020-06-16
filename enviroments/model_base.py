@@ -45,6 +45,5 @@ class ModelBase(abc.ABC):
         """Define model construction function. Should return input layer and output layer."""
         pass
 
-    def plot(self):
-        """TODO."""
-        pass
+    def plot(self, model_name: str = 'model'):
+        keras.utils.plot_model(self.compile(model_name), to_file=f"{model_name}.png", show_shapes=True)

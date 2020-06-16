@@ -1,10 +1,13 @@
 import unittest
 
 from agents.components.helpers.virtual_gpu import VirtualGPU
+from agents.components.replay_buffers.continuous_buffer import ContinuousBuffer
 from agents.q_learning.deep_q_agent import DeepQAgent
+from agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy
 from enviroments.cart_pole.cart_pole_config import CartPoleConfig
 from enviroments.mountain_car.mountain_car_config import MountainCarConfig
 from enviroments.pong.pong_config import PongConfig
+from unittest.mock import MagicMock
 
 
 class TestDeepQAgent(unittest.TestCase):
@@ -13,7 +16,7 @@ class TestDeepQAgent(unittest.TestCase):
     _fn = 'test_dqn_save.agents'
 
     def setUp(self):
-        VirtualGPU(256)
+        VirtualGPU(4096)
 
     def test_saving_and_reloading_creates_identical_object(self):
         # Arrange
@@ -48,14 +51,18 @@ class TestDeepQAgent(unittest.TestCase):
         # Assert
         self.assertIsInstance(agent, self._sut)
 
-    @unittest.skip("OOM error and slow...")
     def test_dqn_pong_example(self):
         # Arrange
-        config = PongConfig(agent_type='dqn', plot_during_training=False)
+        config = PongConfig(agent_type='dqn', plot_during_training=False).build()
+        config['eps'] = EpsilonGreedy(eps_initial=0.5, decay=0.0001, eps_min=0.01, decay_schedule='linear')
+        config['replay_buffer'] = ContinuousBuffer(buffer_size=10)
+        config['replay_buffer_samples'] = 2
+        mock_config = MagicMock()
+        mock_config.build.return_value = config
 
         # Act
         # Needs to run for long enough to fill replay buffer
-        agent = self._sut.example(config, render=False, max_episode_steps=1000, n_episodes=12)
+        agent = self._sut.example(mock_config, render=False, max_episode_steps=20, n_episodes=3)
 
         # Assert
         self.assertIsInstance(agent, self._sut)

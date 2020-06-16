@@ -1,7 +1,9 @@
+import gc
 from dataclasses import dataclass
 from typing import List, Tuple, Union, Dict, Any, Callable, Iterable
 
 import numpy as np
+from tensorflow import keras
 from tensorflow.keras import backend as K
 
 from agents.agent_base import AgentBase
@@ -35,7 +37,6 @@ class ReinforceAgent(AgentBase):
     name: str = 'REINFORCEAgent'
     alpha: float = 0.001
     gamma: float = 0.99
-    learning_rate: float = 0.001
 
     _model_weights: Union[np.ndarray, None] = None
 
@@ -56,6 +57,8 @@ class ReinforceAgent(AgentBase):
         if self._model is not None:
             self._model_weights = self._model.get_weights()
             self._model = None
+        keras.backend.clear_session()
+        gc.collect()
 
     def check_ready(self) -> None:
         super().check_ready()
@@ -100,6 +103,7 @@ class ReinforceAgent(AgentBase):
         if self._model_weights is not None:
             self._model.set_weights(self._model_weights)
             self._model_weights = None
+            gc.collect()
 
     def transform(self, s: Union[List[np.ndarray], np.ndarray]) -> np.ndarray:
         """No transforming of state here, just stacking and dimension checking.
