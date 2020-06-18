@@ -1,13 +1,12 @@
 """Train and few LinearQAgents, plot the results, and run an episode on the best agent."""
-
-from agents.mountain_car.q_learning.linear_q_agent import LinearQAgent
-
+from agents.q_learning.linear_q_agent import LinearQAgent
+from enviroments.mountain_car.mountain_car_config import MountainCarConfig
 from experiment.agent_experiment import AgentExperiment
 
 
 def run_exp(n_episodes: int = 500, max_episode_steps: int = 1000):
-    exp = AgentExperiment(env_spec="MountainCar-v0",
-                          agent_class=LinearQAgent,
+    exp = AgentExperiment(agent_class=LinearQAgent,
+                          agent_config=MountainCarConfig(agent_type='linear_1'),
                           n_reps=6,
                           n_jobs=6,
                           training_options={"n_episodes": n_episodes,

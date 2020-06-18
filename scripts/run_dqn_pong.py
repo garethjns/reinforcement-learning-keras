@@ -1,4 +1,8 @@
-from agents.pong.q_learning.deep_q_agent import DeepQAgent
+from agents.q_learning.deep_q_agent import DeepQAgent
+from enviroments.pong.pong_config import PongConfig
 
-agent = DeepQAgent.example(render=True)
-agent.save("test_pong_dqn_script.pkl")
+
+if __name__ == "__main__":
+    agent = DeepQAgent.example(config=PongConfig(agent_type='dqn'), max_episode_steps=10000, render=False,
+                               checkpoint_every=10)
+    agent.save("test_pong_dqn_script.pkl")

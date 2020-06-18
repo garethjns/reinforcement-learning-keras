@@ -2,32 +2,31 @@ import abc
 import copy
 import pickle
 import time
-from functools import reduce
-from typing import Any, Callable, Union, Dict, List, Tuple
+from typing import Any, Callable, Union, Dict, List, Tuple, Iterable
 
 import gym
 import numpy as np
-from tqdm import tqdm
 
-from agents.agent_helpers.env_builder import EnvBuilder
-from agents.agent_helpers.tqdm_handler import TQDMHandler
-from agents.history.episode_report import EpisodeReport
-from agents.history.training_history import TrainingHistory
+from agents.components.helpers.env_builder import EnvBuilder
+from agents.components.helpers.tqdm_handler import TQDMHandler
+from agents.components.history.episode_report import EpisodeReport
+from agents.components.history.training_history import TrainingHistory
 
 
 class AgentBase(abc.ABC):
-    history: TrainingHistory
-    env_spec: str
     name: str
+    env_spec: str
+    env_builder: EnvBuilder
+    env_wrappers: Iterable[Callable]
     gamma: float
+    final_reward: float
 
-    def __post_init__(self) -> None:
-        self._tqdm = TQDMHandler()
-        self._env_builder = EnvBuilder(self.env_spec, self.env_wrappers)
+    training_history: TrainingHistory
+    _tqdm = TQDMHandler()
 
     @property
     def env(self) -> gym.Env:
-        return self._env_builder.env
+        return self.env_builder.env
 
     def _pickle_compatible_getstate(self) -> Dict[str, Any]:
         """
@@ -50,8 +49,9 @@ class AgentBase(abc.ABC):
         # Remove things
         self.unready()
 
-        # Get object spec to pickle, everything left except env
-        object_state_dict = copy.deepcopy({k: v for k, v in self.__dict__.items() if k not in ["_env_builder", "env"]})
+        # Get object spec to pickle, everything left except env_builder references
+        # This is dodgy. Can end up with recursion errors depending on how deepcopy behaves...
+        object_state_dict = copy.deepcopy({k: v for k, v in self.__dict__.items() if k not in ["env_builder", "env"]})
 
         # Put this object back how it was
         self.check_ready()
@@ -67,28 +67,15 @@ class AgentBase(abc.ABC):
         Example of other model specific steps that might need doing:
          - For Keras models, check model is ready, for example if it needs recompiling after loading.
         """
-        self._env_builder = EnvBuilder(self.env_spec, self.env_wrappers)
-        self._env_builder.set_env()
+        self.env_builder = EnvBuilder(self.env_spec, self.env_wrappers)
+        self.env_builder.set_env()
 
     def unready(self) -> None:
         """Remove anything that causes issues with pickling, such as keras models."""
         pass
 
-    @classmethod
-    def example(cls) -> "AgentBase":
-        """Optional example function using this agent."""
-        raise NotImplementedError
-
-    @property
-    def env_wrappers(self) -> List[Callable]:
-        return []
-
-    def _build_pp(self) -> None:
-        """Prepare pre-processor for the raw state, if needed."""
-        pass
-
     def transform(self, s: Any) -> Any:
-        """Run the any pre-processing on raw state, if used."""
+        """Run the any pre-preprocessing on raw state, if used."""
         return s
 
     def update_experience(self, *args) -> None:
@@ -104,17 +91,6 @@ class AgentBase(abc.ABC):
     def update_model(self, *args, **kwargs) -> None:
         """Update the agents model(s)."""
         pass
-
-    @staticmethod
-    def _final_reward(reward: float) -> float:
-        """
-        Use this to define reward for end of an episode. Default is just the reward for this step.
-
-        For example:
-          - cart pole: Something negative as end is always bad (assuming not a timeout)
-          - Pong: Perhaps not negative - could win!
-        """
-        return reward
 
     def _discounted_reward(self, reward: float, estimated_future_action_rewards: np.ndarray) -> float:
         """Use this to define the discounted reward for unfinished episodes, default is 1 step TD."""
@@ -175,11 +151,11 @@ class AgentBase(abc.ABC):
 
         return EpisodeReport(total_reward=total_reward,
                              frames=frames,
-                             time_taken=np.round(t1 - t0, 2),
+                             time_taken=np.round(t1 - t0, 3),
                              epsilon_used=getattr(self, 'eps', None))
 
     def train(self, n_episodes: int = 10000, max_episode_steps: int = 500, verbose: bool = True, render: bool = True,
-              checkpoint_every: Union[bool, int] = 10, update_every: Union[bool, int] = 1) -> None:
+              checkpoint_every: Union[bool, int] = 0, update_every: Union[bool, int] = 1) -> None:
         """
         Run the default training loop
 
@@ -193,10 +169,8 @@ class AgentBase(abc.ABC):
         self._tqdm.set_tqdm(verbose)
 
         for ep in self._tqdm.tqdm_runner(range(n_episodes)):
-            total_reward = self.play_episode(max_episode_steps,
-                                             training=True,
-                                             render=render)
-            self._update_history(total_reward, verbose)
+            episode_report = self.play_episode(max_episode_steps=max_episode_steps, training=True, render=render)
+            self._update_history(episode_report, verbose)
 
             if (update_every > 0) and not (ep % update_every):
                 # Run the after-episode update step
@@ -223,19 +197,19 @@ class AgentBase(abc.ABC):
         """
         pass
 
-    def _update_history(self, total_reward: float, verbose: bool = True) -> None:
+    def _update_history(self, episode_report: EpisodeReport, verbose: bool = True) -> None:
         """
         Add an episodes reward to history and maybe plot depending on history settings.
 
-        :param total_reward: Reward from last episode to append to history.
+        :param episode_report: Episode report to add to history.
         :param verbose: If verbose, print the last episode and run the history plot. The history plot will display
                         depending on it's own settings. Verbose = False will turn it off totally.
         """
-        self.history.append(total_reward)
+        self.training_history.append(episode_report)
 
         if verbose:
-            print(total_reward)
-            self.history.training_plot()
+            print(f"{self.name}: {episode_report}")
+            self.training_history.training_plot()
 
     def save(self, fn: str) -> None:
         with open(fn, 'wb') as f:
@@ -248,3 +222,8 @@ class AgentBase(abc.ABC):
         new_agent.check_ready()
 
         return new_agent
+
+    @classmethod
+    def example(cls, config: Dict[str, Any]) -> "AgentBase":
+        """Optional example function using this agent."""
+        raise NotImplementedError
