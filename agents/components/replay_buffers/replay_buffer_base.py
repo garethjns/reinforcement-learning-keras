@@ -7,5 +7,5 @@ class ReplayBufferBase:
         joblib.dump(self, fn, compress=3)
 
     @classmethod
-    def load(cls, fn: str) -> "ReplayBUfferBase":
+    def load(cls, fn: str) -> "ReplayBufferBase":
         return joblib.load(fn)

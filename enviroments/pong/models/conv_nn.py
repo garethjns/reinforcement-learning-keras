@@ -22,4 +22,5 @@ class ConvNN(ModelBase):
         fc1 = keras.layers.Dense(units=int(n_units), name='fc1', activation='relu')(flatten)
         action_output = keras.layers.Dense(units=self.n_actions, name='output',
                                            activation=self.output_activation)(fc1)
+
         return frame_input, action_output
