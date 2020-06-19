@@ -1,6 +1,9 @@
 monitor_dir
 *.pkl
 *.agent
+*.joblib
+*.png
+!images/*.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

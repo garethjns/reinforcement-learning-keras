@@ -1,8 +1,10 @@
-import gc
+import os
 from dataclasses import dataclass
 from typing import Dict, Any, Union, Tuple, Iterable, Callable
 
+import joblib
 import numpy as np
+import tensorflow as tf
 from tensorflow import keras
 
 from agents.agent_base import AgentBase
@@ -13,6 +15,8 @@ from agents.components.replay_buffers.continuous_buffer import ContinuousBuffer
 from agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy
 from enviroments.config_base import ConfigBase
 from enviroments.model_base import ModelBase
+
+tf.compat.v1.disable_eager_execution()
 
 
 @dataclass
@@ -28,27 +32,44 @@ class DeepQAgent(AgentBase):
     replay_buffer_samples: int = 75
     final_reward: Union[float, None] = None
 
-    _action_model_weights: Union[np.ndarray, None] = None
-
     def __post_init__(self) -> None:
         self.env_builder = EnvBuilder(self.env_spec, self.env_wrappers)
         self._build_model()
+        self._fn = f"{self.name}_{self.env_spec}"
+        self.ready = True
 
     def __getstate__(self) -> Dict[str, Any]:
         return self._pickle_compatible_getstate()
 
+    def _save_models_and_buffer(self):
+        if not os.path.exists(f"{self._fn}"):
+            os.mkdir(f"{self._fn}")
+
+        self._action_model.save(f"{self._fn}/action_model")
+        self._value_model.save(f"{self._fn}/value_model")
+        self.replay_buffer.save(f"{self._fn}/replay_buffer.joblib")
+
+    def _load_models_and_buffer(self):
+        self._action_model = keras.models.load_model(f"{self._fn}/action_model")
+        self._value_model = keras.models.load_model(f"{self._fn}/value_model")
+        self.replay_buffer = ContinuousBuffer.load(f"{self._fn}/replay_buffer.joblib")
+
     def unready(self) -> None:
-        if self._action_model is not None:
-            self._action_model_weights = self._action_model.get_weights()
+        if self.ready:
+            self._save_models_and_buffer()
             self._action_model = None
             self._value_model = None
-        keras.backend.clear_session()
-        gc.collect()
+            self.replay_buffer = None
+            keras.backend.clear_session()
+            tf.compat.v1.reset_default_graph()
+        super().unready()
 
     def check_ready(self):
-        super().check_ready()
-        if self._action_model is None:
-            self._build_model()
+
+        if not self.ready:
+            self._load_models_and_buffer()
+
+            super().check_ready()
 
     def _build_model(self) -> None:
         """
@@ -62,16 +83,8 @@ class DeepQAgent(AgentBase):
         """
         self.model_architecture.compile(model_name='action_model')
 
-        self._action_model = self.model_architecture.compile(model_name='action_model')
-        self._value_model = self.model_architecture.compile(model_name='value_model')
-
-        # If existing model weights have been passed at object instantiation, apply these. This is likely will only
-        # be done when unpickling or when preparing to pickle this object.
-        if self._action_model_weights is not None:
-            self._action_model.set_weights(self._action_model_weights)
-            self._value_model.set_weights(self._action_model_weights)
-            self._action_model_weights = None
-            gc.collect()
+        self._action_model = self.model_architecture.compile(model_name='action_model', loss='mse')
+        self._value_model = self.model_architecture.compile(model_name='value_model', loss='mse')
 
     def transform(self, s: np.ndarray) -> np.ndarray:
         """Check input shape, add Row dimension if required."""
@@ -106,9 +119,14 @@ class DeepQAgent(AgentBase):
         using these value predictions as the targets. The value of performed action is updated with the discounted
         reward (using its value prediction at s'). ie. x=s, y=[action value 1, action value 2].
 
-        The predictions from the value model s, s', and the update of the action model is done in batch before and
-        after the loop. The loop then iterates over the rows. Note that an alternative is doing the prediction and
-        fit calls on singles rows in the loop. This would be very inefficient, especially if using a GPU.
+        GPU Performance notes (with 1080ti and eps @ 0.01, while rendering pong):
+          - Looping here with 2 predict calls and 1 train call (each single rows) is unusably slow.
+          - Two predict calls before loop and 1 train call after (on batches) runs at ~16 fps for pong (~2 GPU util).
+          - Switching TF to non-eager mode improves performance to 50fps (~7% GPU util) (also stops memory leaks).
+          - Reducing the predict calls to 1 by joining s and s' increases performance to ~73 fps (~14% util).
+            - Render off: ~81fps (~16% util)
+          - Vectorizing out the remaining loop: ~73fps (~14% util)
+            - Render off: ~84fps (~16% util)
         """
 
         # If buffer isn't full, don't train
@@ -118,29 +136,28 @@ class DeepQAgent(AgentBase):
         # Else sample batch from buffer
         ss, aa, rr, dd, ss_ = self.replay_buffer.sample_batch(self.replay_buffer_samples)
 
-        # For each sample, calculate targets using Bellman eq and value/target network
-
+        # Calculate estimated S,A values for current states and next states. These are stacked together first to avoid
+        # making two separate predict calls
         ss = np.array(ss)
-        y_now = self._value_model.predict(ss)
-        y_future = self._value_model.predict(np.array(ss_))
-        y = []
-        # TODO: Vectorize loop (although predict/train already outside so won't be major perf benefit)
-        for i, (state, action, reward, done, state_) in enumerate(zip(ss, aa, rr, dd, ss_)):
-            if done:
-                # If done, reward is just this step. For cart pole can only be done if agent has failed, so punish.
-                g = self.final_reward if self.final_reward is not None else reward
-            else:
-                # Otherwise, it's the reward plus the predicted max value of next action
-                g = reward + self.gamma * np.max(y_future[i, :])
+        ss_and_ss_ = np.vstack((ss, np.array(ss_)))
+        y_now_and_future = self._value_model.predict_on_batch(ss_and_ss_)
+        y_now = y_now_and_future[0:self.replay_buffer_samples]
+        y_future = y_now_and_future[self.replay_buffer_samples::]
 
-            # Set non-acted actions to y_now preds and acted action to y_future pred
-            y_ = y_now[i, :]
-            y_[action] = g
+        # Update rewards where not done with y_future predictions
+        dd_mask = np.array(dd, dtype=bool)
+        rr = np.array(rr, dtype=float)
+        rr[~dd_mask] += np.max(y_future[~dd_mask, :], axis=1)
+        # If self.final_reward is set, set done cases to this value. Else leave as observed reward.
+        if self.final_reward is not None:
+            rr[dd_mask] = self.final_reward
 
-            y.append(y_)
+        # Gather max action indexes and update relevent actions in y
+        aa = np.array(aa, dtype=int)
+        np.put_along_axis(y_now, aa.reshape(-1, 1), rr.reshape(-1, 1), axis=1)
 
-        # Fit action
-        self._action_model.train_on_batch(ss, np.stack(y))
+        # Fit model with updated y_now values
+        self._action_model.train_on_batch(ss, y_now)
 
     def get_best_action(self, s: np.ndarray) -> np.ndarray:
         """
@@ -227,9 +244,23 @@ class DeepQAgent(AgentBase):
         agent.train(verbose=True, render=render,
                     n_episodes=n_episodes, max_episode_steps=max_episode_steps, update_every=update_every,
                     checkpoint_every=checkpoint_every)
-        agent.save(f"{agent.name}_{config_dict['env_spec']}.pkl")
+        agent.save()
 
         return agent
+
+    def save(self) -> None:
+        if not os.path.exists(f"{self._fn}"):
+            os.mkdir(f"{self._fn}")
+
+        joblib.dump(self, f"{self._fn}/agent.joblib")
+        self.check_ready()
+
+    @classmethod
+    def load(cls, fn: str) -> "DeepQAgent":
+        new_agent = joblib.load(f"{fn}/agent.joblib")
+        new_agent.check_ready()
+
+        return new_agent
 
 
 if __name__ == "__main__":
@@ -237,11 +268,11 @@ if __name__ == "__main__":
     from enviroments.cart_pole.cart_pole_config import CartPoleConfig
     from enviroments.mountain_car.mountain_car_config import MountainCarConfig
 
-    agent_cart_pole = DeepQAgent.example(CartPoleConfig(agent_type='dqn', plot_during_training=True))
-    agent_mountain_car = DeepQAgent.example(MountainCarConfig(agent_type='dqn', plot_during_training=True))
     # DQNs
+    agent_cart_pole = DeepQAgent.example(CartPoleConfig(agent_type='dqn', plot_during_training=True), render=False)
+    agent_mountain_car = DeepQAgent.example(MountainCarConfig(agent_type='dqn', plot_during_training=True))
     agent_pong = DeepQAgent.example(PongConfig(agent_type='dqn', plot_during_training=True),
-                                    max_episode_steps=10000, update_every=5, render=False)
+                                    max_episode_steps=10000, update_every=5, render=False, checkpoint_every=10)
 
     # Dueling DQNs
     dueling_agent_cart_pole = DeepQAgent.example(CartPoleConfig(agent_type='dueling_dqn', plot_during_training=True))

@@ -175,7 +175,7 @@ class LinearQAgent(AgentBase):
 
         agent.train(verbose=True, render=render,
                     n_episodes=n_episodes, max_episode_steps=max_episode_steps, update_every=update_every)
-        agent.save(f"{agent.name}_{config_dict['env_spec']}.pkl")
+        agent.save()
 
         return agent
 

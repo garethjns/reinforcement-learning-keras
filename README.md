@@ -51,6 +51,7 @@ pip install -r requirements.txt
 # Deep Q learner
 ## Pong
 Pong-NoFrameSkip-v4 with various wrappers.
+
 ![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgentPong.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgentPong.png)  
 
 Model:  

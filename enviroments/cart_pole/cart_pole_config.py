@@ -3,7 +3,6 @@ from typing import Any, Dict
 
 from agents.components.history.training_history import TrainingHistory
 from agents.components.replay_buffers.continuous_buffer import ContinuousBuffer
-from agents.policy_gradient.loss import reinforce_loss
 from agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy
 from enviroments.cart_pole.environment_processing.clipepr_wrapper import ClipperWrapper
 from enviroments.cart_pole.environment_processing.rbf_wrapepr import RBFSWrapper
@@ -46,11 +45,9 @@ class CartPoleConfig(ConfigBase):
                 'gamma': 0.99,
                 'log_exemplar_space': False,
                 'final_reward': -200,
-                'eps': EpsilonGreedy(eps_initial=0.4,
-                                     eps_min=0.01),
+                'eps': EpsilonGreedy(eps_initial=0.4, eps_min=0.01),
                 'training_history': TrainingHistory(plotting_on=self.plot_during_training,
-                                                    plot_every=200,
-                                                    rolling_average=12,
+                                                    plot_every=200, rolling_average=12,
                                                     agent_name=name)}
 
     def _build_for_dqn(self) -> Dict[str, Any]:
@@ -62,49 +59,42 @@ class CartPoleConfig(ConfigBase):
                 'env_spec': self.env_spec,
                 'env_wrappers': [],
                 'model_architecture': SmallNN(observation_shape=(4,), n_actions=2, output_activation=None,
-                                              opt=keras.optimizers.Adam(learning_rate=0.001), loss='mse'),
+                                              opt='adam', learning_rate=0.001),
                 'gamma': 0.99,
                 'final_reward': -200,
                 'replay_buffer_samples': 75,
-                'eps': EpsilonGreedy(eps_initial=0.2,
-                                     decay=0.002,
-                                     eps_min=0.002),
+                'eps': EpsilonGreedy(eps_initial=0.2, decay=0.002, eps_min=0.002),
                 'replay_buffer': ContinuousBuffer(buffer_size=200),
                 'training_history': TrainingHistory(plotting_on=self.plot_during_training,
-                                                    plot_every=25,
-                                                    rolling_average=12,
+                                                    plot_every=25, rolling_average=12,
                                                     agent_name=name)}
 
     def _build_for_dueling_dqn(self) -> Dict[str, Any]:
-        from tensorflow import keras
 
         name = 'DuelingDQN'
         config_dict = self._build_for_dqn()
         config_dict.update({'name': name,
-                            'model_architecture': SmallDuelingNN(observation_shape=(4,), n_actions=2,
-                                                                 opt=keras.optimizers.Adam(learning_rate=0.001),
-                                                                 loss='mse'),
+                            'model_architecture': SmallDuelingNN(observation_shape=(4,), n_actions=2, opt='adam',
+                                                                 learning_rate=0.001),
                             'training_history': TrainingHistory(plotting_on=self.plot_during_training,
-                                                                plot_every=25,
-                                                                rolling_average=12,
+                                                                plot_every=25, rolling_average=12,
                                                                 agent_name=name)})
 
         return config_dict
 
     def _build_for_reinforce(self) -> Dict[str, Any]:
-        from tensorflow import keras
 
         name = 'REINFORCEAgent'
         return {'name': name,
                 'env_spec': self.env_spec,
                 'env_wrappers': [],
                 'model_architecture': SmallNN(observation_shape=(4,), n_actions=2, output_activation='softmax',
-                                              opt=keras.optimizers.Adam(learning_rate=0.001), loss=reinforce_loss),
+                                              opt='adam', learning_rate=0.001),
+                'final_reward': -2,
                 'gamma': 0.99,
                 'alpha': 0.00001,
                 'training_history': TrainingHistory(plotting_on=self.plot_during_training,
-                                                    plot_every=25,
-                                                    rolling_average=12,
+                                                    plot_every=25, rolling_average=12,
                                                     agent_name=name)}
 
     def _build_for_random(self):
@@ -112,6 +102,5 @@ class CartPoleConfig(ConfigBase):
         return {'name': name,
                 'env_spec': self.env_spec,
                 'training_history': TrainingHistory(plotting_on=self.plot_during_training,
-                                                    plot_every=25,
-                                                    rolling_average=12,
+                                                    plot_every=25, rolling_average=12,
                                                     agent_name=name)}

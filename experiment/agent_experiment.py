@@ -1,5 +1,4 @@
 import copy
-import pickle
 import warnings
 from dataclasses import dataclass
 from typing import Callable, Union, Dict, Any
@@ -39,7 +38,7 @@ class AgentExperiment:
                 self.training_options[k] = defaults[k]
 
     @property
-    def agent_scores(self):
+    def agent_scores(self) -> List[float]:
         return [a.training_history.current_performance for a in self._trained_agents]
 
     @property
@@ -57,7 +56,7 @@ class AgentExperiment:
 
             config_dict = agent_config.build()
             # Give each agent a unique name for easier tracking with verbose and multiprocessing
-            config_dict["name"] = f"{config_dict.get('name', 'Agent')}_{np.random.randint(0, 2**16)}"
+            config_dict["name"] = f"{config_dict.get('name', 'Agent')}_{np.random.randint(0, 2 ** 16)}"
 
             agent = agent_class(**config_dict)
             agent.train(**training_options)
@@ -87,14 +86,13 @@ class AgentExperiment:
     def plot(self) -> None:
         sns.set()
 
-        full_history = np.hstack(
-            [np.vstack(a.training_history.get_metric('total_reward')) for a in self._trained_agents])
+        full_history = np.hstack([np.vstack(a.training_history.get_metric('total_reward'))
+                                  for a in self._trained_agents])
         y_mean = np.mean(full_history, axis=1)
         y_std = np.std(full_history, axis=1)
 
         plt.plot(y_mean, label='Mean score', lw=1.25)
-        # 5% moving avg
-        mv_avg_pts = max(1, int(len(y_mean) * 0.05))
+        mv_avg_pts = max(1, int(len(y_mean) * 0.05))  # 5% moving avg
         plt.plot(np.convolve(self.best_agent.training_history.get_metric('total_reward'),
                              np.ones(mv_avg_pts), 'valid') / mv_avg_pts,
                  label='Best (mv avg)', ls='--', color='#d62728', lw=0.5)
@@ -104,8 +102,8 @@ class AgentExperiment:
         plt.fill_between(range(len(y_mean)), y_mean - y_std, y_mean + y_std,
                          color='lightgray', label='Score std')
 
-        plt.title(f'{self._trained_agents[0].name}', fontweight='bold')
-        plt.xlabel('N episodes', fontweight='bold')
+        plt.title(f'{self.name}', fontweight='bold')
+        plt.xlabel('Episode', fontweight='bold')
         plt.ylabel('Score', fontweight='bold')
         plt.legend(title='Agents')
         plt.tight_layout()
@@ -127,10 +125,8 @@ class AgentExperiment:
             print(f"Monitor wrapper failed, not saving video: \n{e}")
 
     def save(self, fn: str):
-        pickle.dump(self, open(fn, 'wb'))
+        """Disabled for now... Needed?"""
+        pass
 
-    def save_best_agent(self, fn: str = None):
-        if fn is None:
-            fn = f"{self.best_agent.name}.pkl"
-
-        pickle.dump(self.best_agent, open(fn, 'wb'))
+    def save_best_agent(self):
+        self.best_agent.save()

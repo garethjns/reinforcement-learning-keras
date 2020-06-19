@@ -69,12 +69,14 @@ class TestDeepQAgent(TestRandomAgent):
     def _assert_agent_unready(self, agent: DeepQAgent) -> None:
         self.assertIsNone(agent._action_model)
         self.assertIsNone(agent._value_model)
-        self.assertIsNotNone(agent._action_model_weights)
+        self.assertIsNone(agent.replay_buffer)
+        self.assertFalse(agent.ready)
 
     def _assert_agent_ready(self, agent: DeepQAgent) -> None:
         self.assertIsNotNone(agent._action_model)
         self.assertIsNotNone(agent._value_model)
-        self.assertIsNone(agent._action_model_weights)
+        self.assertIsNotNone(agent.replay_buffer)
+        self.assertTrue(agent.ready)
 
     def test_play_episode_steps_does_not_call_update_models_when_not_training(self) -> None:
         # Arrange

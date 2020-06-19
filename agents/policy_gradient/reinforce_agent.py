@@ -1,8 +1,10 @@
-import gc
+import os
 from dataclasses import dataclass
 from typing import List, Tuple, Union, Dict, Any, Callable, Iterable
 
+import joblib
 import numpy as np
+import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend as K
 
@@ -10,12 +12,11 @@ from agents.agent_base import AgentBase
 from agents.components.helpers.env_builder import EnvBuilder
 from agents.components.helpers.virtual_gpu import VirtualGPU
 from agents.components.history.training_history import TrainingHistory
+from agents.policy_gradient.loss import reinforce_loss
 from enviroments.config_base import ConfigBase
 from enviroments.model_base import ModelBase
 
-
-class BaseModel(object):
-    pass
+tf.compat.v1.disable_eager_execution()
 
 
 @dataclass
@@ -29,41 +30,56 @@ class ReinforceAgent(AgentBase):
 
     At the end of an episode, the current episode is moved to the backlog. This is cleared after updating model,
     which can occur less often.
+
+    TODO: Move replay buffer to agents.components.replay_buffer.episodic_buffer
     """
     training_history: TrainingHistory
     model_architecture: ModelBase
     env_spec: str = "CartPole-v0"
     env_wrappers: Iterable[Callable] = ()
     name: str = 'REINFORCEAgent'
-    alpha: float = 0.001
+    alpha: float = 0.0001
     gamma: float = 0.99
-
-    _model_weights: Union[np.ndarray, None] = None
+    final_reward: Union[float, None] = None
 
     def __post_init__(self) -> None:
         self.env_builder = EnvBuilder(self.env_spec, self.env_wrappers)
 
         # Keep track of number of trained episodes, only used for IDing episodes in buffer.
         self._ep_tracker: int = -1
-
+        self._fn = f"{self.name}_{self.env_spec}"
         self._build_model()
         self.clear_memory()
+        self.ready = True
 
     def __getstate__(self) -> Dict[str, Any]:
         return self._pickle_compatible_getstate()
 
-    def unready(self) -> None:
-        super().unready()
-        if self._model is not None:
-            self._model_weights = self._model.get_weights()
-            self._model = None
-        keras.backend.clear_session()
-        gc.collect()
+    def _save_model(self):
+        if not os.path.exists(f"{self._fn}"):
+            os.mkdir(f"{self._fn}")
 
-    def check_ready(self) -> None:
-        super().check_ready()
-        if self._model is None:
-            self._build_model()
+        self._model.save(f"{self.name}_{self.env_spec}/model")
+
+    def _load_model(self):
+
+        self._model = keras.models.load_model(f"{self._fn}/model",
+                                              custom_objects={'reinforce_loss': reinforce_loss})
+
+    def unready(self) -> None:
+        if self.ready:
+            self._save_model()
+            self._model = None
+            keras.backend.clear_session()
+            tf.compat.v1.reset_default_graph()
+        super().unready()
+
+    def check_ready(self):
+
+        if not self.ready:
+            self._load_model()
+
+            super().check_ready()
 
     def _clear_current_episode(self) -> None:
         """Clear buffer for current episode."""
@@ -96,22 +112,14 @@ class ReinforceAgent(AgentBase):
 
     def _build_model(self) -> None:
         """State -> model -> action probs"""
-        self._model = self.model_architecture.compile(model_name='action_model')
-
-        # If existing model weights have been passed at object instantiation, apply these. This is likely will only
-        # be done when unpickling or when preparing to pickle this object.
-        if self._model_weights is not None:
-            self._model.set_weights(self._model_weights)
-            self._model_weights = None
-            gc.collect()
+        self._model = self.model_architecture.compile(model_name='action_model', loss=reinforce_loss)
 
     def transform(self, s: Union[List[np.ndarray], np.ndarray]) -> np.ndarray:
-        """No transforming of state here, just stacking and dimension checking.
-        """
-        if not isinstance(s, np.ndarray):
-            s = np.vstack(s)
+        """No transforming of state here, just stacking and dimension checking."""
+        if len(s.shape) < len(self._model.input.shape):
+            s = np.expand_dims(s, 0)
 
-        return np.atleast_2d(s)
+        return s
 
     def get_action(self, s: np.ndarray, training=None) -> Tuple[np.ndarray, int]:
         """
@@ -163,7 +171,7 @@ class ReinforceAgent(AgentBase):
 
         states = np.concatenate(list(self._buffer_states.values()))
         disc_rewards = np.concatenate(list(self._buffer_discounted_rewards.values()))
-        actions = np.concatenate(list(self._buffer_actions.values())).reshape(-1, 1)
+        actions = np.concatenate(list(self._buffer_actions.values()))
         action_probs = np.vstack(list(self._buffer_action_probs.values()))
 
         # One hot actions
@@ -212,6 +220,22 @@ class ReinforceAgent(AgentBase):
         self.update_model()
         self.clear_memory()
 
+    def save(self) -> None:
+        # No need to unready, this uses __getstate__
+        if not os.path.exists(f"{self._fn}"):
+            os.mkdir(f"{self._fn}")
+
+        self.unready()
+        joblib.dump(self, f"{self.name}_{self.env_spec}/agent.joblib")
+        self.check_ready()
+
+    @classmethod
+    def load(cls, fn: str) -> "ReinforceAgent":
+        new_agent = joblib.load(f"{fn}/agent.joblib")
+        new_agent.check_ready()
+
+        return new_agent
+
     @classmethod
     def example(cls, config: ConfigBase, render: bool = True,
                 n_episodes: int = 500, max_episode_steps: int = 500, update_every: int = 1) -> "ReinforceAgent":
@@ -223,7 +247,7 @@ class ReinforceAgent(AgentBase):
 
         agent.train(verbose=True, render=render,
                     n_episodes=n_episodes, max_episode_steps=max_episode_steps, update_every=update_every)
-        agent.save(f"{agent.name}_{config_dict['env_spec']}.pkl")
+        agent.save()
 
         return agent
 
@@ -231,4 +255,5 @@ class ReinforceAgent(AgentBase):
 if __name__ == "__main__":
     from enviroments.cart_pole.cart_pole_config import CartPoleConfig
 
-    agent_cart_pole = ReinforceAgent.example(CartPoleConfig(agent_type='reinforce', plot_during_training=True))
+    agent_cart_pole = ReinforceAgent.example(CartPoleConfig(agent_type='reinforce', plot_during_training=True),
+                                             render=False)
