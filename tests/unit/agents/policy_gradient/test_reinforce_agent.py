@@ -49,12 +49,24 @@ class TestReinforceAgent(TestRandomAgent):
 
     def _assert_agent_unready(self, agent: ReinforceAgent) -> None:
         self.assertIsNone(agent._model)
-        self.assertIsNotNone(agent._model_weights)
+        self.assertFalse(agent.ready)
 
     def _assert_agent_ready(self, agent: ReinforceAgent) -> None:
         self.assertIsNotNone(agent.env_builder._env)
         self.assertIsNotNone(agent._model)
-        self.assertIsNone(agent._model_weights)
+        self.assertTrue(agent.ready)
+
+    def test_train_calls_after_episode_updates_model_as_expected(self) -> None:
+        # Arrange
+        agent = self._ready_agent()
+        checkpoint = self._checkpoint_model(agent)
+
+        # Act
+        agent.train(n_episodes=self._n_episodes, max_episode_steps=self._n_step, render=False, checkpoint_every=0)
+
+        # Assert
+        self._assert_relevant_after_play_episode_change(agent, checkpoint)
 
 
+# Prevent parent test from being collected again
 del TestRandomAgent

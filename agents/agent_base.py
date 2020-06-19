@@ -1,10 +1,11 @@
 import abc
 import copy
-import pickle
+import gc
 import time
-from typing import Any, Callable, Union, Dict, List, Tuple, Iterable
+from typing import Any, Callable, Union, Dict, Tuple, Iterable
 
 import gym
+import joblib
 import numpy as np
 
 from agents.components.helpers.env_builder import EnvBuilder
@@ -16,10 +17,11 @@ from agents.components.history.training_history import TrainingHistory
 class AgentBase(abc.ABC):
     name: str
     env_spec: str
-    env_builder: EnvBuilder
+    env_builder: Union[EnvBuilder, None]
     env_wrappers: Iterable[Callable]
     gamma: float
     final_reward: float
+    ready: bool
 
     training_history: TrainingHistory
     _tqdm = TQDMHandler()
@@ -51,7 +53,7 @@ class AgentBase(abc.ABC):
 
         # Get object spec to pickle, everything left except env_builder references
         # This is dodgy. Can end up with recursion errors depending on how deepcopy behaves...
-        object_state_dict = copy.deepcopy({k: v for k, v in self.__dict__.items() if k not in ["env_builder", "env"]})
+        object_state_dict = copy.deepcopy({k: v for k, v in self.__dict__.items()})
 
         # Put this object back how it was
         self.check_ready()
@@ -62,6 +64,8 @@ class AgentBase(abc.ABC):
         """
         Check the model is ready to use.
 
+        If super is used, should be at end of overloading method.
+
         Default implementation:
          - Check _env is set (most models?)
         Example of other model specific steps that might need doing:
@@ -69,10 +73,20 @@ class AgentBase(abc.ABC):
         """
         self.env_builder = EnvBuilder(self.env_spec, self.env_wrappers)
         self.env_builder.set_env()
+        self.ready = True
+        gc.collect()
 
     def unready(self) -> None:
-        """Remove anything that causes issues with pickling, such as keras models."""
-        pass
+        """
+        Remove anything that causes issues with pickling, such as keras models.
+
+        If super is used, should be at end of overloading method.
+        """
+        if self.env_builder is not None:
+            self.env_builder.env.close()
+            self.env_builder = None
+        self.ready = False
+        gc.collect()
 
     def transform(self, s: Any) -> Any:
         """Run the any pre-preprocessing on raw state, if used."""
@@ -177,7 +191,7 @@ class AgentBase(abc.ABC):
                 self._after_episode_update()
 
             if (checkpoint_every > 0) and not (ep % checkpoint_every):
-                self.save(f"{self.name}_{self.env_spec}_checkpoint.pkl")
+                self.save()
 
     def _after_episode_update(self) -> None:
         """
@@ -211,14 +225,14 @@ class AgentBase(abc.ABC):
             print(f"{self.name}: {episode_report}")
             self.training_history.training_plot()
 
-    def save(self, fn: str) -> None:
-        with open(fn, 'wb') as f:
-            pickle.dump(self, f)
+    def save(self) -> None:
+        with open(f"{self.name}_{self.env_spec}", 'wb') as f:
+            joblib.dump(self, f)
 
     @classmethod
     def load(cls, fn: str) -> "AgentBase":
         with open(fn, 'rb') as f:
-            new_agent = pickle.load(f)
+            new_agent = joblib.load(f)
         new_agent.check_ready()
 
         return new_agent

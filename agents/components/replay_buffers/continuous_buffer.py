@@ -4,9 +4,11 @@ from typing import Tuple, Any, Iterable, List
 
 import numpy as np
 
+from agents.components.replay_buffers.replay_buffer_base import ReplayBufferBase
+
 
 @dataclass
-class ContinuousBuffer:
+class ContinuousBuffer(ReplayBufferBase):
     buffer_size: int = 50
 
     def __post_init__(self) -> None:

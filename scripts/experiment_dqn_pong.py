@@ -8,10 +8,11 @@ from experiment.agent_experiment import AgentExperiment
 def run_exp(n_episodes: int = 500, max_episode_steps: int = 10000):
     gpu = VirtualGPU(4096)
 
-    exp = AgentExperiment(agent_class=DeepQAgent,
+    exp = AgentExperiment(name='DQN Pong',
+                          agent_class=DeepQAgent,
                           agent_config=PongConfig(agent_type='dqn'),
-                          n_reps=3,
-                          n_jobs=1 if gpu.on else 3,
+                          n_reps=4,
+                          n_jobs=1 if gpu.on else 4,
                           training_options={"n_episodes": n_episodes,
                                             'verbose': True,
                                             "max_episode_steps": max_episode_steps})
@@ -21,4 +22,4 @@ def run_exp(n_episodes: int = 500, max_episode_steps: int = 10000):
 
 
 if __name__ == "__main__":
-    run_exp(n_episodes=500)
+    run_exp(n_episodes=800)

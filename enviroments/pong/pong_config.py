@@ -63,8 +63,7 @@ class PongConfig(ConfigBase):
                 'env_spec': self.env_spec,
                 'env_wrappers': self.env_wrappers,
                 'model_architecture': ConvNN(observation_shape=(84, 84, self.frame_depth), n_actions=6,
-                                             output_activation=None,
-                                             opt=keras.optimizers.Adam(learning_rate=0.0001), loss='mse'),
+                                             output_activation=None, opt='adam', learning_rate=0.0001),
                 'gamma': 0.99,
                 'final_reward': None,
                 # Use eps_initial > 1 here so only random actions used for first steps, which will make filling the

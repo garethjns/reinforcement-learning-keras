@@ -6,10 +6,9 @@ from enviroments.mountain_car.mountain_car_config import MountainCarConfig
 from enviroments.pong.pong_config import PongConfig
 
 
-class TestLinearQAgent(unittest.TestCase):
+class TestRandomAgent(unittest.TestCase):
     _sut = RandomAgent
     _agent_type: str = 'random'
-    _fn = 'test_random_save.agents'
 
     def test_saving_and_reloading_creates_identical_object(self):
         # Arrange
@@ -17,8 +16,8 @@ class TestLinearQAgent(unittest.TestCase):
         agent.train(verbose=True, render=False, n_episodes=2)
 
         # Act
-        agent.save(self._fn)
-        agent_2 = self._sut.load(self._fn)
+        agent.save()
+        agent_2 = self._sut.load(f"{agent.name}_{agent.env_spec}")
         agent_2.check_ready()
 
         # Assert

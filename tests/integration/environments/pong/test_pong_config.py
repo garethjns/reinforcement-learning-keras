@@ -7,6 +7,9 @@ import numpy as np
 from enviroments.pong.pong_config import PONG_ENV_STACK, PONG_ENV_DIFF
 
 
+SHOW = False
+
+
 class TestPongStackEnvironment(unittest.TestCase):
     _sut = PONG_ENV_STACK
     _expected_shape = (84, 84, 3)
@@ -67,7 +70,7 @@ class TestPongStackEnvironment(unittest.TestCase):
 
             # Manually assert
             self._plot_obs(obs,
-                           show=True)
+                           show=SHOW)
 
 
 class TestPongDiffEnv(TestPongStackEnvironment):

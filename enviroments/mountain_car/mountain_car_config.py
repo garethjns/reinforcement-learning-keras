@@ -52,7 +52,7 @@ class MountainCarConfig(ConfigBase):
         return {'name': name,
                 'env_spec': self.env_spec,
                 'model_architecture': SmallNN(observation_shape=(2,), n_actions=3, output_activation=None,
-                                              opt=keras.optimizers.Adam(learning_rate=0.001), loss='mse'),
+                                              opt='adam', learning_rate=0.001),
                 'gamma': 0.99,
                 'final_reward': 650,
                 'replay_buffer_samples': 32,
@@ -71,8 +71,7 @@ class MountainCarConfig(ConfigBase):
         config_dict = self._build_for_dqn()
         config_dict.update({'name': name,
                             'model_architecture': SmallDuelingNN(observation_shape=(2,), n_actions=3,
-                                                                 opt=keras.optimizers.Adam(learning_rate=0.001),
-                                                                 loss='mse'),
+                                                                 opt='adam', learning_rate=0.001),
                             'training_history': TrainingHistory(plotting_on=self.plot_during_training,
                                                                 plot_every=25, rolling_average=12,
                                                                 agent_name=name)})
