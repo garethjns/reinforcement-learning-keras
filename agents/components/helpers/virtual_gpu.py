@@ -37,6 +37,7 @@ class VirtualGPU:
             # IndexError: Assuming using GPU but indexed device not found.
             # AAttributeError: Assuming no GPU.
             warnings.warn(f"Not using GPU due to: {e}")
+            return False
 
         # First check a virtual device hasn't already been set. If it has, we don't want to try and set a new one.
         # - If the device has not been used before, it will be replaced and no error is raised
@@ -53,10 +54,8 @@ class VirtualGPU:
             self.virtual_device = existing_device[0]
             self.gpu_memory_limit = existing_device[0].memory_limit
 
-            return True
-
-        # Handle running on GPU: If available, reduce memory commitment to avoid over-committing error in 2.2.0 and
-        # for also for general convenience.
-        tf.config.experimental.set_virtual_device_configuration(self.physical_device, [virtual_device])
+        else:
+            # GPU available and no existing virtual device. Create a new one.
+            tf.config.experimental.set_virtual_device_configuration(self.physical_device, [virtual_device])
 
         return True
