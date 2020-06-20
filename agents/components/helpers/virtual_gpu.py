@@ -37,8 +37,6 @@ class VirtualGPU:
             # IndexError: Assuming using GPU but indexed device not found.
             # AAttributeError: Assuming no GPU.
             warnings.warn(f"Not using GPU due to: {e}")
-        except AttributeError:
-            return False
 
         # First check a virtual device hasn't already been set. If it has, we don't want to try and set a new one.
         # - If the device has not been used before, it will be replaced and no error is raised
