@@ -12,8 +12,9 @@ from enviroments.pong.environment_processing.frame_buffer_wrapper import FrameBu
 from enviroments.pong.environment_processing.image_process_wrapper import ImageProcessWrapper
 from enviroments.pong.environment_processing.max_and_skip_wrapper import MaxAndSkipWrapper
 from enviroments.pong.models.conv_nn import ConvNN
-
 # Wrappers as used by models
+from enviroments.pong.models.dueling_conv_nn import DuelingConvNN
+
 PONG_ENV_SPEC = "PongNoFrameskip-v4"
 PONG_ENV = gym.make("PongNoFrameskip-v4")
 
@@ -29,7 +30,7 @@ PONG_ENV_DIFF = FrameBufferWrapper(FireStartWrapper(ImageProcessWrapper(MaxAndSk
 class PongConfig(ConfigBase):
     """Defines configs for Pong."""
     env_spec = 'PongNoFrameskip-v4'
-    supported_agents = ('dqn', 'random')
+    supported_agents = ('dqn', 'dueling_dqn', 'random')
     supported_modes = ('diff', 'stack')
     gpu_memory: int = 4096
 
@@ -51,11 +52,13 @@ class PongConfig(ConfigBase):
         if self.agent_type.lower() == 'dqn':
             return self._build_for_dqn()
 
+        if self.agent_type.lower() == 'dueling_dqn':
+            return self._build_for_dueling_dqn()
+
         if self.agent_type.lower() == 'random':
             return self._build_for_random()
 
     def _build_for_dqn(self) -> Dict[str, Any]:
-        from tensorflow import keras
 
         name = 'DeepQAgent'
 
@@ -63,18 +66,32 @@ class PongConfig(ConfigBase):
                 'env_spec': self.env_spec,
                 'env_wrappers': self.env_wrappers,
                 'model_architecture': ConvNN(observation_shape=(84, 84, self.frame_depth), n_actions=6,
-                                             output_activation=None, opt='adam', learning_rate=0.0001),
+                                             output_activation=None, opt='adam', learning_rate=0.000105),
                 'gamma': 0.99,
                 'final_reward': None,
                 # Use eps_initial > 1 here so only random actions used for first steps, which will make filling the
                 # replay buffer more efficient. It'll also avoid decaying eps while not training.
-                #'eps': EpsilonGreedy(eps_initial=1.2, decay=0.000025, eps_min=0.01, decay_schedule='compound'),
+                # Alternative: 'eps': EpsilonGreedy(eps_initial=1.2, decay=0.000025, eps_min=0.01,
+                #                                   decay_schedule='compound'),
                 'eps': EpsilonGreedy(eps_initial=1.1, decay=0.00001, eps_min=0.01, decay_schedule='linear'),
                 'replay_buffer': ContinuousBuffer(buffer_size=10000),
                 'replay_buffer_samples': 32,
                 'training_history': TrainingHistory(plotting_on=self.plot_during_training,
-                                                    plot_every=10, rolling_average=20,
+                                                    plot_every=25, rolling_average=20,
                                                     agent_name=name)}
+
+    def _build_for_dueling_dqn(self) -> Dict[str, Any]:
+
+        name = 'DuelingDQN'
+        config_dict = self._build_for_dqn()
+        config_dict.update({'name': name,
+                            'model_architecture': DuelingConvNN(observation_shape=(84, 84, self.frame_depth),
+                                                                n_actions=6, opt='adam', learning_rate=0.000102),
+                            'training_history': TrainingHistory(plotting_on=self.plot_during_training,
+                                                                plot_every=50, rolling_average=20,
+                                                                agent_name=name)})
+
+        return config_dict
 
     def _build_for_random(self):
         name = 'RandomAgent'
