@@ -4,5 +4,5 @@ from enviroments.pong.pong_config import PongConfig
 
 if __name__ == "__main__":
     agent = DeepQAgent.example(config=PongConfig(agent_type='dqn'), max_episode_steps=10000, render=False,
-                               checkpoint_every=10)
-    agent.save("test_pong_dqn_script.pkl")
+                               update_every=6, checkpoint_every=100)
+    agent.save()

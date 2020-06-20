@@ -165,7 +165,6 @@ class DeepQAgent(AgentBase):
         :param s: A single or multiple rows of state observations.
         :return: The selected action.
         """
-
         preds = self._action_model.predict(self.transform(s))
 
         return np.argmax(preds)
