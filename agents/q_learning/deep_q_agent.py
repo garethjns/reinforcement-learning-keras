@@ -41,7 +41,7 @@ class DeepQAgent(AgentBase):
     def __getstate__(self) -> Dict[str, Any]:
         return self._pickle_compatible_getstate()
 
-    def _save_models_and_buffer(self):
+    def _save_models_and_buffer(self) -> None:
         if not os.path.exists(f"{self._fn}"):
             os.mkdir(f"{self._fn}")
 
@@ -49,7 +49,7 @@ class DeepQAgent(AgentBase):
         self._value_model.save(f"{self._fn}/value_model")
         self.replay_buffer.save(f"{self._fn}/replay_buffer.joblib")
 
-    def _load_models_and_buffer(self):
+    def _load_models_and_buffer(self) -> None:
         self._action_model = keras.models.load_model(f"{self._fn}/action_model")
         self._value_model = keras.models.load_model(f"{self._fn}/value_model")
         self.replay_buffer = ContinuousBuffer.load(f"{self._fn}/replay_buffer.joblib")
