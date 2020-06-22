@@ -18,11 +18,12 @@ This repo aims to implement various reinforcement learning agents using Keras (t
           - [ ] Unrolled Bellman
           - [x] Dueling architecture
           - [ ] Multiple environments
-          - [ ] Double DQN
+          - [x] Double DQN
+          - [ ] Noisy network
     - [ ] Policy gradient methods    
         - [x] REINFORCE
             - [ ] Mountain car
-            - [ ] CartPole
+            - [x] CartPole
             - [ ] Pong
         - [ ] Actor-critic
             - [ ] Mountain car

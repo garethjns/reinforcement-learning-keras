@@ -1,6 +1,6 @@
 import unittest
 
-from enviroments.pong.environment_processing.image_process_wrapper import ImageProcessWrapper
+from enviroments.atari.environment_processing.image_process_wrapper import ImageProcessWrapper
 from tests.unit.environments.pong.environment_processing.env_fixture import EnvFixture
 
 

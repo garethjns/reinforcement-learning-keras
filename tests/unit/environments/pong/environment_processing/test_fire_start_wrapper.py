@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import call, Mock
 
-from enviroments.pong.environment_processing.fire_start_wrapper import FireStartWrapper
+from enviroments.atari.environment_processing.fire_start_wrapper import FireStartWrapper
 from tests.unit.environments.pong.environment_processing.env_fixture import EnvFixture
 
 

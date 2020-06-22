@@ -1,18 +1,20 @@
-"""TODO: Not finished. Can use to check if outputs look correct manually..."""
-
 import unittest
 
 import numpy as np
 
-from enviroments.atari.pong.pong_config import PONG_ENV_STACK, PONG_ENV_DIFF
+from enviroments.atari.space_invaders.space_invaders_config import SpaceInvadersConfig
 
 
 SHOW = False
 
 
-class TestPongStackEnvironment(unittest.TestCase):
-    _sut = PONG_ENV_STACK
+class TestSpaceInvadersStackEnvironment(unittest.TestCase):
+    _config = SpaceInvadersConfig
     _expected_shape = (84, 84, 3)
+    _env_mode = 'stack'
+
+    def setUp(self) -> None:
+        self._sut = self._config.wrapped_env(mode=self._env_mode)
 
     @staticmethod
     def _plot_obs(obs: np.ndarray, show: bool = False):
@@ -28,6 +30,7 @@ class TestPongStackEnvironment(unittest.TestCase):
 
     def test_reset_returns_expected_obs_shape(self):
         # Act
+        config = self._config.wrapped_env(mode='stack')
         obs = self._sut.reset()
 
         # Assert
@@ -73,9 +76,9 @@ class TestPongStackEnvironment(unittest.TestCase):
                            show=SHOW)
 
 
-class TestPongDiffEnv(TestPongStackEnvironment):
-    _sut = PONG_ENV_DIFF
+class TestSpaceInvadersEnv(TestSpaceInvadersStackEnvironment):
     _expected_shape = (84, 84, 1)
+    _env_mode = 'diff'
 
     @staticmethod
     def _plot_obs(obs: np.ndarray, show: bool = True):

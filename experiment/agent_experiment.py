@@ -84,30 +84,49 @@ class AgentExperiment:
         self.play_best()
 
     def plot(self) -> None:
+        """
+        Plot reward vs episode for experiment.
+
+        Plots:
+        - Mean of all agents
+        - Std of all agents (not constrained by max episodes or minimum score)
+        - Min and max score across all agents for each episode (observed; constrained by max episodes or minimum score)
+        - Score of best and worst agents (with 5% moving average). Best and worst defined using "current_performance"
+          property of agents, which is mean score over most recent n episodes, where n is whatever the rolling average
+          specified in the agents training history was.
+        """
+
         sns.set()
 
         full_history = np.hstack([np.vstack(a.training_history.get_metric('total_reward'))
                                   for a in self._trained_agents])
+
+        # Summary stats
+        n_episodes = full_history.shape[0]
         y_mean = np.mean(full_history, axis=1)
         y_std = np.std(full_history, axis=1)
+        plt.plot(y_mean, color='#1f77b4', label='Mean score', lw=1.25)
+        #plt.fill_between(range(n_episodes), y_mean - y_std, y_mean + y_std,
+        #                 color='#1f77b4', label='Score std', alpha=0.3)
+        plt.fill_between(range(n_episodes), np.min(full_history, axis=1), np.max(full_history, axis=1),
+                         color='lightgrey', label='Score range', alpha=0.5)
 
-        plt.plot(y_mean, label='Mean score', lw=1.25)
-        mv_avg_pts = max(1, int(len(y_mean) * 0.05))  # 5% moving avg
+        # Best and worst agents
+        mv_avg_pts = max(1, int(n_episodes * 0.05))  # 5% moving avg
         plt.plot(np.convolve(self.best_agent.training_history.get_metric('total_reward'),
                              np.ones(mv_avg_pts), 'valid') / mv_avg_pts,
-                 label='Best (mv avg)', ls='--', color='#d62728', lw=0.5)
+                 label='Best (mv avg)', ls='--', color='#d62728', lw=0.7)
         plt.plot(np.convolve(self.worst_agent.training_history.get_metric('total_reward'),
                              np.ones(mv_avg_pts), 'valid') / mv_avg_pts,
-                 label='Worst (mv avg)', ls='--', color='#9467bd', lw=0.5)
-        plt.fill_between(range(len(y_mean)), y_mean - y_std, y_mean + y_std,
-                         color='lightgray', label='Score std')
+                 label='Worst (mv avg)', ls='--', color='#9467bd', lw=0.7)
 
         plt.title(f'{self.name}', fontweight='bold')
         plt.xlabel('Episode', fontweight='bold')
         plt.ylabel('Score', fontweight='bold')
         plt.legend(title='Agents')
         plt.tight_layout()
-        plt.savefig(f'{self.name}_{self.agent_config.env_spec}_{self._trained_agents[0].name}.png')
+        plt.savefig(f'{self.name}_{self.agent_config.env_spec}.png')
+        plt.close()
 
     def play_best(self, episode_steps: int = None):
         if episode_steps is None:

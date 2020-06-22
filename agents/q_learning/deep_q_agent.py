@@ -25,6 +25,8 @@ class DeepQAgent(AgentBase):
     eps: EpsilonGreedy
     training_history: TrainingHistory
     model_architecture: ModelBase
+    double: bool = False
+    noisy: bool = False
     env_spec: str = "CartPole-v0"
     env_wrappers: Iterable[Callable] = ()
     name: str = 'DQNAgent'
@@ -46,19 +48,19 @@ class DeepQAgent(AgentBase):
             os.mkdir(f"{self._fn}")
 
         self._action_model.save(f"{self._fn}/action_model")
-        self._value_model.save(f"{self._fn}/value_model")
+        self._target_model.save(f"{self._fn}/target_model")
         self.replay_buffer.save(f"{self._fn}/replay_buffer.joblib")
 
     def _load_models_and_buffer(self):
         self._action_model = keras.models.load_model(f"{self._fn}/action_model")
-        self._value_model = keras.models.load_model(f"{self._fn}/value_model")
+        self._target_model = keras.models.load_model(f"{self._fn}/target_model")
         self.replay_buffer = ContinuousBuffer.load(f"{self._fn}/replay_buffer.joblib")
 
     def unready(self) -> None:
         if self.ready:
             self._save_models_and_buffer()
             self._action_model = None
-            self._value_model = None
+            self._target_model = None
             self.replay_buffer = None
             keras.backend.clear_session()
             tf.compat.v1.reset_default_graph()
@@ -76,15 +78,13 @@ class DeepQAgent(AgentBase):
         Prepare two of the same model.
 
         The action model is used to pick actions and the value model is used to predict value of Q(s', a). Action model
-        weights are updated on every buffer sample + training step. The value model is never directly trained, but it's
+        weights are updated on every buffer sample + training step. The target model is never directly trained, but it's
         weights are updated to match the action model at the end of each episode.
 
         :return:
         """
-        self.model_architecture.compile(model_name='action_model')
-
         self._action_model = self.model_architecture.compile(model_name='action_model', loss='mse')
-        self._value_model = self.model_architecture.compile(model_name='value_model', loss='mse')
+        self._target_model = self.model_architecture.compile(model_name='target_model', loss='mse')
 
     def transform(self, s: np.ndarray) -> np.ndarray:
         """Check input shape, add Row dimension if required."""
@@ -139,20 +139,32 @@ class DeepQAgent(AgentBase):
         # Calculate estimated S,A values for current states and next states. These are stacked together first to avoid
         # making two separate predict calls
         ss = np.array(ss)
-        ss_and_ss_ = np.vstack((ss, np.array(ss_)))
-        y_now_and_future = self._value_model.predict_on_batch(ss_and_ss_)
+        ss_ = np.array(ss_)
+        ss_and_ss_ = np.vstack((ss, ss_))
+        y_now_and_future = self._target_model.predict_on_batch(ss_and_ss_)
         y_now = y_now_and_future[0:self.replay_buffer_samples]
         y_future = y_now_and_future[self.replay_buffer_samples::]
 
         # Update rewards where not done with y_future predictions
         dd_mask = np.array(dd, dtype=bool)
         rr = np.array(rr, dtype=float)
-        rr[~dd_mask] += np.max(y_future[~dd_mask, :], axis=1)
-        # If self.final_reward is set, set done cases to this value. Else leave as observed reward.
-        if self.final_reward is not None:
-            rr[dd_mask] = self.final_reward
 
         # Gather max action indexes and update relevent actions in y
+        if self.double:
+            # If using double dqn select best actions using the action model, but the value of those action using the
+            # target model (already have in y_future)
+            y_future_action_model = self._action_model.predict_on_batch(ss_)
+            selected_actions = np.argmax(y_future_action_model[~dd_mask, :], axis=1)
+        else:
+            # If normal dqn select targets using target model, and value of those from target model too
+            selected_actions = np.argmax(y_future[~dd_mask, :], axis=1)
+
+        # Update reward values with estimated values (where not done) and final rewards (where done)
+        rr[~dd_mask] += y_future[~dd_mask, selected_actions]
+        if self.final_reward is not None:
+            # If self.final_reward is set, set done cases to this value. Else leave as observed reward.
+            rr[dd_mask] = self.final_reward
+
         aa = np.array(aa, dtype=int)
         np.put_along_axis(y_now, aa.reshape(-1, 1), rr.reshape(-1, 1), axis=1)
 
@@ -186,13 +198,13 @@ class DeepQAgent(AgentBase):
 
         return action
 
-    def update_value_model(self) -> None:
+    def update_target_model(self) -> None:
         """
         Update the value model with the weights of the action model (which is updated each step).
 
         The value model is updated less often to aid stability.
         """
-        self._value_model.set_weights(self._action_model.get_weights())
+        self._target_model.set_weights(self._action_model.get_weights())
 
     def _play_episode(self, max_episode_steps: int = 500,
                       training: bool = False, render: bool = True) -> Tuple[float, int]:
@@ -228,7 +240,7 @@ class DeepQAgent(AgentBase):
 
     def _after_episode_update(self) -> None:
         """Value model synced with action model at the end of each episode."""
-        self.update_value_model()
+        self.update_target_model()
 
     @classmethod
     def example(cls, config: ConfigBase, render: bool = True,
@@ -263,7 +275,7 @@ class DeepQAgent(AgentBase):
 
 
 if __name__ == "__main__":
-    from enviroments.pong.pong_config import PongConfig
+    from enviroments.atari.pong.pong_config import PongConfig
     from enviroments.cart_pole.cart_pole_config import CartPoleConfig
     from enviroments.mountain_car.mountain_car_config import MountainCarConfig
 

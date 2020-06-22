@@ -10,7 +10,7 @@ from agents.q_learning.deep_q_agent import DeepQAgent
 from agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy
 from enviroments.cart_pole.cart_pole_config import CartPoleConfig
 from enviroments.mountain_car.mountain_car_config import MountainCarConfig
-from enviroments.pong.pong_config import PongConfig
+from enviroments.atari.pong.pong_config import PongConfig
 
 
 class TestDeepQAgent(unittest.TestCase):
