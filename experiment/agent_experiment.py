@@ -83,17 +83,19 @@ class AgentExperiment:
         self.plot()
         self.play_best()
 
-    def plot(self) -> None:
+    def plot(self, err: str = 'range') -> None:
         """
         Plot reward vs episode for experiment.
 
         Plots:
         - Mean of all agents
-        - Std of all agents (not constrained by max episodes or minimum score)
+        - Std or range of all agents (not constrained by max episodes or minimum score)
         - Min and max score across all agents for each episode (observed; constrained by max episodes or minimum score)
         - Score of best and worst agents (with 5% moving average). Best and worst defined using "current_performance"
           property of agents, which is mean score over most recent n episodes, where n is whatever the rolling average
           specified in the agents training history was.
+
+        
         """
 
         sns.set()
@@ -104,12 +106,15 @@ class AgentExperiment:
         # Summary stats
         n_episodes = full_history.shape[0]
         y_mean = np.mean(full_history, axis=1)
-        y_std = np.std(full_history, axis=1)
+
         plt.plot(y_mean, color='#1f77b4', label='Mean score', lw=1.25)
-        #plt.fill_between(range(n_episodes), y_mean - y_std, y_mean + y_std,
-        #                 color='#1f77b4', label='Score std', alpha=0.3)
-        plt.fill_between(range(n_episodes), np.min(full_history, axis=1), np.max(full_history, axis=1),
-                         color='lightgrey', label='Score range', alpha=0.5)
+        if err == 'range':
+            plt.fill_between(range(n_episodes), np.min(full_history, axis=1), np.max(full_history, axis=1),
+                             color='lightgrey', label='Score range', alpha=0.5)
+        else:
+            y_std = np.std(full_history, axis=1)
+            plt.fill_between(range(n_episodes), y_mean - y_std, y_mean + y_std,
+                             color='#1f77b4', label='Score std', alpha=0.3)
 
         # Best and worst agents
         mv_avg_pts = max(1, int(n_episodes * 0.05))  # 5% moving avg
