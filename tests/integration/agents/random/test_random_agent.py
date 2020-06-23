@@ -3,7 +3,7 @@ import unittest
 from agents.random.random_agent import RandomAgent
 from enviroments.cart_pole.cart_pole_config import CartPoleConfig
 from enviroments.mountain_car.mountain_car_config import MountainCarConfig
-from enviroments.pong.pong_config import PongConfig
+from enviroments.atari.pong.pong_config import PongConfig
 
 
 class TestRandomAgent(unittest.TestCase):

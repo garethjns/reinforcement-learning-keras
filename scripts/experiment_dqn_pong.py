@@ -1,7 +1,7 @@
 """Train and few DeepQAgents, plot the results, and run an episode on the best agent."""
 from agents.components.helpers.virtual_gpu import VirtualGPU
 from agents.q_learning.deep_q_agent import DeepQAgent
-from enviroments.pong.pong_config import PongConfig
+from enviroments.atari.pong.pong_config import PongConfig
 from experiment.agent_experiment import AgentExperiment
 
 

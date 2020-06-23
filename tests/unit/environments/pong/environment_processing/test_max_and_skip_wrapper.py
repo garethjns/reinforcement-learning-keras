@@ -3,7 +3,7 @@ from unittest.mock import call, Mock
 
 import numpy as np
 
-from enviroments.pong.environment_processing.max_and_skip_wrapper import MaxAndSkipWrapper
+from enviroments.atari.environment_processing.max_and_skip_wrapper import MaxAndSkipWrapper
 from tests.unit.environments.pong.environment_processing.env_fixture import EnvFixture
 
 

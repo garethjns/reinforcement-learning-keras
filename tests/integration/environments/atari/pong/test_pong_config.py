@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from enviroments.pong.pong_config import PONG_ENV_STACK, PONG_ENV_DIFF
+from enviroments.atari.pong.pong_config import PONG_ENV_STACK, PONG_ENV_DIFF
 
 
 SHOW = False

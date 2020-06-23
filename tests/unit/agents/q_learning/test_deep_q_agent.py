@@ -25,7 +25,7 @@ class TestDeepQAgent(TestRandomAgent):
     def _ready_agent(self) -> DeepQAgent:
         agent = self._sut(**self._config.build())
         # Sync weights so checks are simpler
-        agent.update_value_model()
+        agent.update_target_model()
 
         return agent
 
@@ -36,7 +36,7 @@ class TestDeepQAgent(TestRandomAgent):
 
     def _assert_model_unchanged(self, agent: DeepQAgent, checkpoint: List[np.ndarray]) -> None:
         action_weights = agent._action_model.get_weights()
-        value_weights = agent._value_model.get_weights()
+        value_weights = agent._target_model.get_weights()
         for w in range(len(action_weights)):
             assert_array_almost_equal(action_weights[w], checkpoint[w])
             assert_array_almost_equal(value_weights[w], checkpoint[w])
@@ -58,7 +58,7 @@ class TestDeepQAgent(TestRandomAgent):
             self.assertFalse(np.all(action_weights[w].round(6) == checkpoint[w].round(6)))
 
     def _assert_value_model_changed(self, agent: DeepQAgent, checkpoint: List[np.ndarray]) -> None:
-        value_weights = agent._value_model.get_weights()
+        value_weights = agent._target_model.get_weights()
         for w in range(len(checkpoint)):
             self.assertFalse(np.all(value_weights[w].round(6) == checkpoint[w].round(6)))
 
@@ -68,13 +68,13 @@ class TestDeepQAgent(TestRandomAgent):
 
     def _assert_agent_unready(self, agent: DeepQAgent) -> None:
         self.assertIsNone(agent._action_model)
-        self.assertIsNone(agent._value_model)
+        self.assertIsNone(agent._target_model)
         self.assertIsNone(agent.replay_buffer)
         self.assertFalse(agent.ready)
 
     def _assert_agent_ready(self, agent: DeepQAgent) -> None:
         self.assertIsNotNone(agent._action_model)
-        self.assertIsNotNone(agent._value_model)
+        self.assertIsNotNone(agent._target_model)
         self.assertIsNotNone(agent.replay_buffer)
         self.assertTrue(agent.ready)
 
@@ -84,7 +84,7 @@ class TestDeepQAgent(TestRandomAgent):
 
         # Act
         with patch.object(agent, 'update_model') as mocked_update_model, \
-                patch.object(agent, "update_value_model") as mocked_update_value_model:
+                patch.object(agent, "update_target_model") as mocked_update_value_model:
             _ = agent.play_episode(max_episode_steps=self._n_step, training=False, render=False)
 
         # Assert
@@ -98,7 +98,7 @@ class TestDeepQAgent(TestRandomAgent):
 
         # Act
         with patch.object(agent, 'update_model') as mocked_update_model, \
-                patch.object(agent, "update_value_model") as mocked_update_value_model:
+                patch.object(agent, "update_target_model") as mocked_update_value_model:
             _ = agent.play_episode(max_episode_steps=self._n_step, training=True, render=False)
 
         # Assert
