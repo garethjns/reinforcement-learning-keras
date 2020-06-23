@@ -33,13 +33,6 @@ class PongConfig(ConfigBase):
     supported_modes = ('diff', 'stack')
     gpu_memory: int = 4096
 
-    @classmethod
-    def env(cls):
-        pass
-
-    def unwrapped_env(self):
-        pass
-
     def __init__(self, mode: str = 'diff', *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
