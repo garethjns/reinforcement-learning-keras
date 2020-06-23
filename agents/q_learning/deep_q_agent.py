@@ -149,10 +149,12 @@ class DeepQAgent(AgentBase):
         dd_mask = np.array(dd, dtype=bool)
         rr = np.array(rr, dtype=float)
 
-        # Gather max action indexes and update relevent actions in y
+        # Gather max action indexes and update relevant actions in y
         if self.double:
             # If using double dqn select best actions using the action model, but the value of those action using the
-            # target model (already have in y_future)
+            # target model (already have in y_future). Note that this doesn't appear to have as much of a performance
+            # cost as might be expected - presumably because the ss_ data is already on the GPU so transfer delay
+            # avoided.
             y_future_action_model = self._action_model.predict_on_batch(ss_)
             selected_actions = np.argmax(y_future_action_model[~dd_mask, :], axis=1)
         else:
@@ -164,7 +166,6 @@ class DeepQAgent(AgentBase):
         if self.final_reward is not None:
             # If self.final_reward is set, set done cases to this value. Else leave as observed reward.
             rr[dd_mask] = self.final_reward
-
         aa = np.array(aa, dtype=int)
         np.put_along_axis(y_now, aa.reshape(-1, 1), rr.reshape(-1, 1), axis=1)
 

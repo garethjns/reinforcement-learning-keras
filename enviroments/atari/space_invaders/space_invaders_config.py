@@ -6,14 +6,13 @@ import gym
 from agents.components.history.training_history import TrainingHistory
 from agents.components.replay_buffers.continuous_buffer import ContinuousBuffer
 from agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy
+from enviroments.atari.environment_processing.fire_start_wrapper import FireStartWrapper
+from enviroments.atari.environment_processing.frame_buffer_wrapper import FrameBufferWrapper
+from enviroments.atari.environment_processing.image_process_wrapper import ImageProcessWrapper
+from enviroments.atari.environment_processing.max_and_skip_wrapper import MaxAndSkipWrapper
+from enviroments.atari.pong.models.conv_nn import ConvNN
+from enviroments.atari.pong.models.dueling_conv_nn import DuelingConvNN
 from enviroments.config_base import ConfigBase
-from enviroments.pong.environment_processing.fire_start_wrapper import FireStartWrapper
-from enviroments.pong.environment_processing.frame_buffer_wrapper import FrameBufferWrapper
-from enviroments.pong.environment_processing.image_process_wrapper import ImageProcessWrapper
-from enviroments.pong.environment_processing.max_and_skip_wrapper import MaxAndSkipWrapper
-from enviroments.pong.models.conv_nn import ConvNN
-# Wrappers as used by models
-from enviroments.pong.models.dueling_conv_nn import DuelingConvNN
 
 PONG_ENV_SPEC = "PongNoFrameskip-v4"
 PONG_ENV = gym.make("PongNoFrameskip-v4")
@@ -29,8 +28,8 @@ PONG_ENV_DIFF = FrameBufferWrapper(FireStartWrapper(ImageProcessWrapper(MaxAndSk
 
 class PongConfig(ConfigBase):
     """Defines configs for Pong."""
-    env_spec = 'PongNoFrameskip-v4'
-    supported_agents = ('dqn', 'dueling_dqn', 'random')
+    env_spec = 'SpaceInvadersNoFrameskip-v0'
+    supported_agents = ()
     supported_modes = ('diff', 'stack')
     gpu_memory: int = 4096
 
@@ -48,21 +47,30 @@ class PongConfig(ConfigBase):
             self.frame_depth = 3
 
     def build(self) -> Dict[str, Any]:
+        config_dict: Dict[str, Any] = {}
 
         if self.agent_type.lower() == 'dqn':
-            return self._build_for_dqn()
+            config_dict = self._build_for_dqn()
 
         if self.agent_type.lower() == 'dueling_dqn':
-            return self._build_for_dueling_dqn()
+            config_dict = self._build_for_dueling_dqn()
+
+        if self.agent_type.lower() == 'double_dqn':
+            config_dict = self._build_for_double_dqn()
+
+        if self.agent_type.lower() == 'double_dueling_dqn':
+            config_dict = self._build_for_double_dueling_dqn()
 
         if self.agent_type.lower() == 'random':
-            return self._build_for_random()
+            config_dict = self._build_for_random()
+
+        config_dict.update({'training_history': TrainingHistory(plotting_on=self.plot_during_training,
+                                                                plot_every=50, rolling_average=25,
+                                                                agent_name=config_dict['name'])})
+        return config_dict
 
     def _build_for_dqn(self) -> Dict[str, Any]:
-
-        name = 'DeepQAgent'
-
-        return {'name': name,
+        return {'name': 'DeepQAgent',
                 'env_spec': self.env_spec,
                 'env_wrappers': self.env_wrappers,
                 'model_architecture': ConvNN(observation_shape=(84, 84, self.frame_depth), n_actions=6,
@@ -75,28 +83,34 @@ class PongConfig(ConfigBase):
                 #                                   decay_schedule='compound'),
                 'eps': EpsilonGreedy(eps_initial=1.1, decay=0.00001, eps_min=0.01, decay_schedule='linear'),
                 'replay_buffer': ContinuousBuffer(buffer_size=10000),
-                'replay_buffer_samples': 32,
-                'training_history': TrainingHistory(plotting_on=self.plot_during_training,
-                                                    plot_every=25, rolling_average=20,
-                                                    agent_name=name)}
+                'replay_buffer_samples': 32}
 
     def _build_for_dueling_dqn(self) -> Dict[str, Any]:
-
-        name = 'DuelingDQN'
         config_dict = self._build_for_dqn()
-        config_dict.update({'name': name,
+        config_dict.update({'name': 'DuelingDQN',
                             'model_architecture': DuelingConvNN(observation_shape=(84, 84, self.frame_depth),
-                                                                n_actions=6, opt='adam', learning_rate=0.000102),
-                            'training_history': TrainingHistory(plotting_on=self.plot_during_training,
-                                                                plot_every=50, rolling_average=20,
-                                                                agent_name=name)})
+                                                                n_actions=6, opt='adam', learning_rate=0.000102)})
+
+        return config_dict
+
+    def _build_for_double_dqn(self) -> Dict[str, Any]:
+        config_dict = self._build_for_dqn()
+        config_dict.update({'name': 'DoubleDQN',
+                            'double': True,
+                            'model_architecture': ConvNN(observation_shape=(84, 84, self.frame_depth),
+                                                         n_actions=6, opt='adam', learning_rate=0.000102)})
+
+        return config_dict
+
+    def _build_for_double_dueling_dqn(self) -> Dict[str, Any]:
+        config_dict = self._build_for_dqn()
+        config_dict.update({'name': 'DoubleDuelingDQN',
+                            'double': True,
+                            'model_architecture': DuelingConvNN(observation_shape=(84, 84, self.frame_depth),
+                                                                n_actions=6, opt='adam', learning_rate=0.000102)})
 
         return config_dict
 
     def _build_for_random(self):
-        name = 'RandomAgent'
-        return {'name': name,
-                'env_spec': self.env_spec,
-                'training_history': TrainingHistory(plotting_on=self.plot_during_training,
-                                                    plot_every=50, rolling_average=10,
-                                                    agent_name=name)}
+        return {'name': 'RandomAgent',
+                'env_spec': self.env_spec}

@@ -33,6 +33,13 @@ class PongConfig(ConfigBase):
     supported_modes = ('diff', 'stack')
     gpu_memory: int = 4096
 
+    @classmethod
+    def env(cls):
+        pass
+
+    def unwrapped_env(self):
+        pass
+
     def __init__(self, mode: str = 'diff', *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
@@ -45,29 +52,6 @@ class PongConfig(ConfigBase):
         if mode == "stack":
             self.env_wrappers = PONG_WRAPPERS_STACK
             self.frame_depth = 3
-
-    def build(self) -> Dict[str, Any]:
-        config_dict: Dict[str, Any] = {}
-
-        if self.agent_type.lower() == 'dqn':
-            config_dict = self._build_for_dqn()
-
-        if self.agent_type.lower() == 'dueling_dqn':
-            config_dict = self._build_for_dueling_dqn()
-
-        if self.agent_type.lower() == 'double_dqn':
-            config_dict = self._build_for_double_dqn()
-
-        if self.agent_type.lower() == 'double_dueling_dqn':
-            config_dict = self._build_for_double_dueling_dqn()
-
-        if self.agent_type.lower() == 'random':
-            config_dict = self._build_for_random()
-
-        config_dict.update({'training_history': TrainingHistory(plotting_on=self.plot_during_training,
-                                                                plot_every=50, rolling_average=25,
-                                                                agent_name=config_dict['name'])})
-        return config_dict
 
     def _build_for_dqn(self) -> Dict[str, Any]:
         return {'name': 'DeepQAgent',

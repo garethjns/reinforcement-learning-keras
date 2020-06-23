@@ -1,7 +1,6 @@
 from functools import partial
 from typing import Any, Dict
 
-from agents.components.history.training_history import TrainingHistory
 from agents.components.replay_buffers.continuous_buffer import ContinuousBuffer
 from agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy
 from enviroments.cart_pole.environment_processing.clipepr_wrapper import ClipperWrapper
@@ -21,34 +20,10 @@ class CartPoleConfig(ConfigBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def build(self) -> Dict[str, Any]:
-        config_dict: Dict[str, Any] = {}
-
-        if self.agent_type.lower() == 'linear_q':
-            config_dict = self._build_for_linear_q()
-
-        if self.agent_type.lower() == 'dqn':
-            config_dict = self._build_for_dqn()
-
-        if self.agent_type.lower() == 'dueling_dqn':
-            config_dict = self._build_for_dueling_dqn()
-
-        if self.agent_type.lower() == 'double_dqn':
-            config_dict = self._build_for_double_dqn()
-
-        if self.agent_type.lower() == 'double_dueling_dqn':
-            config_dict = self._build_for_double_dueling_dqn()
-
-        if self.agent_type.lower() == 'reinforce':
-            config_dict = self._build_for_reinforce()
-
-        if self.agent_type.lower() == 'random':
-            config_dict = self._build_for_random()
-
-        config_dict.update({'training_history': TrainingHistory(plotting_on=self.plot_during_training,
-                                                                plot_every=25, rolling_average=12,
-                                                                agent_name=config_dict['name'])})
-        return config_dict
+    @property
+    def _default_training_history_kwargs(self) -> Dict[str, Any]:
+        return {"plotting_on": self.plot_during_training,
+                "plot_every": 25, "rolling_average": 12}
 
     def _build_for_linear_q(self) -> Dict[str, Any]:
         return {'name': 'LinearQAgent',
