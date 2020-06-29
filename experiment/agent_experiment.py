@@ -95,7 +95,7 @@ class AgentExperiment:
           property of agents, which is mean score over most recent n episodes, where n is whatever the rolling average
           specified in the agents training history was.
 
-        
+
         """
 
         sns.set()

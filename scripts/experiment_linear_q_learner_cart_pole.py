@@ -9,8 +9,8 @@ from experiment.agent_experiment import AgentExperiment
 def run_exp(n_episodes: int = 1000, max_episode_steps: int = 500):
     exp = AgentExperiment(agent_class=LinearQAgent,
                           agent_config=CartPoleConfig('linear_q'),
-                          n_reps=8,
-                          n_jobs=4,
+                          n_reps=32,
+                          n_jobs=32,
                           training_options={"n_episodes": n_episodes,
                                             "max_episode_steps": max_episode_steps})
 
