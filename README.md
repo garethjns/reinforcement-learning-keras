@@ -70,7 +70,7 @@ This agent uses two copies of its model:
 ````python
 from agents.components.helpers.virtual_gpu import VirtualGPU
 from agents.q_learning.deep_q_agent import DeepQAgent
-from enviroments.pong.pong_config import PongConfig
+from enviroments.atari.pong.pong_config import PongConfig
 
 VirtualGPU(4096) 
 agent = DeepQAgent(**PongConfig('dqn').build())

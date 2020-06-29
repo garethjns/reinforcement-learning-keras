@@ -1,19 +1,20 @@
 """Train and few DeepQAgents, plot the results, and run an episode on the best agent."""
 from agents.components.helpers.virtual_gpu import VirtualGPU
 from agents.q_learning.deep_q_agent import DeepQAgent
-from enviroments.cart_pole.cart_pole_config import CartPoleConfig
+from enviroments.atari.pong.pong_config import PongConfig
 from experiment.agent_experiment import AgentExperiment
 
 
-def run_exp(agent_type: str, n_episodes: int = 1000, max_episode_steps: int = 600):
-    gpu = VirtualGPU(256)
+def run_exp(agent_type: str, n_episodes: int = 400, max_episode_steps: int = 10000):
+    gpu = VirtualGPU(2048)
 
-    exp = AgentExperiment(name=f"{agent_type} CartPole",
+    exp = AgentExperiment(name=f"{agent_type} Pong",
                           agent_class=DeepQAgent,
-                          agent_config=CartPoleConfig(agent_type=agent_type),
-                          n_reps=6,
-                          n_jobs=1 if gpu.on else 3,
+                          agent_config=PongConfig(agent_type=agent_type),
+                          n_reps=5,
+                          n_jobs=1 if gpu.on else 5,
                           training_options={"n_episodes": n_episodes,
+                                            "verbose": 1,
                                             "max_episode_steps": max_episode_steps})
 
     exp.run()
