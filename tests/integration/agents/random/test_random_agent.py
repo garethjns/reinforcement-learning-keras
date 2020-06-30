@@ -1,9 +1,9 @@
 import unittest
 
-from agents.random.random_agent import RandomAgent
-from enviroments.cart_pole.cart_pole_config import CartPoleConfig
-from enviroments.mountain_car.mountain_car_config import MountainCarConfig
-from enviroments.atari.pong.pong_config import PongConfig
+from reinforcement_learning_keras.agents.random.random_agent import RandomAgent
+from reinforcement_learning_keras.enviroments.atari.pong.pong_config import PongConfig
+from reinforcement_learning_keras.enviroments.cart_pole.cart_pole_config import CartPoleConfig
+from reinforcement_learning_keras.enviroments.mountain_car.mountain_car_config import MountainCarConfig
 
 
 class TestRandomAgent(unittest.TestCase):

@@ -2,9 +2,9 @@ import unittest
 
 import numpy as np
 
-from agents.q_learning.linear_q_agent import LinearQAgent
-from enviroments.cart_pole.cart_pole_config import CartPoleConfig
-from enviroments.mountain_car.mountain_car_config import MountainCarConfig
+from reinforcement_learning_keras.agents.q_learning.linear_q_agent import LinearQAgent
+from reinforcement_learning_keras.enviroments.cart_pole.cart_pole_config import CartPoleConfig
+from reinforcement_learning_keras.enviroments.mountain_car.mountain_car_config import MountainCarConfig
 
 
 class TestLinearQAgent(unittest.TestCase):

@@ -2,28 +2,26 @@
 
 import unittest
 
+import matplotlib.pyplot as plt
 import numpy as np
 
-from enviroments.atari.pong.pong_config import PONG_ENV_STACK, PONG_ENV_DIFF
-
+from reinforcement_learning_keras.enviroments.atari.pong.pong_config import PongConfig
 
 SHOW = False
 
 
 class TestPongStackEnvironment(unittest.TestCase):
-    _sut = PONG_ENV_STACK
+    _sut = PongConfig(mode='stack', agent_type='dqn').wrapped_env
     _expected_shape = (84, 84, 3)
 
     @staticmethod
-    def _plot_obs(obs: np.ndarray, show: bool = False):
-        import matplotlib.pyplot as plt
-
+    def _plot_obs(obs: np.ndarray):
         n_buff = obs.shape[2]
         fig, ax = plt.subplots(ncols=n_buff)
         for i in range(n_buff):
             ax[i].imshow(obs[:, :, i])
 
-        if show:
+        if SHOW:
             fig.show()
 
     def test_reset_returns_expected_obs_shape(self):
@@ -69,19 +67,16 @@ class TestPongStackEnvironment(unittest.TestCase):
             obs, reward, done, _ = self._sut.step(np.random.choice([4, 5]))
 
             # Manually assert
-            self._plot_obs(obs,
-                           show=SHOW)
+            self._plot_obs(obs)
 
 
 class TestPongDiffEnv(TestPongStackEnvironment):
-    _sut = PONG_ENV_DIFF
+    _sut = PongConfig(mode='diff', agent_type='dqn').wrapped_env
     _expected_shape = (84, 84, 1)
 
     @staticmethod
-    def _plot_obs(obs: np.ndarray, show: bool = True):
-        import matplotlib.pyplot as plt
-
+    def _plot_obs(obs: np.ndarray):
         plt.imshow(obs.squeeze())
 
-        if show:
+        if SHOW:
             plt.show()

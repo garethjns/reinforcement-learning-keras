@@ -1,13 +1,13 @@
 import unittest
 
-from agents.agent_base import AgentBase
-from agents.components.helpers.virtual_gpu import VirtualGPU
-from agents.policy_gradient.reinforce_agent import ReinforceAgent
-from agents.q_learning.deep_q_agent import DeepQAgent
-from agents.q_learning.linear_q_agent import LinearQAgent
-from agents.random.random_agent import RandomAgent
-from enviroments.cart_pole.cart_pole_config import CartPoleConfig
-from experiment.agent_experiment import AgentExperiment
+from reinforcement_learning_keras.agents.agent_base import AgentBase
+from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
+from reinforcement_learning_keras.agents.policy_gradient.reinforce_agent import ReinforceAgent
+from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
+from reinforcement_learning_keras.agents.q_learning.linear_q_agent import LinearQAgent
+from reinforcement_learning_keras.agents.random.random_agent import RandomAgent
+from reinforcement_learning_keras.enviroments.cart_pole.cart_pole_config import CartPoleConfig
+from reinforcement_learning_keras.experiment.agent_experiment import AgentExperiment
 
 
 class TestAgentExperiment(unittest.TestCase):

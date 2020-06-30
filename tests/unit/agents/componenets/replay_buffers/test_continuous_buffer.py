@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from agents.components.replay_buffers.continuous_buffer import ContinuousBuffer
+from reinforcement_learning_keras.agents.components.replay_buffers.continuous_buffer import ContinuousBuffer
 
 
 class TestContinuousBuffer(unittest.TestCase):

@@ -1,7 +1,7 @@
 """Train and few LinearQAgents, plot the results, and run an episode on the best agent."""
-from agents.q_learning.linear_q_agent import LinearQAgent
-from enviroments.mountain_car.mountain_car_config import MountainCarConfig
-from experiment.agent_experiment import AgentExperiment
+from reinforcement_learning_keras.agents.q_learning.linear_q_agent import LinearQAgent
+from reinforcement_learning_keras.enviroments.mountain_car.mountain_car_config import MountainCarConfig
+from reinforcement_learning_keras.experiment.agent_experiment import AgentExperiment
 
 
 def run_exp(n_episodes: int = 500, max_episode_steps: int = 1000):
