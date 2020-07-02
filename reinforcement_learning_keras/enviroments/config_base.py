@@ -11,8 +11,9 @@ class ConfigBase(abc.ABC):
     supported_agents: List[str]
     gpu_memory: int = 256
 
-    def __init__(self, agent_type: str, plot_during_training: bool = True):
+    def __init__(self, agent_type: str, plot_during_training: bool = True, folder: str = ''):
         self.plot_during_training = plot_during_training
+        self.folder = folder
 
         # Example env
         self.unwrapped_env = gym.make(self.env_spec)

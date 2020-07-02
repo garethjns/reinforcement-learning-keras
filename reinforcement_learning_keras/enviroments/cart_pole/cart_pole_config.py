@@ -1,3 +1,4 @@
+import os
 from functools import partial
 from typing import Any, Dict
 
@@ -26,7 +27,7 @@ class CartPoleConfig(ConfigBase):
                 "plot_every": 25, "rolling_average": 12}
 
     def _build_for_linear_q(self) -> Dict[str, Any]:
-        return {'name': 'LinearQAgent',
+        return {'name': os.path.join(self.folder, 'LinearQAgent'),
                 'env_spec': self.env_spec,
                 'env_wrappers': [partial(ClipperWrapper, lim=(-1, 1)), RBFSWrapper, SqueezeWrapper],
                 'gamma': 0.99,
@@ -35,7 +36,7 @@ class CartPoleConfig(ConfigBase):
                 'eps': EpsilonGreedy(eps_initial=0.4, eps_min=0.01)}
 
     def _build_for_dqn(self) -> Dict[str, Any]:
-        return {'name': 'DeepQAgent',
+        return {'name': os.path.join(self.folder, 'DeepQAgent'),
                 'env_spec': self.env_spec,
                 'model_architecture': SmallNN(observation_shape=(4,), n_actions=2, output_activation=None,
                                               opt='adam', learning_rate=0.001),
@@ -47,7 +48,7 @@ class CartPoleConfig(ConfigBase):
 
     def _build_for_dueling_dqn(self) -> Dict[str, Any]:
         config_dict = self._build_for_dqn()
-        config_dict.update({'name': 'DuelingDQN',
+        config_dict.update({'name': os.path.join(self.folder, 'DuelingDQN'),
                             'model_architecture': SmallDuelingNN(observation_shape=(4,), n_actions=2, opt='adam',
                                                                  learning_rate=0.001)})
 
@@ -55,7 +56,7 @@ class CartPoleConfig(ConfigBase):
 
     def _build_for_double_dueling_dqn(self) -> Dict[str, Any]:
         config_dict = self._build_for_dqn()
-        config_dict.update({'name': 'DoubleDuelingDQN',
+        config_dict.update({'name': os.path.join(self.folder, 'DoubleDuelingDQN'),
                             'double': True,
                             'model_architecture': SmallDuelingNN(observation_shape=(4,), n_actions=2, opt='adam',
                                                                  learning_rate=0.001)})
@@ -64,7 +65,7 @@ class CartPoleConfig(ConfigBase):
 
     def _build_for_double_dqn(self) -> Dict[str, Any]:
         config_dict = self._build_for_dqn()
-        config_dict.update({'name': 'DoubleDQN',
+        config_dict.update({'name': os.path.join(self.folder, 'DoubleDQN'),
                             'double': True,
                             'model_architecture': SmallNN(observation_shape=(4,), n_actions=2, opt='adam',
                                                           learning_rate=0.001)})
@@ -72,7 +73,7 @@ class CartPoleConfig(ConfigBase):
         return config_dict
 
     def _build_for_reinforce(self) -> Dict[str, Any]:
-        return {'name': 'REINFORCEAgent',
+        return {'name': os.path.join(self.folder, 'REINFORCEAgent'),
                 'env_spec': self.env_spec,
                 'model_architecture': SmallNN(observation_shape=(4,), n_actions=2, output_activation='softmax',
                                               opt='adam', learning_rate=0.001),
@@ -81,5 +82,5 @@ class CartPoleConfig(ConfigBase):
                 'alpha': 0.00001}
 
     def _build_for_random(self):
-        return {'name': 'RandomAgent',
+        return {'name': os.path.join(self.folder, 'RandomAgent'),
                 'env_spec': self.env_spec}
