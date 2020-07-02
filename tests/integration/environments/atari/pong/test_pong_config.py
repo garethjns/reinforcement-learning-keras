@@ -62,7 +62,7 @@ class TestPongStackEnvironment(unittest.TestCase):
         _ = self._sut.reset()
 
         # Act
-        for s in range(self._n_steps):
+        for _ in range(self._n_steps):
             obs, reward, done, _ = self._sut.step(np.random.choice([0, 1, 2, 3, 4, 5]))
 
             # Manually assert
