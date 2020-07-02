@@ -1,5 +1,4 @@
-"""TODO: Not finished. Can use to check if outputs look correct manually..."""
-
+import time
 import unittest
 
 import matplotlib.pyplot as plt
@@ -7,22 +6,22 @@ import numpy as np
 
 from reinforcement_learning_keras.enviroments.atari.pong.pong_config import PongConfig
 
-SHOW = False
-
 
 class TestPongStackEnvironment(unittest.TestCase):
     _sut = PongConfig(mode='stack', agent_type='dqn').wrapped_env
     _expected_shape = (84, 84, 3)
+    _n_steps = 20
+    _show = False
 
-    @staticmethod
-    def _plot_obs(obs: np.ndarray):
+    def _plot_obs(self, obs: np.ndarray):
         n_buff = obs.shape[2]
         fig, ax = plt.subplots(ncols=n_buff)
         for i in range(n_buff):
             ax[i].imshow(obs[:, :, i])
 
-        if SHOW:
+        if self._show:
             fig.show()
+            time.sleep(0.1)
 
     def test_reset_returns_expected_obs_shape(self):
         # Act
@@ -63,20 +62,21 @@ class TestPongStackEnvironment(unittest.TestCase):
         _ = self._sut.reset()
 
         # Act
-        for _ in range(20):
-            obs, reward, done, _ = self._sut.step(np.random.choice([4, 5]))
+        for s in range(self._n_steps):
+            obs, reward, done, _ = self._sut.step(np.random.choice([0, 1, 2, 3, 4, 5]))
 
             # Manually assert
             self._plot_obs(obs)
 
 
-class TestPongDiffEnv(TestPongStackEnvironment):
+class TestPongDiffEnvironment(TestPongStackEnvironment):
     _sut = PongConfig(mode='diff', agent_type='dqn').wrapped_env
     _expected_shape = (84, 84, 1)
+    _show = False
 
-    @staticmethod
-    def _plot_obs(obs: np.ndarray):
+    def _plot_obs(self, obs: np.ndarray):
         plt.imshow(obs.squeeze())
 
-        if SHOW:
+        if self._show:
             plt.show()
+            time.sleep(0.1)

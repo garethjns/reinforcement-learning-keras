@@ -1,4 +1,8 @@
+import gc
+import tempfile
 import unittest
+
+import tensorflow as tf
 
 from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
 from reinforcement_learning_keras.agents.policy_gradient.reinforce_agent import ReinforceAgent
@@ -10,9 +14,19 @@ class TestReinforceAgent(unittest.TestCase):
     _agent_type: str = 'reinforce'
     _gpu = VirtualGPU(256)
 
+    def setUp(self) -> None:
+        self._tmp_dir = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        tf.keras.backend.clear_session()
+        tf.compat.v1.reset_default_graph()
+        gc.collect()
+        self._tmp_dir.cleanup()
+
     def test_saving_and_reloading_creates_identical_object(self):
         # Arrange
-        agent = self._sut(**CartPoleConfig(agent_type=self._agent_type, plot_during_training=False).build())
+        agent = self._sut(**CartPoleConfig(agent_type=self._agent_type, plot_during_training=False,
+                                           folder=self._tmp_dir.name).build())
         agent.train(verbose=True, render=False, n_episodes=2)
 
         # Act
@@ -25,7 +39,8 @@ class TestReinforceAgent(unittest.TestCase):
 
     def test_cart_pole_example(self):
         # Arrange
-        config = CartPoleConfig(agent_type=self._agent_type, plot_during_training=False)
+        config = CartPoleConfig(agent_type=self._agent_type, plot_during_training=False,
+                                folder=self._tmp_dir.name)
 
         # Act
         agent = self._sut.example(config, render=False, n_episodes=10)

@@ -1,3 +1,5 @@
+import os
+import tempfile
 import unittest
 
 from reinforcement_learning_keras.agents.agent_base import AgentBase
@@ -14,10 +16,17 @@ class TestAgentExperiment(unittest.TestCase):
     _sut = AgentExperiment
     _agent_config = CartPoleConfig
 
+    def setUp(self) -> None:
+        self._tmp_dir = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self._tmp_dir.cleanup()
+
     def _run_exp(self, agent_class: AgentBase, agent_type: str, n_jobs: int = 1):
         # Arrange
-        exp = AgentExperiment(agent_class=agent_class,
-                              agent_config=self._agent_config(agent_type=agent_type),
+        exp = AgentExperiment(name=os.path.join(self._tmp_dir.name, 'test_exp'),
+                              agent_class=agent_class,
+                              agent_config=self._agent_config(agent_type=agent_type, folder=self._tmp_dir.name),
                               n_reps=3,
                               n_jobs=n_jobs,
                               training_options={"n_episodes": 4,
