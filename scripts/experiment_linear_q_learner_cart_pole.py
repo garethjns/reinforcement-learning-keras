@@ -1,9 +1,9 @@
 """Train and few LinearQAgents, plot the results, and run an episode on the best agent."""
 
-from agents.q_learning.linear_q_agent import LinearQAgent
-from enviroments.cart_pole.cart_pole_config import CartPoleConfig
+from reinforcement_learning_keras.agents.q_learning.linear_q_agent import LinearQAgent
+from reinforcement_learning_keras.enviroments.cart_pole.cart_pole_config import CartPoleConfig
 
-from experiment.agent_experiment import AgentExperiment
+from reinforcement_learning_keras.experiment.agent_experiment import AgentExperiment
 
 
 def run_exp(n_episodes: int = 1000, max_episode_steps: int = 500):

@@ -5,9 +5,9 @@ from unittest.mock import patch
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from agents.components.helpers.virtual_gpu import VirtualGPU
-from agents.q_learning.deep_q_agent import DeepQAgent
-from enviroments.cart_pole.cart_pole_config import CartPoleConfig
+from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
+from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
+from reinforcement_learning_keras.enviroments.cart_pole.cart_pole_config import CartPoleConfig
 from tests.unit.agents.random.test_random_agent import TestRandomAgent
 
 

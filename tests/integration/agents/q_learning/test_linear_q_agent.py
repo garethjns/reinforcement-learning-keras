@@ -1,19 +1,27 @@
+import tempfile
 import unittest
 
 import numpy as np
 
-from agents.q_learning.linear_q_agent import LinearQAgent
-from enviroments.cart_pole.cart_pole_config import CartPoleConfig
-from enviroments.mountain_car.mountain_car_config import MountainCarConfig
+from reinforcement_learning_keras.agents.q_learning.linear_q_agent import LinearQAgent
+from reinforcement_learning_keras.enviroments.cart_pole.cart_pole_config import CartPoleConfig
+from reinforcement_learning_keras.enviroments.mountain_car.mountain_car_config import MountainCarConfig
 
 
 class TestLinearQAgent(unittest.TestCase):
     _sut = LinearQAgent
     _agent_type: str = 'linear_q'
 
+    def setUp(self) -> None:
+        self._tmp_dir = tempfile.TemporaryDirectory()
+
+    def tearDown(self):
+        self._tmp_dir.cleanup()
+
     def test_saving_and_reloading_creates_identical_object(self):
         # Arrange
-        agent = self._sut(**CartPoleConfig(agent_type=self._agent_type, plot_during_training=False).build())
+        agent = self._sut(**CartPoleConfig(agent_type=self._agent_type, plot_during_training=False,
+                                          folder=self._tmp_dir.name).build())
         agent.train(verbose=True, render=False, n_episodes=2)
 
         # Act
@@ -28,17 +36,19 @@ class TestLinearQAgent(unittest.TestCase):
 
     def test_cart_pole_example(self):
         # Arrange
-        config = CartPoleConfig(agent_type=self._agent_type, plot_during_training=False)
+        config = CartPoleConfig(agent_type=self._agent_type, plot_during_training=False,
+                                folder=self._tmp_dir.name)
 
         # Act
-        agent = self._sut.example(config, render=False, n_episodes=200)
+        agent = self._sut.example(config, render=False, n_episodes=20)
 
         # Assert
         self.assertIsInstance(agent, self._sut)
 
     def test_mountain_car_example(self):
         # Arrange
-        config = MountainCarConfig(agent_type=self._agent_type, plot_during_training=False)
+        config = MountainCarConfig(agent_type=self._agent_type, plot_during_training=False,
+                                   folder=self._tmp_dir.name)
 
         # Act
         agent = self._sut.example(config, render=False, max_episode_steps=100, n_episodes=20)
