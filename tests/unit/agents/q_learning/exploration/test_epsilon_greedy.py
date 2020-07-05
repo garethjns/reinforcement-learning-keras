@@ -1,6 +1,6 @@
 import unittest
 
-from agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy
+from reinforcement_learning_keras.agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy
 
 
 class TestEpsilonGreedy(unittest.TestCase):

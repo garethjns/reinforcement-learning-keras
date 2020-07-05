@@ -20,7 +20,7 @@ class EnvFixture:
         return self._obs
 
     def action_indicator(self, action: int) -> None:
-        """Called each step, patch to monitor in zzold_tests."""
+        """Called each step, patch to monitor in tests."""
         pass
 
     def step(self, action: int) -> Tuple[np.ndarray, float, bool, Dict[Any, Any]]:

@@ -1,8 +1,8 @@
 """Train and few DeepQAgents, plot the results, and run an episode on the best agent."""
-from agents.components.helpers.virtual_gpu import VirtualGPU
-from agents.policy_gradient.reinforce_agent import ReinforceAgent
-from enviroments.mountain_car.mountain_car_config import MountainCarConfig
-from experiment.agent_experiment import AgentExperiment
+from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
+from reinforcement_learning_keras.agents.policy_gradient.reinforce_agent import ReinforceAgent
+from reinforcement_learning_keras.enviroments.mountain_car.mountain_car_config import MountainCarConfig
+from reinforcement_learning_keras.experiment.agent_experiment import AgentExperiment
 
 
 def run_exp(n_episodes: int = 1000, max_episode_steps: int = 1000):
