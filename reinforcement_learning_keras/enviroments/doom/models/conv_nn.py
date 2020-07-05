@@ -1,8 +1,7 @@
+from tensorflow import keras
 from typing import Tuple
 
-from tensorflow import keras
-
-from enviroments.model_base import ModelBase
+from reinforcement_learning_keras.enviroments.model_base import ModelBase
 
 
 class ConvNN(ModelBase):

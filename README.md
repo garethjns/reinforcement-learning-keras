@@ -187,4 +187,10 @@ agent = ReinforceAgent(**CartPoleConfig('reinforce').build())
 agent.train(verbose=True, render=True)
 ````
 
+# Doom
+Doom only supports Linux and uses the [ViZDoom](https://github.com/mwydmuch/ViZDoom) and [ViZDoomGym](https://github.com/shakenes/vizdoomgym) Python packages. These (and required Linux packages) can be installed can be installed by following the instructions here: https://github.com/shakenes/vizdoomgym.
 
+Additionally, to save monitor wrapper output, install the following packages:
+````BASH
+sudo apt install libcanberra-gtk-module libcanberra-gtk3-module
+````

@@ -63,7 +63,7 @@ class TestPongStackEnvironment(unittest.TestCase):
 
         # Act
         for _ in range(self._n_steps):
-            obs, reward, done, _ = self._sut.step(np.random.choice([0, 1, 2, 3, 4, 5]))
+            obs, reward, done, _ = self._sut.step(np.random.choice(range(self._sut.action_space.n)))
 
             # Manually assert
             self._plot_obs(obs)

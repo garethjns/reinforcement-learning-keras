@@ -22,7 +22,7 @@ class ImageProcessWrapper(gym.ObservationWrapper):
 
     def process(self, frame: np.ndarray) -> np.ndarray:
         gs = np.sum(frame, axis=2) / 3
-        gs_resized = cv2.resize(gs, (self._new_size[0], self._new_size[1]), interpolation=cv2.INTER_AREA)
+        gs_resized = cv2.resize(gs, (self._new_size[1], self._new_size[0]), interpolation=cv2.INTER_AREA)
         gs_norm = gs_resized.astype(self.dtype) / 255.0
 
         return gs_norm

@@ -1,3 +1,4 @@
 """Using the same one as Pong"""
 
-from enviroments.pong.environment_processing.frame_buffer_wrapper import FrameBufferWrapper
+from reinforcement_learning_keras.enviroments.atari.environment_processing.frame_buffer_wrapper import \
+    FrameBufferWrapper
