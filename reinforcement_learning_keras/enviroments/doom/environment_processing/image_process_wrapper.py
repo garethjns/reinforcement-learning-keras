@@ -13,7 +13,7 @@ class ImageProcessWrapper(gym.ObservationWrapper):
         self.dtype = dtype
         self.scale = scale
 
-        self._new_size = (int(env.observation_space.shape[0] * scale), int(env.observation_space.shape[1] * scale), 1)
+        self._new_size = (int(env.observation_space.shape[0] * scale), int(env.observation_space.shape[1] * scale))
         # New env obs space shape
         self.observation_space = gym.spaces.Box(low=0, high=1, shape=self._new_size, dtype=self.dtype)
 

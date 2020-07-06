@@ -22,9 +22,9 @@ class DoomConfig(ConfigBase):
     supported_modes = ('diff', 'stack')
     gpu_memory: int = 2048
 
-    _wrappers_stack = (ImageProcessWrapper, partial(FrameBufferWrapper, obs_shape=(128, 96),
+    _wrappers_stack = (ImageProcessWrapper, partial(FrameBufferWrapper, obs_shape=(96, 128),
                                                     buffer_function='stack'))
-    _wrappers_diff = (ImageProcessWrapper, partial(FrameBufferWrapper, obs_shape=(128, 96),
+    _wrappers_diff = (ImageProcessWrapper, partial(FrameBufferWrapper, obs_shape=(96, 128),
                                                    buffer_length=2,
                                                    buffer_function='diff'))
 
@@ -39,12 +39,12 @@ class DoomConfig(ConfigBase):
             self.env_wrappers = self._wrappers_diff
             self.frame_depth = 1
             self.wrapped_env = FrameBufferWrapper(ImageProcessWrapper(self.unwrapped_env),
-                                                  obs_shape=(128, 96), buffer_length=2, buffer_function='diff')
+                                                  obs_shape=(96,128), buffer_length=2, buffer_function='diff')
         if self.mode == "stack":
             self.env_wrappers = self._wrappers_stack
             self.frame_depth = 3
             self.wrapped_env = FrameBufferWrapper(ImageProcessWrapper(self.unwrapped_env),
-                                                  obs_shape=(128, 96), buffer_function='stack')
+                                                  obs_shape=(96, 128), buffer_function='stack')
 
     def _build_for_dqn(self) -> Dict[str, Any]:
         return {'name': os.path.join(self.folder, 'DeepQAgent'),

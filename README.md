@@ -2,7 +2,9 @@
 ![Tests](https://github.com/garethjns/reinforcement-learning-keras/workflows/Tests/badge.svg?branch=master) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=garethjns_reinforcement-learning-keras&metric=alert_status)](https://sonarcloud.io/dashboard?id=garethjns_reinforcement-learning-keras)
 
 This repo aims to implement various reinforcement learning agents using Keras (tf==2.2.0) and sklearn, for use with OpenAI Gym environments.
-  
+ 
+![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgentDoom.gif)
+ 
 # Planned agents
 - Methods
   - Off-policy
@@ -193,4 +195,19 @@ Doom only supports Linux and uses the [ViZDoom](https://github.com/mwydmuch/ViZD
 Additionally, to save monitor wrapper output, install the following packages:
 ````BASH
 sudo apt install libcanberra-gtk-module libcanberra-gtk3-module
+````
+
+## VizdoomBasic-v0
+### DQN
+![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgentDoom.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/dqn_VizdoomBasic-v0.png)  
+
+
+````python
+from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
+from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
+from reinforcement_learning_keras.enviroments.doom.doom_config import DoomConfig
+
+VirtualGPU(256)
+agent = DeepQAgent(**DoomConfig(agent_type='dqn', mode='stack').build())
+agent.train(n_episodes=1000, max_episode_steps=10000, verbose=True, render=True)
 ````
