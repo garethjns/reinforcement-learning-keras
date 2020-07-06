@@ -15,7 +15,16 @@ class EnvBuilder:
         if self.env_wrappers is None:
             self.env_wrappers = []
 
+        self._register_other_envs()
         self.set_env()
+
+    @staticmethod
+    def _register_other_envs() -> None:
+        """Try and import supported envs (may not be installed). Need to do this to register them with gym."""
+        try:
+            import vizdoomgym
+        except ImportError:
+            pass
 
     def set_env(self, env: Union[None, gym.Env] = None) -> None:
         """

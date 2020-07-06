@@ -6,7 +6,6 @@ import numpy as np
 
 class EnvFixture:
     action_space = MagicMock()
-    observation_space = MagicMock()
     reward_range = 1
     metadata = None
 
@@ -15,6 +14,9 @@ class EnvFixture:
         self._obs = np.ones(obs_shape)
         self._reward = 1.0
         self._stop_in: Union[None, int] = None
+
+        self.observation_space = MagicMock()
+        self.observation_space.shape = obs_shape
 
     def reset(self) -> np.ndarray:
         return self._obs

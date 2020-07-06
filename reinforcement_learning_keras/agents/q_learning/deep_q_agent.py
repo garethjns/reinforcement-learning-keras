@@ -1,4 +1,5 @@
 import os
+import warnings
 from dataclasses import dataclass
 from typing import Dict, Any, Union, Tuple, Iterable, Callable
 
@@ -43,7 +44,7 @@ class DeepQAgent(AgentBase):
     def __getstate__(self) -> Dict[str, Any]:
         return self._pickle_compatible_getstate()
 
-    def _save_models_and_buffer(self):
+    def _save_models_and_buffer(self) -> None:
         if not os.path.exists(f"{self._fn}"):
             os.mkdir(f"{self._fn}")
 
@@ -51,7 +52,7 @@ class DeepQAgent(AgentBase):
         self._target_model.save(f"{self._fn}/target_model")
         self.replay_buffer.save(f"{self._fn}/replay_buffer.joblib")
 
-    def _load_models_and_buffer(self):
+    def _load_models_and_buffer(self) -> None:
         self._action_model = keras.models.load_model(f"{self._fn}/action_model")
         self._target_model = keras.models.load_model(f"{self._fn}/target_model")
         self.replay_buffer = ContinuousBuffer.load(f"{self._fn}/replay_buffer.joblib")
@@ -247,11 +248,16 @@ class DeepQAgent(AgentBase):
     def example(cls, config: ConfigBase, render: bool = True,
                 n_episodes: int = 500, max_episode_steps: int = 500, update_every: int = 10,
                 checkpoint_every: int = 100) -> "DeepQAgent":
-        """Create, train, and save agent for a given config."""
-        VirtualGPU(config.gpu_memory)
-        config_dict = config.build()
+        """For a given config, create new, or load existing agent. Then train and save agent."""
 
-        agent = cls(**config_dict)
+        VirtualGPU(config.gpu_memory)
+
+        config_dict = config.build()
+        if os.path.exists(config_dict['name']):
+            agent = cls.load(config_dict['name'])
+            warnings.warn('Loaded existing agent.')
+        else:
+            agent = cls(**config_dict)
 
         agent.train(verbose=True, render=render,
                     n_episodes=n_episodes, max_episode_steps=max_episode_steps, update_every=update_every,
