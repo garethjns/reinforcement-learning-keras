@@ -205,7 +205,7 @@ sudo apt install libcanberra-gtk-module libcanberra-gtk3-module
 ````python
 from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
 from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
-from reinforcement_learning_keras.enviroments.doom.doom_config import DoomConfig
+from reinforcement_learning_keras.enviroments.doom.doom_default_config import DoomConfig
 
 VirtualGPU(256)
 agent = DeepQAgent(**DoomConfig(agent_type='dqn', mode='stack').build())

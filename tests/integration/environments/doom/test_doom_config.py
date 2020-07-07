@@ -3,7 +3,7 @@ import unittest
 from tests.integration.environments.atari.pong.test_pong_config import TestPongStackEnvironment, TestPongDiffEnvironment
 
 try:
-    from reinforcement_learning_keras.enviroments.doom.doom_config import DoomConfig
+    from reinforcement_learning_keras.enviroments.doom.doom_default_config import DoomConfig
 
     run_tests = True
 except ImportError:
