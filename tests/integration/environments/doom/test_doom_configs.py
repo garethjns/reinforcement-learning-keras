@@ -141,14 +141,14 @@ class TestDoomDiffEnvironments(TestPongDiffEnvironment):
 
 @unittest.skipUnless(run_tests, reason='ViZDoomGym not installed')
 class TestDoomDiffEnvironments(TestPongDiffEnvironment):
-    _sut = VizDoomPredictPositionConfig(mode='stack', agent_type='dqn').wrapped_env
-    _expected_shape = (90, 160, 3)
+    _sut = VizDoomPredictPositionConfig(mode='diff', agent_type='dqn').wrapped_env
+    _expected_shape = (90, 160, 1)
 
 
 @unittest.skipUnless(run_tests, reason='ViZDoomGym not installed')
 class TestDoomDiffEnvironments(TestPongDiffEnvironment):
-    _sut = VizDoomTakeCoverConfig(mode='stack', agent_type='dqn').wrapped_env
-    _expected_shape = (96, 128, 3)
+    _sut = VizDoomTakeCoverConfig(mode='diff', agent_type='dqn').wrapped_env
+    _expected_shape = (96, 128, 1)
     _show = False
 
 
