@@ -1,13 +1,12 @@
 import unittest
 from unittest.mock import MagicMock
 
-
+import reinforcement_learning_keras.enviroments.doom as doom
 from tests.integration.environments.atari.pong.test_pong_config import TestPongStackEnvironment, TestPongDiffEnvironment
 
-try:
-    import reinforcement_learning_keras.enviroments.doom as doom
+if doom.AVAILABLE:
     run_tests = True
-except ImportError:
+else:
     run_tests = False
     doom = MagicMock()
 
