@@ -10,8 +10,8 @@ from reinforcement_learning_keras.enviroments.atari.environment_processing.frame
 from reinforcement_learning_keras.enviroments.atari.environment_processing.image_process_wrapper import \
     ImageProcessWrapper
 from reinforcement_learning_keras.enviroments.atari.environment_processing.max_and_skip_wrapper import MaxAndSkipWrapper
-from reinforcement_learning_keras.enviroments.atari.models.conv_nn import ConvNN
-from reinforcement_learning_keras.enviroments.atari.models.dueling_conv_nn import DuelingConvNN
+from reinforcement_learning_keras.agents.models.conv_nn import ConvNN
+from reinforcement_learning_keras.agents.models.dueling_conv_nn import DuelingConvNN
 from reinforcement_learning_keras.enviroments.config_base import ConfigBase
 
 
