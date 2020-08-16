@@ -4,7 +4,7 @@ from unittest.mock import call, Mock
 import numpy as np
 
 from reinforcement_learning_keras.enviroments.atari.environment_processing.max_and_skip_wrapper import MaxAndSkipWrapper
-from tests.unit.environments.pong.environment_processing.env_fixture import EnvFixture
+from tests.unit.environments.atari.pong.environment_processing.env_fixture import EnvFixture
 
 
 class TestMaxAndSkipWrapper(unittest.TestCase):
