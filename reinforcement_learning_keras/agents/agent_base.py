@@ -190,7 +190,7 @@ class AgentBase(abc.ABC):
                 # Run the after-episode update step
                 self._after_episode_update()
 
-            if (checkpoint_every > 0) and not (ep % checkpoint_every):
+            if (checkpoint_every > 0) and (ep > 0) and (not ep % checkpoint_every):
                 self.save()
 
     def _after_episode_update(self) -> None:

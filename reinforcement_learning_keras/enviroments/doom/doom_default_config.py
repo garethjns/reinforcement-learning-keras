@@ -1,4 +1,5 @@
 import os
+from abc import ABC
 from functools import partial
 from typing import Any, Dict, Tuple
 
@@ -16,7 +17,7 @@ from reinforcement_learning_keras.enviroments.doom.environment_processing.image_
     ImageProcessWrapper
 
 
-class DoomDefaultConfig(ConfigBase):
+class DoomDefaultConfig(ConfigBase, ABC):
     """Defines default configs for Doom."""
     env_spec = 'VizdoomBasic-v0'
     n_actions = 3
@@ -24,7 +25,7 @@ class DoomDefaultConfig(ConfigBase):
     supported_modes = ('diff', 'stack')
     gpu_memory: int = 2048
 
-    # 3 different possible resiltuons:
+    # 3 different possible resolutions:
     # (96, 128) @ 40%
     # (96, 128) @ 20%
     # (90, 160) @ 20%

@@ -2,7 +2,7 @@ import unittest
 
 from reinforcement_learning_keras.enviroments.doom.environment_processing.image_process_wrapper import \
     ImageProcessWrapper
-from tests.unit.environments.pong.environment_processing.env_fixture import EnvFixture
+from tests.unit.environments.atari.pong.environment_processing.env_fixture import EnvFixture
 
 
 class TestImageProcessWrapper(unittest.TestCase):

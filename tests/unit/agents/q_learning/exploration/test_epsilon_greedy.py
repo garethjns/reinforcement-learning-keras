@@ -1,5 +1,7 @@
 import unittest
 
+import numpy as np
+
 from reinforcement_learning_keras.agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy
 
 
@@ -84,3 +86,24 @@ class TestEpsilonGreedy(unittest.TestCase):
 
         # Assert
         self.assertAlmostEqual(eps.eps_current, initial_eps)
+
+    def test_epsilon_never_increases_when_perturb_is_off(self):
+        # Arrange
+        eps = self._sut(eps_initial=1, decay=0.00075, decay_schedule='compound')
+
+        # Act
+        future = eps.simulate(plot=False)
+
+        # Assert
+        self.assertTrue(np.all(np.diff(future) <= 0))
+
+    def test_perturb_increases_periodically_increases_epsilon_when_on(self):
+        # Arrange
+        eps = self._sut(eps_initial=1, decay=0.01, decay_schedule='compound', perturb_increase_every=1000,
+                        perturb_increase_mag=0.5)
+
+        # Act
+        future = eps.simulate(plot=False)
+
+        # Assert
+        self.assertFalse(np.all(np.diff(future) <= 0))

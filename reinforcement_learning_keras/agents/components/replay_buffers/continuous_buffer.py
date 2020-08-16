@@ -18,7 +18,7 @@ class ContinuousBuffer(ReplayBufferBase):
         self.queue = collections.deque(maxlen=self.buffer_size)
 
     def __len__(self) -> int:
-        return self.n if self.n > 0 else 0
+        return self.n if (self.n > 0) else 0
 
     @property
     def full(self) -> bool:
