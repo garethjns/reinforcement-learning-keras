@@ -17,6 +17,7 @@ from reinforcement_learning_keras.agents.components.history.training_history imp
 class AgentBase(abc.ABC):
     name: str
     env_spec: str
+    env_kwargs: Dict[str, Any]
     env_builder: Union[EnvBuilder, None]
     env_wrappers: Iterable[Callable]
     gamma: float
@@ -71,7 +72,8 @@ class AgentBase(abc.ABC):
         Example of other model specific steps that might need doing:
          - For Keras models, check model is ready, for example if it needs recompiling after loading.
         """
-        self.env_builder = EnvBuilder(self.env_spec, self.env_wrappers)
+        self.env_builder = EnvBuilder(env_spec=self.env_spec, env_wrappers=self.env_wrappers,
+                                      env_kwargs=self.env_kwargs)
         self.env_builder.set_env()
         self.ready = True
         gc.collect()

@@ -18,10 +18,12 @@ class RandomAgent(AgentBase):
     env_spec: str
     training_history: TrainingHistory
     env_wrappers: Iterable[Callable] = ()
+    env_kwargs: Dict[str, Any] = None
     name: str = 'RandomAgent'
 
     def __post_init__(self) -> None:
-        self.env_builder = EnvBuilder(self.env_spec, self.env_wrappers)
+        self.env_builder = EnvBuilder(env_spec=self.env_spec, env_wrappers=self.env_wrappers,
+                                      env_kwargs=self.env_kwargs)
         self._build_model()
 
     def __getstate__(self) -> Dict[str, Any]:

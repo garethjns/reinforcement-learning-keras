@@ -16,6 +16,7 @@ class LinearQAgent(AgentBase):
     eps: EpsilonGreedy
     training_history: TrainingHistory
     env_spec: str = "CartPole-v0"
+    env_kwargs: Dict[str, Any] = None
     env_wrappers: Iterable[Callable] = ()
     name: str = 'LinearQAgent'
     gamma: float = 0.99
@@ -23,7 +24,8 @@ class LinearQAgent(AgentBase):
     final_reward: Union[float, None] = None
 
     def __post_init__(self, ) -> None:
-        self.env_builder = EnvBuilder(self.env_spec, self.env_wrappers)
+        self.env_builder = EnvBuilder(env_spec=self.env_spec, env_wrappers=self.env_wrappers,
+                                      env_kwargs=self.env_kwargs)
         self._build_model()
 
     def __getstate__(self) -> Dict[str, Any]:

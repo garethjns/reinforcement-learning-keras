@@ -60,6 +60,8 @@ class AgentExperiment:
 
             agent = agent_class(**config_dict)
             agent.train(**training_options)
+            # Might as well save agent. This will also unready and save buffers, models, etc.
+            agent.save()
             agent.unready()
 
         return agent
@@ -82,6 +84,7 @@ class AgentExperiment:
 
         self.plot()
         self.play_best()
+        self.save_best_agent()
 
     def plot(self, err: str = 'range') -> None:
         """
@@ -94,8 +97,6 @@ class AgentExperiment:
         - Score of best and worst agents (with 5% moving average). Best and worst defined using "current_performance"
           property of agents, which is mean score over most recent n episodes, where n is whatever the rolling average
           specified in the agents training history was.
-
-
         """
 
         sns.set()
