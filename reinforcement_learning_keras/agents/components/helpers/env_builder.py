@@ -8,7 +8,7 @@ import gym
 @dataclass
 class EnvBuilder:
     env_spec: str
-    env_kwargs: Dict[str, Any] = None
+    env_kwargs: Union[None, Dict[str, Any]] = None
     env_wrappers: Iterable[Callable] = None
 
     def __post_init__(self):

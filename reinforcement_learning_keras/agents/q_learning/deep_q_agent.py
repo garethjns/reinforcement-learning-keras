@@ -29,7 +29,6 @@ class DeepQAgent(AgentBase):
     double: bool = False
     noisy: bool = False
     env_spec: str = "CartPole-v0"
-    env_kwargs: Dict[str, Any] = None
     env_wrappers: Iterable[Callable] = ()
     name: str = 'DQNAgent'
     gamma: float = 0.99

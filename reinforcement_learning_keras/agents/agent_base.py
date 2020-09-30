@@ -20,6 +20,7 @@ class AgentBase(abc.ABC):
     env_kwargs: Dict[str, Any]
     env_builder: Union[EnvBuilder, None]
     env_wrappers: Iterable[Callable]
+    env_kwargs: Union[None, Dict[str, Any]] = None
     gamma: float
     final_reward: float
     ready: bool

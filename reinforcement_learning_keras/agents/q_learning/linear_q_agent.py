@@ -16,7 +16,6 @@ class LinearQAgent(AgentBase):
     eps: EpsilonGreedy
     training_history: TrainingHistory
     env_spec: str = "CartPole-v0"
-    env_kwargs: Dict[str, Any] = None
     env_wrappers: Iterable[Callable] = ()
     name: str = 'LinearQAgent'
     gamma: float = 0.99

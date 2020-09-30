@@ -37,14 +37,14 @@ class ReinforceAgent(AgentBase):
     model_architecture: ModelBase
     env_spec: str = "CartPole-v0"
     env_wrappers: Iterable[Callable] = ()
-    env_kwargs: Dict[str, Any] = None
     name: str = 'REINFORCEAgent'
     alpha: float = 0.0001
     gamma: float = 0.99
     final_reward: Union[float, None] = None
 
     def __post_init__(self) -> None:
-        self.env_builder = EnvBuilder(env_spec=self.env_spec, env_wrappers=self.env_wrappers, env_kwargs=self.env_kwargs)
+        self.env_builder = EnvBuilder(env_spec=self.env_spec, env_wrappers=self.env_wrappers,
+                                      env_kwargs=self.env_kwargs)
 
         # Keep track of number of trained episodes, only used for IDing episodes in buffer.
         self._ep_tracker: int = -1

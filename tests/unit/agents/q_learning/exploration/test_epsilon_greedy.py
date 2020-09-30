@@ -97,13 +97,35 @@ class TestEpsilonGreedy(unittest.TestCase):
         # Assert
         self.assertTrue(np.all(np.diff(future) <= 0))
 
+    def test_epsilon_never_increases_when_perturb_increase_every_is_0(self):
+        # Arrange
+        eps = self._sut(eps_initial=1, decay=0.00075, decay_schedule='compound',
+                        perturb_increase_every=0, perturb_increase_mag=10)
+
+        # Act
+        future = eps.simulate(plot=False, steps=100000)
+
+        # Assert
+        self.assertTrue(np.all(np.diff(future) <= 0))
+
+    def test_epsilon_never_increases_when_perturb_increase_mag_is_0(self):
+        # Arrange
+        eps = self._sut(eps_initial=1, decay=0.00075, decay_schedule='compound',
+                        perturb_increase_every=10, perturb_increase_mag=0)
+
+        # Act
+        future = eps.simulate(plot=False, steps=100000)
+
+        # Assert
+        self.assertTrue(np.all(np.diff(future) <= 0))
+
     def test_perturb_increases_periodically_increases_epsilon_when_on(self):
         # Arrange
         eps = self._sut(eps_initial=1, decay=0.01, decay_schedule='compound', perturb_increase_every=1000,
                         perturb_increase_mag=0.5)
 
         # Act
-        future = eps.simulate(plot=False)
+        future = eps.simulate(plot=False, steps=100000)
 
         # Assert
         self.assertFalse(np.all(np.diff(future) <= 0))
