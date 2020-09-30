@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from functools import reduce
-from typing import Union, Callable, Iterable
+from typing import Union, Callable, Iterable, Dict, Any
 
 import gym
 
@@ -8,12 +8,16 @@ import gym
 @dataclass
 class EnvBuilder:
     env_spec: str
+    env_kwargs: Union[None, Dict[str, Any]] = None
     env_wrappers: Iterable[Callable] = None
 
     def __post_init__(self):
         self._env: Union[None, gym.Env] = None
         if self.env_wrappers is None:
             self.env_wrappers = []
+
+        if self.env_kwargs is None:
+            self.env_kwargs = {}
 
         self._register_other_envs()
         self.set_env()
@@ -40,7 +44,7 @@ class EnvBuilder:
             # Make the gym environment and apply the wrappers one by one
             self._env = reduce(lambda inner_env, wrapper: wrapper(inner_env),
                                self.env_wrappers,
-                               gym.make(self.env_spec))
+                               gym.make(self.env_spec, **self.env_kwargs))
 
     @property
     def env(self) -> gym.Env:

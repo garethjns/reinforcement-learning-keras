@@ -3,7 +3,7 @@
 
 This repo aims to implement various reinforcement learning agents using Keras (tf==2.2.0) and sklearn, for use with OpenAI Gym environments.
  
-![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgentDoom.gif)
+![Episode play example](images/DQNAgentDoom.gif)
  
 # Planned agents
 - Methods
@@ -55,7 +55,7 @@ pip install -r requirements.txt
 ## Pong
 Pong-NoFrameSkip-v4 with various wrappers.
 
-![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgentPong.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgentPong.png)  
+![Episode play example](images/DQNAgentPong.gif) ![Convergence](images/DQNAgentPong.png)  
 
 Model:  
 State -> action model -> [value for action 1, value for action 2] 
@@ -83,7 +83,7 @@ agent.train(verbose=True, render=True, max_episode_steps=10000)
 ## Cart-pole
 Using cart-pole-v0 with step limit increased from 200 to 500.
 
-![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgent.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgent.png)  
+![Episode play example]images/DQNAgent.gif) ![Convergence]images/DQNAgent.png)  
 
 ### Run example
 ````python
@@ -97,7 +97,7 @@ agent.train(verbose=True, render=True)
 ````
 
 ## MountainCar (not well tuned)
-![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DeepQAgentMC.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DeepQAgentMC.png)  
+![Episode play example](images/DeepQAgentMC.gif) ![Convergence](images/DeepQAgentMC.png)  
 
 ### Run example
 ````python
@@ -112,7 +112,7 @@ agent.train(verbose=True, render=True, max_episode_steps=1500)
 
 ## Extensions
 ### Dueling DQN
-![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DuelingDQNAgent.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DuelingDQNAgent.png)  
+![Episode play example]images/DuelingDQNAgent.gif) ![Convergence]images/DuelingDQNAgent.png)  
 
 The [dueling](https://arxiv.org/abs/1511.06581) version is exactly the same as the DQN, expect with slightly different model architecture. The second to last layer is split into two layers with the units=1 and units=n_actions. The idea is that the model might learn V(s) and action advantages (A(s)) separately, which can speed up convergence.  
 
@@ -131,7 +131,7 @@ agent.train(verbose=True, render=True)
 
 # Linear Q learner
 ## Mountain car
-![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/LinearQAgentMC.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/LinearQAgentMC.png)  
+![Episode play example](images/LinearQAgentMC.gif) ![Convergence](images/LinearQAgentMC.png)  
 
 Model:  
 State -> model for action 1 -> value for action 1    
@@ -151,7 +151,7 @@ agent.train(verbose=True, render=True, max_episode_steps=1500)
 ````
 
 ## CartPole
-![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/LinearQAgent.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/LinearQAgent.png)  
+![Episode play example](images/LinearQAgent.gif) ![Convergence](images/LinearQAgent.png)  
 
 ### Run example
 ````python
@@ -166,7 +166,7 @@ agent.train(verbose=True, render=True)
 # REINFORCE (policy gradient)
 ## CartPole
 
-![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/REINFORCEAgent.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/REINFORCEAgent.png)  
+![Episode play example]images/REINFORCEAgent.gif) ![Convergence](images/REINFORCEAgent.png)  
 
 Model:  
 State -> model -> [probability of action 1, probability of action 2]  
@@ -199,7 +199,7 @@ sudo apt install libcanberra-gtk-module libcanberra-gtk3-module
 
 ## VizdoomBasic-v0
 ### DQN
-![Episode play example](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/DQNAgentDoom.gif) ![Convergence](https://github.com/garethjns/reinforcement-learning-keras/blob/master/images/dqn_VizdoomBasic-v0.png)  
+![Episode play example](images/DQNAgentDoom.gif) ![Convergence](images/dqn_VizdoomBasic-v0.png)  
 
 
 ````python

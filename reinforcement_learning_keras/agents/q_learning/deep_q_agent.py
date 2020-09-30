@@ -36,7 +36,8 @@ class DeepQAgent(AgentBase):
     final_reward: Union[float, None] = None
 
     def __post_init__(self) -> None:
-        self.env_builder = EnvBuilder(self.env_spec, self.env_wrappers)
+        self.env_builder = EnvBuilder(env_spec=self.env_spec, env_wrappers=self.env_wrappers,
+                                      env_kwargs=self.env_kwargs)
         self._build_model()
         self._fn = f"{self.name}_{self.env_spec}"
         self.ready = True
@@ -147,8 +148,8 @@ class DeepQAgent(AgentBase):
         y_future = y_now_and_future[self.replay_buffer_samples::]
 
         # Update rewards where not done with y_future predictions
-        dd_mask = np.array(dd, dtype=bool)
-        rr = np.array(rr, dtype=float)
+        dd_mask = np.array(dd, dtype=bool).squeeze()
+        rr = np.array(rr, dtype=float).squeeze()
 
         # Gather max action indexes and update relevant actions in y
         if self.double:
@@ -266,12 +267,25 @@ class DeepQAgent(AgentBase):
 
         return agent
 
-    def save(self) -> None:
+    def _save_self(self):
+        """Save agent.joblib."""
+
         if not os.path.exists(f"{self._fn}"):
             os.mkdir(f"{self._fn}")
-
         joblib.dump(self, f"{self._fn}/agent.joblib")
-        self.check_ready()
+
+    def save(self, make_ready: bool = True) -> None:
+        """
+        Saves buffer, etc. via unready and agent.joblib with save.
+
+        :param make_ready: Make agent ready agent after saving (reload buffer, etc). This can be skipped to save time
+                           in some situations. Default True.
+        """
+
+        self.unready()
+        self._save_self()
+        if make_ready:
+            self.check_ready()
 
     @classmethod
     def load(cls, fn: str) -> "DeepQAgent":

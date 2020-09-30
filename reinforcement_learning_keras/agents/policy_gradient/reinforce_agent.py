@@ -43,7 +43,8 @@ class ReinforceAgent(AgentBase):
     final_reward: Union[float, None] = None
 
     def __post_init__(self) -> None:
-        self.env_builder = EnvBuilder(self.env_spec, self.env_wrappers)
+        self.env_builder = EnvBuilder(env_spec=self.env_spec, env_wrappers=self.env_wrappers,
+                                      env_kwargs=self.env_kwargs)
 
         # Keep track of number of trained episodes, only used for IDing episodes in buffer.
         self._ep_tracker: int = -1
