@@ -14,9 +14,6 @@ class MountainCarConfig(ConfigBase):
     supported_agents = ('linear_q', 'dueling_dqn', 'dqn', 'random')
     gpu_memory = 128
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     @property
     def _default_training_history_kwargs(self) -> Dict[str, Any]:
         return {"plotting_on": self.plot_during_training, "plot_every": 200, "rolling_average": 12}
