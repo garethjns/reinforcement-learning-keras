@@ -26,7 +26,7 @@ class AtariDefaultConfig(ConfigBase):
     _wrappers_diff = (MaxAndSkipWrapper, ImageProcessWrapper, FireStartWrapper,
                       partial(FrameBufferWrapper, buffer_length=2, buffer_function='diff'))
 
-    def __init__(self, mode: str = 'diff', *args, **kwargs) -> None:
+    def __init__(self, *args, mode: str = 'diff', **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         if mode not in self.supported_modes:

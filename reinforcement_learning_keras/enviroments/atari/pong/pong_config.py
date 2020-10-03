@@ -19,8 +19,7 @@ class PongConfig(AtariDefaultConfig):
                                              output_activation=None, opt='adam', learning_rate=0.000105),
                 'gamma': 0.99,
                 'final_reward': None,
-                'eps': EpsilonGreedy(eps_initial=1.1, decay=0.000025, eps_min=0.01, decay_schedule='linear',
-                                     perturb_increase_mag=0.4, perturb_increase_every=30000),
+                'eps': EpsilonGreedy(eps_initial=1.1, decay=0.000025, eps_min=0.01, decay_schedule='linear'),
                 'replay_buffer': ContinuousBuffer(buffer_size=10000),
                 'replay_buffer_samples': 32}
 

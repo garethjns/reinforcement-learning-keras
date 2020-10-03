@@ -32,7 +32,7 @@ class DoomDefaultConfig(ConfigBase, ABC):
     res_scale: float = 0.4
     target_obs_shape: Tuple[int, int] = (96, 128)
 
-    def __init__(self, mode: str = 'diff', *args, **kwargs) -> None:
+    def __init__(self, *args, mode: str = 'diff', **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         if mode not in self.supported_modes:
