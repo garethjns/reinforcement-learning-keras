@@ -12,7 +12,7 @@ if __name__ == "__main__":
 
     gym.make(env_name)
 
-    agent = DeepQAgent(**GFootballConfig('double_dqn', env_spec=env_name).build())
+    agent = DeepQAgent(**GFootballConfig('double_dueling_dqn', env_spec=env_name).build())
 
     agent.train(verbose=True, render=False,
                 n_episodes=20000, max_episode_steps=3000, update_every=1,

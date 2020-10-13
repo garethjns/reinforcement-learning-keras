@@ -3,12 +3,11 @@ from typing import Tuple
 
 import numpy as np
 
-from reinforcement_learning_keras.environments.gfootball.environment_processing.simple_and_smm_obs_wrapper import \
-    SimpleAndSMMObsWrapper
-
 try:
     from gfootball.env.config import Config
     from gfootball.env.football_env import FootballEnv
+    from reinforcement_learning_keras.environments.gfootball.environment_processing.simple_and_smm_obs_wrapper import \
+        SimpleAndSMMObsWrapper
 
     GFOOTBALL_AVAILABLE = True
 except ImportError:

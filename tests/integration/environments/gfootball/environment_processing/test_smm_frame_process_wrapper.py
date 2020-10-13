@@ -2,21 +2,22 @@ import unittest
 
 import numpy as np
 
-from reinforcement_learning_keras.environments.gfootball.environment_processing.simple_and_smm_obs_wrapper import \
-    SimpleAndSMMObsWrapper
-from reinforcement_learning_keras.environments.gfootball.environment_processing.smm_frame_process_wrapper import \
-    SMMFrameProcessWrapper
 from tests.unit.environments.atari.pong.environment_processing.env_fixture import EnvFixture
 
 try:
     from gfootball.env.config import Config
     from gfootball.env.football_env import FootballEnv
+    from reinforcement_learning_keras.environments.gfootball.environment_processing.simple_and_smm_obs_wrapper import \
+        SimpleAndSMMObsWrapper
+    from reinforcement_learning_keras.environments.gfootball.environment_processing.smm_frame_process_wrapper import \
+        SMMFrameProcessWrapper
 
     GFOOTBALL_AVAILABLE = True
 except ImportError:
     GFOOTBALL_AVAILABLE = False
 
 
+@unittest.skipUnless(GFOOTBALL_AVAILABLE, "GFootball not available in this env.")
 class TestSMMFrameProcessWrapper(unittest.TestCase):
 
     def setUp(self):
