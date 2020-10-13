@@ -59,7 +59,7 @@ class TestSimpleAndSMMObsWrapper(unittest.TestCase):
 
     def test_shapes_as_expected_without_env_on_step(self):
         # Arrange
-        obs = self._env.reset()
+        _ = self._env.reset()
         obs, reward, done, info = self._env.step(0)
 
         # Act

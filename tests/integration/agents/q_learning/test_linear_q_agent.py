@@ -5,12 +5,12 @@ import numpy as np
 
 from reinforcement_learning_keras.agents.q_learning.linear_q_agent import LinearQAgent
 from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
-from reinforcement_learning_keras.environments.gfootball.gfootball_config import GFootballConfig
 from reinforcement_learning_keras.environments.mountain_car.mountain_car_config import MountainCarConfig
 
 try:
     from gfootball.env.config import Config
     from gfootball.env.football_env import FootballEnv
+    from reinforcement_learning_keras.environments.gfootball.gfootball_config import GFootballConfig
 
     GFOOTBALL_AVAILABLE = True
 except ImportError:

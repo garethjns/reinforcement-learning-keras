@@ -12,13 +12,13 @@ from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAge
 from reinforcement_learning_keras.agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy
 from reinforcement_learning_keras.environments.atari.pong.pong_config import PongConfig
 from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
-from reinforcement_learning_keras.environments.gfootball.gfootball_config import GFootballConfig
 from reinforcement_learning_keras.environments.mountain_car.mountain_car_config import MountainCarConfig
 
 GFOOTBALL_MESSAGE = "GFootball not available in this env."
 try:
     from gfootball.env.config import Config
     from gfootball.env.football_env import FootballEnv
+    from reinforcement_learning_keras.environments.gfootball.gfootball_config import GFootballConfig
 
     GFOOTBALL_AVAILABLE = True
 except ImportError:
