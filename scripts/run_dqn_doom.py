@@ -15,7 +15,6 @@ from reinforcement_learning_keras.environments.doom.vizdoom_take_cover_config im
 
 if __name__ == "__main__":
     selected_config = VizDoomCorridorConfig
-    # selected_config = VizDoomBasicConfig
 
     available_configs = [VizDoomBasicConfig, VizDoomCorridorConfig, VizDoomDefendCenterConfig, VizDoomDefendLineConfig,
                          VizDoomHealthGatheringConfig, VizDoomMyWayHomeConfig, VizDoomPredictPositionConfig,
