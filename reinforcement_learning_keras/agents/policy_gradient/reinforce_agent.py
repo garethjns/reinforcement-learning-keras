@@ -13,8 +13,8 @@ from reinforcement_learning_keras.agents.components.helpers.env_builder import E
 from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
 from reinforcement_learning_keras.agents.components.history.training_history import TrainingHistory
 from reinforcement_learning_keras.agents.policy_gradient.loss import reinforce_loss
-from reinforcement_learning_keras.enviroments.config_base import ConfigBase
-from reinforcement_learning_keras.enviroments.model_base import ModelBase
+from reinforcement_learning_keras.environments.config_base import ConfigBase
+from reinforcement_learning_keras.agents.models.model_base import ModelBase
 
 tf.compat.v1.disable_eager_execution()
 
@@ -254,7 +254,7 @@ class ReinforceAgent(AgentBase):
 
 
 if __name__ == "__main__":
-    from reinforcement_learning_keras.enviroments.cart_pole import CartPoleConfig
+    from reinforcement_learning_keras.environments.cart_pole import CartPoleConfig
 
     agent_cart_pole = ReinforceAgent.example(CartPoleConfig(agent_type='reinforce', plot_during_training=True),
                                              render=False)

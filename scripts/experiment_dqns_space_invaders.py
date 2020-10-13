@@ -1,7 +1,7 @@
 """Train and few DeepQAgents, plot the results, and run an episode on the best agent."""
 from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
 from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
-from reinforcement_learning_keras.enviroments.atari.space_invaders.space_invaders_config import SpaceInvadersConfig
+from reinforcement_learning_keras.environments.atari.space_invaders.space_invaders_config import SpaceInvadersConfig
 from reinforcement_learning_keras.experiment.agent_experiment import AgentExperiment
 
 

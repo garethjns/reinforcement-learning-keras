@@ -2,7 +2,7 @@ from typing import Tuple
 
 from tensorflow import keras
 
-from reinforcement_learning_keras.enviroments.model_base import ModelBase
+from reinforcement_learning_keras.agents.models.model_base import ModelBase
 
 
 class ConvNN(ModelBase):
@@ -20,7 +20,12 @@ class ConvNN(ModelBase):
                                     name='conv3', padding='same', activation='relu')(conv2)
         flatten = keras.layers.Flatten(name='flatten')(conv3)
         fc1 = keras.layers.Dense(units=int(n_units), name='fc1', activation='relu')(flatten)
-        action_output = keras.layers.Dense(units=self.n_actions, name='output',
-                                           activation=self.output_activation)(fc1)
+
+        action_output = self._add_output(input_layer=fc1)
 
         return frame_input, action_output
+
+
+if __name__ == "__main__":
+    ConvNN(observation_shape=(84, 84, 3), n_actions=6, dueling=False).plot(model_name='pong')
+    ConvNN(observation_shape=(84, 84, 3), n_actions=6, dueling=True).plot(model_name='pong_dueling')

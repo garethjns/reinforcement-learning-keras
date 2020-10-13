@@ -5,7 +5,7 @@ from reinforcement_learning_keras.agents.agent_base import AgentBase
 from reinforcement_learning_keras.agents.components.helpers.env_builder import EnvBuilder
 from reinforcement_learning_keras.agents.components.history.training_history import TrainingHistory
 from reinforcement_learning_keras.agents.random.random_model import RandomModel
-from reinforcement_learning_keras.enviroments.config_base import ConfigBase
+from reinforcement_learning_keras.environments.config_base import ConfigBase
 
 
 @dataclass
@@ -81,9 +81,9 @@ class RandomAgent(AgentBase):
 
 
 if __name__ == "__main__":
-    from reinforcement_learning_keras.enviroments import PongConfig
-    from reinforcement_learning_keras.enviroments.cart_pole import CartPoleConfig
-    from reinforcement_learning_keras.enviroments import MountainCarConfig
+    from reinforcement_learning_keras.environments import PongConfig
+    from reinforcement_learning_keras.environments.cart_pole import CartPoleConfig
+    from reinforcement_learning_keras.environments import MountainCarConfig
 
     agent_mountain_car = RandomAgent.example(
         MountainCarConfig(agent_type='random', plot_during_training=True), max_episode_steps=1500, render=False)

@@ -5,7 +5,7 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal
 
 from reinforcement_learning_keras.agents.q_learning.linear_q_agent import LinearQAgent
-from reinforcement_learning_keras.enviroments.cart_pole.cart_pole_config import CartPoleConfig
+from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
 from tests.unit.agents.random.test_random_agent import TestRandomAgent
 
 

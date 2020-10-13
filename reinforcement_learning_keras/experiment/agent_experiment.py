@@ -12,7 +12,7 @@ from joblib import Parallel, delayed
 from joblib.externals.loky.process_executor import BrokenProcessPool
 
 from reinforcement_learning_keras.agents.agent_base import AgentBase
-from reinforcement_learning_keras.enviroments.config_base import ConfigBase
+from reinforcement_learning_keras.environments.config_base import ConfigBase
 
 
 @dataclass

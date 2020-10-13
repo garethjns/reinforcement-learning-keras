@@ -5,7 +5,7 @@ from reinforcement_learning_keras.agents.agent_base import AgentBase
 from reinforcement_learning_keras.agents.components.history.episode_report import EpisodeReport
 from reinforcement_learning_keras.agents.random.random_agent import RandomAgent
 from reinforcement_learning_keras.agents.random.random_model import RandomModel
-from reinforcement_learning_keras.enviroments.cart_pole.cart_pole_config import CartPoleConfig
+from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
 
 
 class TestRandomAgent(unittest.TestCase):

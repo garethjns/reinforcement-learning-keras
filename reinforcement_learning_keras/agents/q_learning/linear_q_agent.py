@@ -8,7 +8,7 @@ from reinforcement_learning_keras.agents.agent_base import AgentBase
 from reinforcement_learning_keras.agents.components.helpers.env_builder import EnvBuilder
 from reinforcement_learning_keras.agents.components.history.training_history import TrainingHistory
 from reinforcement_learning_keras.agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy
-from reinforcement_learning_keras.enviroments.config_base import ConfigBase
+from reinforcement_learning_keras.environments.config_base import ConfigBase
 
 
 @dataclass
@@ -182,8 +182,8 @@ class LinearQAgent(AgentBase):
 
 
 if __name__ == "__main__":
-    from reinforcement_learning_keras.enviroments.cart_pole import CartPoleConfig
-    from reinforcement_learning_keras.enviroments import MountainCarConfig
+    from reinforcement_learning_keras.environments.cart_pole import CartPoleConfig
+    from reinforcement_learning_keras.environments import MountainCarConfig
 
     agent_cart_pole = LinearQAgent.example(CartPoleConfig(agent_type='linear_q', plot_during_training=True))
     agent_mountain_car = LinearQAgent.example(MountainCarConfig(agent_type='linear_q', plot_during_training=True))

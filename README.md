@@ -72,7 +72,7 @@ This agent uses two copies of its model:
 ````python
 from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
 from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
-from reinforcement_learning_keras.enviroments.atari.pong.pong_config import PongConfig
+from reinforcement_learning_keras.environments.atari.pong.pong_config import PongConfig
 
 VirtualGPU(4096) 
 agent = DeepQAgent(**PongConfig('dqn').build())
@@ -89,7 +89,7 @@ Using cart-pole-v0 with step limit increased from 200 to 500.
 ````python
 from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
 from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
-from reinforcement_learning_keras.enviroments.cart_pole.cart_pole_config import CartPoleConfig
+from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
 
 VirtualGPU(256) 
 agent = DeepQAgent(**CartPoleConfig('dqn').build())
@@ -103,7 +103,7 @@ agent.train(verbose=True, render=True)
 ````python
 from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
 from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
-from reinforcement_learning_keras.enviroments.mountain_car.mountain_car_config import MountainCarConfig
+from reinforcement_learning_keras.environments.mountain_car.mountain_car_config import MountainCarConfig
 
 VirtualGPU(256)
 agent = DeepQAgent(**MountainCarConfig('dqn').build())
@@ -122,7 +122,7 @@ The output of the network is still action values, however preceding layers are n
 ````python
 from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
 from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
-from reinforcement_learning_keras.enviroments.cart_pole.cart_pole_config import CartPoleConfig
+from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
 
 VirtualGPU(256) 
 agent = DeepQAgent(**CartPoleConfig('dueling_dqn').build())
@@ -144,7 +144,7 @@ Environment observations are preprocessed in an sklearn pipeline that clips, sca
 
 ````python
 from reinforcement_learning_keras.agents.q_learning.linear_q_agent import LinearQAgent
-from reinforcement_learning_keras.enviroments.mountain_car.mountain_car_config import MountainCarConfig
+from reinforcement_learning_keras.environments.mountain_car.mountain_car_config import MountainCarConfig
 
 agent = LinearQAgent(**MountainCarConfig('linear_q').build())
 agent.train(verbose=True, render=True, max_episode_steps=1500)
@@ -156,7 +156,7 @@ agent.train(verbose=True, render=True, max_episode_steps=1500)
 ### Run example
 ````python
 from reinforcement_learning_keras.agents.q_learning.linear_q_agent import LinearQAgent
-from reinforcement_learning_keras.enviroments.cart_pole.cart_pole_config import CartPoleConfig 
+from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig 
 
 agent = LinearQAgent(**CartPoleConfig('linear_q').build())
 agent.train(verbose=True, render=True)
@@ -182,7 +182,7 @@ This model doesn't use any scaling or clipping for environment pre-processing. F
 ````python
 from reinforcement_learning_keras.agents.policy_gradient.reinforce_agent import ReinforceAgent
 from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
-from reinforcement_learning_keras.enviroments.cart_pole.cart_pole_config import CartPoleConfig
+from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
 
 VirtualGPU(256)
 agent = ReinforceAgent(**CartPoleConfig('reinforce').build())
@@ -190,7 +190,11 @@ agent.train(verbose=True, render=True)
 ````
 
 # Doom
-Doom only supports Linux and uses the [ViZDoom](https://github.com/mwydmuch/ViZDoom) and [ViZDoomGym](https://github.com/shakenes/vizdoomgym) Python packages. These (and required Linux packages) can be installed can be installed by following the instructions here: https://github.com/shakenes/vizdoomgym.
+
+## Set up
+Install these two packages:
+  - [ViZDoom](https://github.com/mwydmuch/ViZDoom)
+  - [ViZDoomGym](https://github.com/shakenes/vizdoomgym) 
 
 Additionally, to save monitor wrapper output, install the following packages:
 ````BASH
@@ -205,7 +209,7 @@ sudo apt install libcanberra-gtk-module libcanberra-gtk3-module
 ````python
 from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
 from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
-from reinforcement_learning_keras.enviroments.doom.doom_default_config import DoomConfig
+from reinforcement_learning_keras.environments.doom.doom_default_config import DoomConfig
 
 VirtualGPU(256)
 agent = DeepQAgent(**DoomConfig(agent_type='dqn', mode='stack').build())

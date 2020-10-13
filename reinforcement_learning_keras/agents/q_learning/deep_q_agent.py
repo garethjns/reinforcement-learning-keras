@@ -1,7 +1,7 @@
 import os
 import warnings
 from dataclasses import dataclass
-from typing import Dict, Any, Union, Tuple, Iterable, Callable
+from typing import Dict, Any, Union, Tuple, Iterable, Callable, List
 
 import joblib
 import numpy as np
@@ -14,8 +14,8 @@ from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import V
 from reinforcement_learning_keras.agents.components.history.training_history import TrainingHistory
 from reinforcement_learning_keras.agents.components.replay_buffers.continuous_buffer import ContinuousBuffer
 from reinforcement_learning_keras.agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy
-from reinforcement_learning_keras.enviroments.config_base import ConfigBase
-from reinforcement_learning_keras.enviroments.model_base import ModelBase
+from reinforcement_learning_keras.environments.config_base import ConfigBase
+from reinforcement_learning_keras.agents.models.model_base import ModelBase
 
 tf.compat.v1.disable_eager_execution()
 
@@ -88,13 +88,32 @@ class DeepQAgent(AgentBase):
         self._action_model = self.model_architecture.compile(model_name='action_model', loss='mse')
         self._target_model = self.model_architecture.compile(model_name='target_model', loss='mse')
 
-    def transform(self, s: np.ndarray) -> np.ndarray:
-        """Check input shape, add Row dimension if required."""
+    def transform(self, s: Union[np.ndarray, List[np.ndarray]]) -> Union[np.ndarray, List[np.ndarray]]:
+        """
+        Check shape of inputs, add Row dimension if required.
+        """
 
-        if len(s.shape) < len(self._action_model.input.shape):
-            s = np.expand_dims(s, 0)
+        single_input = False
+        model_inputs = self._action_model.input
+        if isinstance(model_inputs, tf.Tensor):
+            # Input is a single array
+            s = [s]
+            model_inputs = [model_inputs]
+            single_input = True
 
-        return s
+        s_trans = []
+        for input_i, expected_input in zip(s, model_inputs):
+            if len(input_i.shape) < len(expected_input.shape):
+                # Add the None/row dimension
+                s_trans.append(np.expand_dims(input_i, 0))
+            else:
+                # Leave as is
+                s_trans.append(input_i)
+
+        if single_input:
+            return s_trans[0]
+        else:
+            return s_trans
 
     def update_experience(self, s: np.ndarray, a: int, r: float, d: bool) -> None:
         """
@@ -106,6 +125,39 @@ class DeepQAgent(AgentBase):
 
         # Add s, a, r, d to experience buffer
         self.replay_buffer.append((s, a, r, d))
+
+    @staticmethod
+    def _stack_inputs(ss: Union[np.ndarray, List[np.ndarray]],
+                      ss_: Union[np.ndarray, List[np.ndarray]]) -> Tuple[Union[np.ndarray, List[np.ndarray]],
+                                                                         Union[np.ndarray, List[np.ndarray]],
+                                                                         Union[np.ndarray, List[np.ndarray]]]:
+        """
+        Convert ss and ss_ inputs to arrays, handling single array input or list of arrays.
+
+        Returns both as arrays, and a stack of them combined.
+        """
+
+        # Check row of the inputs
+        if isinstance(ss[0], np.ndarray):
+            # Inputs are arrays
+            ss_array = np.array(ss)
+            ss__array = np.array(ss_)
+            stack = np.vstack((ss_array, ss__array))
+
+            return ss_array, ss__array, stack
+
+        else:
+            # Input presumably list (or tuple) of arrays. Stack separately.
+            n_inputs = len(ss[0])
+            stack_list, ss_list, ss__list = [], [], []
+            for input_i in range(n_inputs):
+                ss_array = np.array([ssr[input_i] for ssr in ss])
+                ss__array = np.array([ss_r[input_i] for ss_r in ss_])
+                ss_list.append(ss_array)
+                ss__list.append(ss__array)
+                stack_list.append(np.vstack((ss_array, ss__array)))
+
+            return ss_list, ss__list, stack_list
 
     def update_model(self) -> None:
         """
@@ -140,9 +192,7 @@ class DeepQAgent(AgentBase):
 
         # Calculate estimated S,A values for current states and next states. These are stacked together first to avoid
         # making two separate predict calls
-        ss = np.array(ss)
-        ss_ = np.array(ss_)
-        ss_and_ss_ = np.vstack((ss, ss_))
+        ss, ss_, ss_and_ss_ = self._stack_inputs(ss, ss_)
         y_now_and_future = self._target_model.predict_on_batch(ss_and_ss_)
         y_now = y_now_and_future[0:self.replay_buffer_samples]
         y_future = y_now_and_future[self.replay_buffer_samples::]
@@ -296,9 +346,9 @@ class DeepQAgent(AgentBase):
 
 
 if __name__ == "__main__":
-    from reinforcement_learning_keras.enviroments.atari.pong.pong_config import PongConfig
-    from reinforcement_learning_keras.enviroments.cart_pole import CartPoleConfig
-    from reinforcement_learning_keras.enviroments import MountainCarConfig
+    from reinforcement_learning_keras.environments.atari.pong.pong_config import PongConfig
+    from reinforcement_learning_keras.environments.cart_pole import CartPoleConfig
+    from reinforcement_learning_keras.environments import MountainCarConfig
 
     # DQNs
     agent_cart_pole = DeepQAgent.example(CartPoleConfig(agent_type='dqn', plot_during_training=True), render=False)

@@ -1,7 +1,7 @@
 """Train and few DeepQAgents, plot the results, and run an episode on the best agent."""
 from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
 from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
-from reinforcement_learning_keras.enviroments.atari.pong.pong_config import PongConfig
+from reinforcement_learning_keras.environments.atari.pong.pong_config import PongConfig
 from reinforcement_learning_keras.experiment.agent_experiment import AgentExperiment
 
 

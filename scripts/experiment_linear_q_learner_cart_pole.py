@@ -1,7 +1,7 @@
 """Train and few LinearQAgents, plot the results, and run an episode on the best agent."""
 
 from reinforcement_learning_keras.agents.q_learning.linear_q_agent import LinearQAgent
-from reinforcement_learning_keras.enviroments.cart_pole.cart_pole_config import CartPoleConfig
+from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
 
 from reinforcement_learning_keras.experiment.agent_experiment import AgentExperiment
 

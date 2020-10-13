@@ -1,11 +1,11 @@
 """Train and few DeepQAgents, plot the results, and run an episode on the best agent."""
 from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
 from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
-from reinforcement_learning_keras.enviroments.cart_pole.cart_pole_config import CartPoleConfig
+from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
 from reinforcement_learning_keras.experiment.agent_experiment import AgentExperiment
 
 
-def run_exp(agent_type: str, n_episodes: int = 1000, max_episode_steps: int = 600):
+def run_exp(agent_type: str, n_episodes: int = 10, max_episode_steps: int = 600):
     gpu = VirtualGPU(256)
 
     exp = AgentExperiment(name=f"{agent_type} CartPole",

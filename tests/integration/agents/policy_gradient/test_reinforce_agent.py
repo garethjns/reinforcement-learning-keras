@@ -6,7 +6,7 @@ import tensorflow as tf
 
 from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
 from reinforcement_learning_keras.agents.policy_gradient.reinforce_agent import ReinforceAgent
-from reinforcement_learning_keras.enviroments.cart_pole.cart_pole_config import CartPoleConfig
+from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
 
 
 class TestReinforceAgent(unittest.TestCase):

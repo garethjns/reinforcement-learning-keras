@@ -3,21 +3,40 @@ import tempfile
 import unittest
 from unittest.mock import MagicMock
 
+import gym
 import tensorflow as tf
 
 from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
 from reinforcement_learning_keras.agents.components.replay_buffers.continuous_buffer import ContinuousBuffer
 from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
 from reinforcement_learning_keras.agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy
-from reinforcement_learning_keras.enviroments.atari.pong.pong_config import PongConfig
-from reinforcement_learning_keras.enviroments.cart_pole.cart_pole_config import CartPoleConfig
-from reinforcement_learning_keras.enviroments.mountain_car.mountain_car_config import MountainCarConfig
+from reinforcement_learning_keras.environments.atari.pong.pong_config import PongConfig
+from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
+from reinforcement_learning_keras.environments.gfootball.gfootball_config import GFootballConfig
+from reinforcement_learning_keras.environments.mountain_car.mountain_car_config import MountainCarConfig
+
+GFOOTBALL_MESSAGE = "GFootball not available in this env."
+try:
+    from gfootball.env.config import Config
+    from gfootball.env.football_env import FootballEnv
+
+    GFOOTBALL_AVAILABLE = True
+except ImportError:
+    GFOOTBALL_AVAILABLE = False
 
 
 class TestDeepQAgent(unittest.TestCase):
     _sut = DeepQAgent
     _fn = 'test_dqn_save.agents'
     _gpu = VirtualGPU(1024)
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        if GFOOTBALL_AVAILABLE:
+            env_name = "GFootball-SimpleSMM-v0"
+            gym.envs.register(
+                id=env_name, max_episode_steps=10000,
+                entry_point="reinforcement_learning_keras.environments.gfootball.kaggle_environment:kaggle_environment")
 
     def setUp(self) -> None:
         self._tmp_dir = tempfile.TemporaryDirectory()
@@ -86,6 +105,7 @@ class TestDeepQAgent(unittest.TestCase):
         agent = self._sut.example(mock_config, render=False, max_episode_steps=20, n_episodes=3)
 
         # Assert
+        self.assertFalse(agent.model_architecture.dueling)
         self.assertIsInstance(agent, self._sut)
 
     def test_dqn_pong_stack_example(self):
@@ -98,6 +118,7 @@ class TestDeepQAgent(unittest.TestCase):
         agent = self._sut.example(mock_config, render=False, max_episode_steps=20, n_episodes=3)
 
         # Assert
+        self.assertFalse(agent.model_architecture.dueling)
         self.assertIsInstance(agent, self._sut)
 
     def test_dueling_dqn_cart_pole_example(self):
@@ -109,6 +130,7 @@ class TestDeepQAgent(unittest.TestCase):
         agent = self._sut.example(config, render=False, n_episodes=18)
 
         # Assert
+        self.assertTrue(agent.model_architecture.dueling)
         self.assertIsInstance(agent, self._sut)
 
     def test_dueling_dqn_mountain_car_example(self):
@@ -131,6 +153,7 @@ class TestDeepQAgent(unittest.TestCase):
         agent = self._sut.example(config, render=False, n_episodes=16)
 
         # Assert
+        self.assertFalse(agent.model_architecture.dueling)
         self.assertIsInstance(agent, self._sut)
 
     def test_double_dueling_dqn_cart_pole_example(self):
@@ -142,4 +165,54 @@ class TestDeepQAgent(unittest.TestCase):
         agent = self._sut.example(config, render=False, n_episodes=20)
 
         # Assert
+        self.assertTrue(agent.model_architecture.dueling)
         self.assertIsInstance(agent, self._sut)
+
+    @unittest.skipUnless(GFOOTBALL_AVAILABLE, GFOOTBALL_MESSAGE)
+    def test_dqn_with_dense_nn_on_gfootball(self):
+        # Arrange
+        config = GFootballConfig('dqn', env_spec="GFootball-11_vs_11_kaggle-simple115v2-v0",
+                                 plot_during_training=False, folder=self._tmp_dir.name)
+        # Act
+        agent = self._sut.example(config, render=False, n_episodes=3)
+
+        # Assert
+        self.assertFalse(agent.model_architecture.dueling)
+        self.assertIsInstance(agent, self._sut)
+
+    @unittest.skipUnless(GFOOTBALL_AVAILABLE, GFOOTBALL_MESSAGE)
+    def test_dqn_with_conv_nn_on_gfootball(self):
+        # Arrange
+        config = GFootballConfig('dqn', env_spec="GFootball-11_vs_11_kaggle-SMM-v0",
+                                 plot_during_training=False, folder=self._tmp_dir.name)
+        # Act
+        agent = self._sut.example(config, render=False, n_episodes=3)
+
+        # Assert
+        self.assertIsInstance(agent, self._sut)
+
+    @unittest.skipUnless(GFOOTBALL_AVAILABLE, GFOOTBALL_MESSAGE)
+    def test_dqn_with_splitter_nn_on_gfootball(self):
+        # Arrange
+        config = GFootballConfig('dqn', env_spec="GFootball-SimpleSMM-v0",
+                                 plot_during_training=False, folder=self._tmp_dir.name)
+
+        # Act
+        agent = self._sut.example(config, render=False, n_episodes=3)
+
+        # Assert
+        self.assertFalse(agent.model_architecture.dueling)
+        self.assertIsInstance(agent, self._sut)
+
+    @unittest.skipUnless(GFOOTBALL_AVAILABLE, GFOOTBALL_MESSAGE)
+    def test_dqn_with_double_dueling_splitter_nn_on_gfootball(self):
+        # Arrange
+        config = GFootballConfig('double_dueling_dqn', env_spec="GFootball-SimpleSMM-v0",
+                                 plot_during_training=False, folder=self._tmp_dir.name)
+
+        # Act
+        agent = self._sut.example(config, render=False, n_episodes=3)
+
+        # Assert
+        self.assertIsInstance(agent, self._sut)
+        self.assertTrue(agent.model_architecture.dueling)

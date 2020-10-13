@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock
 
-import reinforcement_learning_keras.enviroments.doom as doom
+import reinforcement_learning_keras.environments.doom as doom
 from tests.integration.environments.atari.pong.test_pong_config import TestPongStackEnvironment, TestPongDiffEnvironment
 
 if doom.AVAILABLE:

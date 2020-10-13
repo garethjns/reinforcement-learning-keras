@@ -4,8 +4,17 @@ import unittest
 import numpy as np
 
 from reinforcement_learning_keras.agents.q_learning.linear_q_agent import LinearQAgent
-from reinforcement_learning_keras.enviroments.cart_pole.cart_pole_config import CartPoleConfig
-from reinforcement_learning_keras.enviroments.mountain_car.mountain_car_config import MountainCarConfig
+from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
+from reinforcement_learning_keras.environments.gfootball.gfootball_config import GFootballConfig
+from reinforcement_learning_keras.environments.mountain_car.mountain_car_config import MountainCarConfig
+
+try:
+    from gfootball.env.config import Config
+    from gfootball.env.football_env import FootballEnv
+
+    GFOOTBALL_AVAILABLE = True
+except ImportError:
+    GFOOTBALL_AVAILABLE = False
 
 
 class TestLinearQAgent(unittest.TestCase):
@@ -21,7 +30,7 @@ class TestLinearQAgent(unittest.TestCase):
     def test_saving_and_reloading_creates_identical_object(self):
         # Arrange
         agent = self._sut(**CartPoleConfig(agent_type=self._agent_type, plot_during_training=False,
-                                          folder=self._tmp_dir.name).build())
+                                           folder=self._tmp_dir.name).build())
         agent.train(verbose=True, render=False, n_episodes=2)
 
         # Act
@@ -49,6 +58,18 @@ class TestLinearQAgent(unittest.TestCase):
         # Arrange
         config = MountainCarConfig(agent_type=self._agent_type, plot_during_training=False,
                                    folder=self._tmp_dir.name)
+
+        # Act
+        agent = self._sut.example(config, render=False, max_episode_steps=100, n_episodes=20)
+
+        # Assert
+        self.assertIsInstance(agent, self._sut)
+
+    @unittest.skipUnless(GFOOTBALL_AVAILABLE, "GFootball not available in this env.")
+    def test_gfootball_example(self):
+        # Arrange
+        config = GFootballConfig(agent_type=self._agent_type, plot_during_training=False,
+                                 folder=self._tmp_dir.name)
 
         # Act
         agent = self._sut.example(config, render=False, max_episode_steps=100, n_episodes=20)

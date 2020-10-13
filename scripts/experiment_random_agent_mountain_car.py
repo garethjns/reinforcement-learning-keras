@@ -1,7 +1,7 @@
 """Train and few LinearQAgents, plot the results, and run an episode on the best agent."""
 
 from reinforcement_learning_keras.agents.random.random_agent import RandomAgent
-from reinforcement_learning_keras.enviroments.mountain_car.mountain_car_config import MountainCarConfig
+from reinforcement_learning_keras.environments.mountain_car.mountain_car_config import MountainCarConfig
 
 from reinforcement_learning_keras.experiment.agent_experiment import AgentExperiment
 
