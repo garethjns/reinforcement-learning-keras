@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from reinforcement_learning_keras.agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy
+from rlk.agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy
 
 
 class TestEpsilonGreedy(unittest.TestCase):

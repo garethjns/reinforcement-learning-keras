@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import call, Mock
 
-from reinforcement_learning_keras.environments.atari.environment_processing.fire_start_wrapper import FireStartWrapper
+from rlk.environments.atari.environment_processing.fire_start_wrapper import FireStartWrapper
 from tests.unit.environments.atari.pong.environment_processing.env_fixture import EnvFixture
 
 

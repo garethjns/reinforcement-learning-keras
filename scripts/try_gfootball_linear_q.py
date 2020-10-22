@@ -2,8 +2,8 @@ import warnings
 
 from sklearn.exceptions import DataConversionWarning
 
-from reinforcement_learning_keras.agents.q_learning.linear_q_agent import LinearQAgent
-from reinforcement_learning_keras.environments.gfootball.gfootball_config import GFootballConfig
+from rlk.agents.q_learning.linear_q_agent import LinearQAgent
+from rlk.environments.gfootball.gfootball_config import GFootballConfig
 
 if __name__ == "__main__":
     agent = LinearQAgent(**GFootballConfig('linear_q').build())

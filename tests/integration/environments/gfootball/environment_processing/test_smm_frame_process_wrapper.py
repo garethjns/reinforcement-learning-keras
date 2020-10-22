@@ -7,9 +7,9 @@ from tests.unit.environments.atari.pong.environment_processing.env_fixture impor
 try:
     from gfootball.env.config import Config
     from gfootball.env.football_env import FootballEnv
-    from reinforcement_learning_keras.environments.gfootball.environment_processing.simple_and_smm_obs_wrapper import \
+    from rlk.environments.gfootball.environment_processing.simple_and_smm_obs_wrapper import \
         SimpleAndSMMObsWrapper
-    from reinforcement_learning_keras.environments.gfootball.environment_processing.smm_frame_process_wrapper import \
+    from rlk.environments.gfootball.environment_processing.smm_frame_process_wrapper import \
         SMMFrameProcessWrapper
 
     GFOOTBALL_AVAILABLE = True
@@ -127,6 +127,8 @@ class TestSMMFrameProcessWrapper(unittest.TestCase):
         # Act
         first_call, _, _, _ = env.step(0)
         second_call, _, _, _ = env.step(0)
+        third_call, _, _, _ = env.step(0)
+        fourth_call, _, _, _ = env.step(0)
 
         # Assert
         self.assertEqual(1, np.max(first_call[0]))

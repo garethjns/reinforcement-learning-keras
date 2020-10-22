@@ -70,9 +70,9 @@ This agent uses two copies of its model:
 
 ### Run example
 ````python
-from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
-from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
-from reinforcement_learning_keras.environments.atari.pong.pong_config import PongConfig
+from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
+from rlk.agents.q_learning.deep_q_agent import DeepQAgent
+from rlk.environments.atari.pong.pong_config import PongConfig
 
 VirtualGPU(4096) 
 agent = DeepQAgent(**PongConfig('dqn').build())
@@ -87,9 +87,9 @@ Using cart-pole-v0 with step limit increased from 200 to 500.
 
 ### Run example
 ````python
-from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
-from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
-from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
+from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
+from rlk.agents.q_learning.deep_q_agent import DeepQAgent
+from rlk.environments.cart_pole.cart_pole_config import CartPoleConfig
 
 VirtualGPU(256) 
 agent = DeepQAgent(**CartPoleConfig('dqn').build())
@@ -101,9 +101,9 @@ agent.train(verbose=True, render=True)
 
 ### Run example
 ````python
-from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
-from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
-from reinforcement_learning_keras.environments.mountain_car.mountain_car_config import MountainCarConfig
+from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
+from rlk.agents.q_learning.deep_q_agent import DeepQAgent
+from rlk.environments.mountain_car.mountain_car_config import MountainCarConfig
 
 VirtualGPU(256)
 agent = DeepQAgent(**MountainCarConfig('dqn').build())
@@ -120,9 +120,9 @@ The output of the network is still action values, however preceding layers are n
  
  ### Run example
 ````python
-from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
-from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
-from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
+from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
+from rlk.agents.q_learning.deep_q_agent import DeepQAgent
+from rlk.environments.cart_pole.cart_pole_config import CartPoleConfig
 
 VirtualGPU(256) 
 agent = DeepQAgent(**CartPoleConfig('dueling_dqn').build())
@@ -143,8 +143,8 @@ Environment observations are preprocessed in an sklearn pipeline that clips, sca
 
 
 ````python
-from reinforcement_learning_keras.agents.q_learning.linear_q_agent import LinearQAgent
-from reinforcement_learning_keras.environments.mountain_car.mountain_car_config import MountainCarConfig
+from rlk.agents.q_learning.linear_q_agent import LinearQAgent
+from rlk.environments.mountain_car.mountain_car_config import MountainCarConfig
 
 agent = LinearQAgent(**MountainCarConfig('linear_q').build())
 agent.train(verbose=True, render=True, max_episode_steps=1500)
@@ -155,8 +155,8 @@ agent.train(verbose=True, render=True, max_episode_steps=1500)
 
 ### Run example
 ````python
-from reinforcement_learning_keras.agents.q_learning.linear_q_agent import LinearQAgent
-from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig 
+from rlk.agents.q_learning.linear_q_agent import LinearQAgent
+from rlk.environments.cart_pole.cart_pole_config import CartPoleConfig 
 
 agent = LinearQAgent(**CartPoleConfig('linear_q').build())
 agent.train(verbose=True, render=True)
@@ -180,9 +180,9 @@ This agent uses a small neural network to predict action probabilities given a s
 This model doesn't use any scaling or clipping for environment pre-processing. For some reason, using the same pre-processing as with the DQN models prevents it from converging. The cart-pole environment can potentially return really huge values when sampling from the observation space, but these are rarely seen during training. It seems to be fine to pretend they don't exist, rather than scaling inputs based environment samples, as done with in the other methods.
 
 ````python
-from reinforcement_learning_keras.agents.policy_gradient.reinforce_agent import ReinforceAgent
-from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
-from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
+from rlk.agents.policy_gradient.reinforce_agent import ReinforceAgent
+from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
+from rlk.environments.cart_pole.cart_pole_config import CartPoleConfig
 
 VirtualGPU(256)
 agent = ReinforceAgent(**CartPoleConfig('reinforce').build())
@@ -207,9 +207,9 @@ sudo apt install libcanberra-gtk-module libcanberra-gtk3-module
 
 
 ````python
-from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
-from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
-from reinforcement_learning_keras.environments.doom.doom_default_config import DoomConfig
+from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
+from rlk.agents.q_learning.deep_q_agent import DeepQAgent
+from rlk.environments.doom.doom_default_config import DoomConfig
 
 VirtualGPU(256)
 agent = DeepQAgent(**DoomConfig(agent_type='dqn', mode='stack').build())

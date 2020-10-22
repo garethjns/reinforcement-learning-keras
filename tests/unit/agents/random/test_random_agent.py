@@ -1,11 +1,11 @@
 import unittest
 from unittest.mock import patch
 
-from reinforcement_learning_keras.agents.agent_base import AgentBase
-from reinforcement_learning_keras.agents.components.history.episode_report import EpisodeReport
-from reinforcement_learning_keras.agents.random.random_agent import RandomAgent
-from reinforcement_learning_keras.agents.random.random_model import RandomModel
-from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
+from rlk.agents.agent_base import AgentBase
+from rlk.agents.components.history.episode_report import EpisodeReport
+from rlk.agents.random.random_agent import RandomAgent
+from rlk.agents.random.random_model import RandomModel
+from rlk.environments.cart_pole.cart_pole_config import CartPoleConfig
 
 
 class TestRandomAgent(unittest.TestCase):

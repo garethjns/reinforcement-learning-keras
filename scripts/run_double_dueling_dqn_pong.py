@@ -1,5 +1,5 @@
-from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
-from reinforcement_learning_keras.environments.atari.pong.pong_config import PongConfig
+from rlk.agents.q_learning.deep_q_agent import DeepQAgent
+from rlk.environments.atari.pong.pong_config import PongConfig
 
 
 if __name__ == "__main__":

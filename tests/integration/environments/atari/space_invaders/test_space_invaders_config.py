@@ -1,4 +1,4 @@
-from reinforcement_learning_keras.environments.atari.space_invaders.space_invaders_config import SpaceInvadersConfig
+from rlk.environments.atari.space_invaders.space_invaders_config import SpaceInvadersConfig
 from tests.integration.environments.atari.pong.test_pong_config import TestPongStackEnvironment, TestPongDiffEnvironment
 
 

@@ -2,14 +2,14 @@ import os
 import tempfile
 import unittest
 
-from reinforcement_learning_keras.agents.agent_base import AgentBase
-from reinforcement_learning_keras.agents.components.helpers.virtual_gpu import VirtualGPU
-from reinforcement_learning_keras.agents.policy_gradient.reinforce_agent import ReinforceAgent
-from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
-from reinforcement_learning_keras.agents.q_learning.linear_q_agent import LinearQAgent
-from reinforcement_learning_keras.agents.random.random_agent import RandomAgent
-from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
-from reinforcement_learning_keras.experiment.agent_experiment import AgentExperiment
+from rlk.agents.agent_base import AgentBase
+from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
+from rlk.agents.policy_gradient.reinforce_agent import ReinforceAgent
+from rlk.agents.q_learning.deep_q_agent import DeepQAgent
+from rlk.agents.q_learning.linear_q_agent import LinearQAgent
+from rlk.agents.random.random_agent import RandomAgent
+from rlk.environments.cart_pole.cart_pole_config import CartPoleConfig
+from rlk.experiment.agent_experiment import AgentExperiment
 
 
 class TestAgentExperiment(unittest.TestCase):

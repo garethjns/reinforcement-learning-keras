@@ -1,6 +1,6 @@
 import unittest
 
-from reinforcement_learning_keras.environments.atari.pong.pong_config import PongConfig
+from rlk.environments.atari.pong.pong_config import PongConfig
 
 
 class TestPongConfig(unittest.TestCase):

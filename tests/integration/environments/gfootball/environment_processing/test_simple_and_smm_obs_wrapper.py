@@ -6,7 +6,7 @@ import numpy as np
 try:
     from gfootball.env.config import Config
     from gfootball.env.football_env import FootballEnv
-    from reinforcement_learning_keras.environments.gfootball.environment_processing.simple_and_smm_obs_wrapper import \
+    from rlk.environments.gfootball.environment_processing.simple_and_smm_obs_wrapper import \
         SimpleAndSMMObsWrapper
 
     GFOOTBALL_AVAILABLE = True

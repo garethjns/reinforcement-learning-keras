@@ -1,10 +1,10 @@
 import tempfile
 import unittest
 
-from reinforcement_learning_keras.agents.random.random_agent import RandomAgent
-from reinforcement_learning_keras.environments.atari.pong.pong_config import PongConfig
-from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
-from reinforcement_learning_keras.environments.mountain_car.mountain_car_config import MountainCarConfig
+from rlk.agents.random.random_agent import RandomAgent
+from rlk.environments.atari.pong.pong_config import PongConfig
+from rlk.environments.cart_pole.cart_pole_config import CartPoleConfig
+from rlk.environments.mountain_car.mountain_car_config import MountainCarConfig
 
 
 class TestRandomAgent(unittest.TestCase):

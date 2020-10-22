@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from reinforcement_learning_keras.environments.atari.environment_processing.frame_buffer_wrapper import \
+from rlk.environments.atari.environment_processing.frame_buffer_wrapper import \
     FrameBufferWrapper
 from tests.unit.environments.atari.pong.environment_processing.env_fixture import EnvFixture
 

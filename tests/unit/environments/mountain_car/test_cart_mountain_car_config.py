@@ -1,4 +1,4 @@
-from reinforcement_learning_keras.environments.mountain_car.mountain_car_config import MountainCarConfig
+from rlk.environments.mountain_car.mountain_car_config import MountainCarConfig
 from tests.unit.environments.atari.pong.test_pong_config import TestPongConfig
 
 

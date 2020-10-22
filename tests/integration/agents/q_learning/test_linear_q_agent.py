@@ -3,14 +3,15 @@ import unittest
 
 import numpy as np
 
-from reinforcement_learning_keras.agents.q_learning.linear_q_agent import LinearQAgent
-from reinforcement_learning_keras.environments.cart_pole.cart_pole_config import CartPoleConfig
-from reinforcement_learning_keras.environments.mountain_car.mountain_car_config import MountainCarConfig
+from rlk.agents.q_learning.linear_q_agent import LinearQAgent
+from rlk.environments.cart_pole.cart_pole_config import CartPoleConfig
+from rlk.environments.mountain_car.mountain_car_config import MountainCarConfig
 
 try:
     from gfootball.env.config import Config
     from gfootball.env.football_env import FootballEnv
-    from reinforcement_learning_keras.environments.gfootball.gfootball_config import GFootballConfig
+    from rlk.environments.gfootball.gfootball_config import GFootballConfig
+    from rlk.environments.gfootball.register_environments import register_all
 
     GFOOTBALL_AVAILABLE = True
 except ImportError:
@@ -68,6 +69,7 @@ class TestLinearQAgent(unittest.TestCase):
     @unittest.skipUnless(GFOOTBALL_AVAILABLE, "GFootball not available in this env.")
     def test_gfootball_example(self):
         # Arrange
+        register_all()
         config = GFootballConfig(agent_type=self._agent_type, plot_during_training=False,
                                  folder=self._tmp_dir.name)
 

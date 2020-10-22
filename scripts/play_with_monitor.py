@@ -2,7 +2,7 @@
 
 from gym import wrappers
 
-from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
+from rlk.agents.q_learning.deep_q_agent import DeepQAgent
 
 
 def load_and_play(agent_name: str, env_spec: str, output_dir: str = None) -> None:
