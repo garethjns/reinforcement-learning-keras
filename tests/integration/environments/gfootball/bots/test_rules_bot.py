@@ -4,11 +4,11 @@ import unittest
 
 import numpy as np
 
-from rlk.environments.gfootball.bots.bot_config import BotConfig
 from tests.unit.environments.gfootball.environment_processing.fixtures.raw_obs_fixture import RawObsFixture
 
 try:
     from rlk.environments.gfootball.bots.open_rules_bot import agent
+    from rlk.environments.gfootball.bots.bot_config import BotConfig
 
     KAGGLE_ENVS_AVAILABLE = False
 except ImportError:

@@ -1,10 +1,9 @@
+import numpy as np
 import uuid
 import warnings
 from collections import Callable
-from typing import Any, Dict, List, Tuple
-
-import numpy as np
 from joblib import Parallel, delayed
+from typing import Any, Dict, List, Tuple
 
 from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
 from rlk.agents.components.history.training_history import TrainingHistory
@@ -61,7 +60,7 @@ class MultiTrainer:
         for th in training_histories:
             self.agent.training_history.extend(th.history)
 
-        self.agent.training_history.plot(metrics=["frames" ,"total_reward"], show=True)
+        self.agent.training_history.plot(metrics=["frames", "total_reward"], show=True)
 
     def update_main_replay_buffer(self, replay_buffers: List[ContinuousBuffer]):
         main_n = self.agent.replay_buffer.buffer_size
@@ -115,7 +114,6 @@ if __name__ == "__main__":
     mt = MultiTrainer()
     mt.set_agent(agent_class=DeepQAgent,
                  agent_config=GFootballConfig('double_dueling_dqn', env_spec="GFootball-academy_empty_goal_close-v0"),
-                 agent_kwargs={'env_builder_kwargs': {'remote': True, 'ip': '192.168.68.124'}})
+                 agent_kwargs={'env_builder_kwargs': {'remote': True, 'ip': '192.168.0.1'}})
 
-    # mt.train_group(n_jobs=3, n_rounds=3, n_episodes=3, max_episode_steps=10)
     mt.train(n_group_training_steps=30, n_jobs=3, n_rounds=3, n_episodes=10, max_episode_steps=3000)

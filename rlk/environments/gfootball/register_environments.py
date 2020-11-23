@@ -12,6 +12,7 @@ try:
     from gfootball.env import create_environment
 except ImportError:
     def create_environment(*args, **kwargs):
+        # Won't be used if GFootball isn't installed
         pass
 
 COMMON_KWARGS = {"stacked": False, "representation": 'raw', "write_goal_dumps": False,
