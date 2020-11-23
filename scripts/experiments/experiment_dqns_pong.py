@@ -25,6 +25,6 @@ def run_exp(agent_type: str, n_episodes: int = 400, max_episode_steps: int = 100
 
 if __name__ == "__main__":
     run_exp(agent_type='dqn')
-    # run_exp(agent_type='dueling_dqn')
-    # run_exp(agent_type='double_dqn')
-    # run_exp(agent_type='double_dueling_dqn')
+    run_exp(agent_type='dueling_dqn')
+    run_exp(agent_type='double_dqn')
+    run_exp(agent_type='double_dueling_dqn')

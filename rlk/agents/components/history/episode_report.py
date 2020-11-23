@@ -1,8 +1,9 @@
 from dataclasses import dataclass
+from typing import Union
 
 import numpy as np
 
-from rlk.agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy
+from rlk.agents.q_learning.exploration.epsilon_base import EpsilonBase
 
 
 @dataclass
@@ -10,7 +11,7 @@ class EpisodeReport:
     frames: int
     time_taken: float
     total_reward: float
-    epsilon_used: EpsilonGreedy = None
+    epsilon_used: Union[None, EpsilonBase] = None
 
     def __str__(self) -> str:
         return f"Reward: {self.total_reward} from {self.frames} frames in {self.time_taken} s ({self.fps} f/s). " \

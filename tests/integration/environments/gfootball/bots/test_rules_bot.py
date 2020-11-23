@@ -5,10 +5,17 @@ import unittest
 import numpy as np
 
 from rlk.environments.gfootball.bots.bot_config import BotConfig
-from rlk.environments.gfootball.bots.open_rules_bot import agent
 from tests.unit.environments.gfootball.environment_processing.fixtures.raw_obs_fixture import RawObsFixture
 
+try:
+    from rlk.environments.gfootball.bots.open_rules_bot import agent
 
+    KAGGLE_ENVS_AVAILABLE = False
+except ImportError:
+    KAGGLE_ENVS_AVAILABLE = False
+
+
+@unittest.skipUnless(KAGGLE_ENVS_AVAILABLE, "Kaggle envs not available, GFootball probably not installed")
 class TestRulesBot(unittest.TestCase):
     _raw_obs_fixture = RawObsFixture()
     _bot_config = BotConfig()

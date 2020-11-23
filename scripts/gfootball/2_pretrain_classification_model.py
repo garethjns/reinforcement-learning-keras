@@ -81,7 +81,6 @@ def train_nn_s115_raw(use_raw: bool = False, roll_steps: int = 1):
 
     VirtualGPU(1500)
 
-    er_version = 6
     repo = HDFRepository().set_path(f"downloaded_games")
 
     train_episodes, test_episodes = repo.split(train_prop=0.95)

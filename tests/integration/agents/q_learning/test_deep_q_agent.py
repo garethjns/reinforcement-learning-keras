@@ -169,8 +169,8 @@ class TestDeepQAgent(unittest.TestCase):
     @unittest.skipUnless(GFOOTBALL_AVAILABLE, GFOOTBALL_MESSAGE)
     def test_dqn_with_dense_nn_on_gfootball(self):
         # Arrange
-        config = GFootballConfig('dqn', env_spec="GFootball-kaggle_11_vs_11-v0",
-                                 using_smm_obs=True, using_simple_obs=True,
+        config = GFootballConfig('dqn', env_spec="GFootball-11_vs_11_kaggle-simple115v2-v0",
+                                 using_smm_obs=False, using_simple_obs=True,
                                  plot_during_training=False, folder=self._tmp_dir.name)
         # Act
         agent = self._sut.example(config, render=False, n_episodes=3, max_episode_steps=100)

@@ -45,7 +45,7 @@ class EpsilonBase(abc.ABC):
     :param perturb_increase_every: Increase epsilon every n steps. Defualt 0.
     :param perturb_increase_mag: Value to add every perturb_increase_every. Default 0.
     """
-    actions_pool: List[int] = None
+    actions_pool: Union[None, List[int]] = None
     eps_initial: float = 0.2
     decay: float = 0.0001
     decay_schedule: str = 'compound'

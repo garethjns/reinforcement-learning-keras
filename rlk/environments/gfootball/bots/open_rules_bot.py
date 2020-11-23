@@ -7,6 +7,8 @@ of the agent function).
 
 The main change is the addition of a decorator to get the raw observations from json on disk if they're not in obs.
 This enables compatibility with the gym interface used by RLK.
+
+This file is excluded from SonarCloud analysis.
 """
 
 from typing import Any, Dict, Union

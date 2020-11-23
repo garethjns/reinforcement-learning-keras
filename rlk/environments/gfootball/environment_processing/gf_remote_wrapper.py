@@ -17,7 +17,7 @@ class GFRemoteWrapper:
     Currently does not inherit from gym.Env so needs a few extra things added.
     """
 
-    def __init__(self, env: Union[gym.Env, str], ip: str = "192.168.68.124", port: int = 8000):
+    def __init__(self, env: Union[gym.Env, str], ip: str = "192.168.0.1", port: int = 8000):
 
         # register_all()
 
@@ -99,6 +99,7 @@ class GFRemoteWrapper:
         return gym.spaces.Box(low=0, high=19, shape=(1,))
 
     def render(self):
+        # Not supported yet, but doesn't need to break.
         pass
 
 

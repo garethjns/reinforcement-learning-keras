@@ -1,4 +1,4 @@
-from collections import Callable
+from typing import Callable
 from dataclasses import dataclass
 
 import numpy as np
