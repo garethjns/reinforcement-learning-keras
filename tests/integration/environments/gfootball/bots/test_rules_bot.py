@@ -18,7 +18,9 @@ except ImportError:
 @unittest.skipUnless(KAGGLE_ENVS_AVAILABLE, "Kaggle envs not available, GFootball probably not installed")
 class TestRulesBot(unittest.TestCase):
     _raw_obs_fixture = RawObsFixture()
-    _bot_config = BotConfig()
+
+    def setUp(self):
+        self._bot_config = BotConfig()
 
     @classmethod
     def setUpClass(cls) -> None:
