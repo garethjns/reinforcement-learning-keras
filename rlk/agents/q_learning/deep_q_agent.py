@@ -13,9 +13,9 @@ from rlk.agents.components.helpers.env_builder import EnvBuilder
 from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
 from rlk.agents.components.history.training_history import TrainingHistory
 from rlk.agents.components.replay_buffers.continuous_buffer import ContinuousBuffer
-from rlk.agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy
-from rlk.environments.config_base import ConfigBase
 from rlk.agents.models.model_base import ModelBase
+from rlk.agents.q_learning.exploration.epsilon_base import EpsilonBase
+from rlk.environments.config_base import ConfigBase
 
 tf.compat.v1.disable_eager_execution()
 
@@ -23,7 +23,7 @@ tf.compat.v1.disable_eager_execution()
 @dataclass
 class DeepQAgent(AgentBase):
     replay_buffer: ContinuousBuffer
-    eps: EpsilonGreedy
+    eps: EpsilonBase
     training_history: TrainingHistory
     model_architecture: ModelBase
     double: bool = False
@@ -289,8 +289,7 @@ class DeepQAgent(AgentBase):
                          returns best action.
         :return: The selected action.
         """
-        action = self.eps.select(greedy_option=lambda: self.get_best_action(s),
-                                 random_option=lambda: self.env.action_space.sample(),
+        action = self.eps.select(state=s, greedy_option=lambda: self.get_best_action(s),
                                  training=training)
 
         return action

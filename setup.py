@@ -1,9 +1,9 @@
 import setuptools
 
-from reinforcement_learning_keras import __version__
+from rlk import __version__
 
 setuptools.setup(
-    name="reinforcement_learning_keras",
+    name="rlk",
     version=__version__,
     author="Gareth Jones",
     author_email="garethgithub@gmail.com",

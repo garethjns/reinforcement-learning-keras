@@ -16,15 +16,12 @@ class SplitterConvNN(ModelBase):
         conv1 = keras.layers.Conv2D(16, kernel_size=(8, 8), strides=(4, 4),
                                     name=f'conv1_frame_{name}', padding='same',
                                     activation='relu')(frame)
-        # mp1 = keras.layers.MaxPooling2D(pool_size=2, name=f"mp1_frame_{name}")()
         conv2 = keras.layers.Conv2D(24, kernel_size=(4, 4), strides=(2, 2),
                                     name=f'conv2_frame_{name}', padding='same',
                                     activation='relu')(conv1)
-        # mp2 = keras.layers.MaxPooling2D(pool_size=2, name=f"mp2_frame_{name}")(conv2)
         conv3 = keras.layers.Conv2D(32, kernel_size=(3, 3), strides=(1, 1),
                                     name=f'conv3_frame_{name}', padding='same',
                                     activation='relu')(conv2)
-        # mp3 = keras.layers.MaxPooling2D(pool_size=2, name=f"mp3_frame_{name}")(conv3)
 
         flatten = keras.layers.Flatten(name=f'flatten_{name}')(conv3)
 

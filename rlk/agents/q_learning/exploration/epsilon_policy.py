@@ -1,3 +1,4 @@
+from collections import Callable
 from dataclasses import dataclass
 
 import numpy as np
@@ -6,6 +7,8 @@ from rlk.agents.q_learning.exploration.epsilon_base import EpsilonBase
 
 
 @dataclass
-class EpsilonGreedy(EpsilonBase):
+class EpsilonPolicy(EpsilonBase):
+    policy: Callable = lambda s: 0
+
     def _policy(self, state: np.ndarray) -> int:
-        return np.random.choice(self.actions_pool)
+        return self.policy(state)

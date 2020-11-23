@@ -27,7 +27,7 @@ class ModelBase(abc.ABC):
     opt: str = 'Adam'
     dueling: bool = False
 
-    def compile(self, model_name: str = 'model', loss: Union[str, Callable] = 'mse') -> keras.Model:
+    def compile(self, model_name: str = 'model', loss: Union[str, Callable] = 'mse', **kwargs) -> keras.Model:
         """
         Compile a copy of the model using the provided loss.
 
@@ -47,7 +47,7 @@ class ModelBase(abc.ABC):
 
         state_inputs, action_output = self._model_architecture()
         model = keras.Model(inputs=state_inputs, outputs=[action_output], name=model_name)
-        model.compile(optimizer=opt(learning_rate=self.learning_rate), loss=loss)
+        model.compile(optimizer=opt(learning_rate=self.learning_rate), loss=loss, **kwargs)
 
         return model
 

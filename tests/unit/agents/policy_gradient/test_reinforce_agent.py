@@ -45,7 +45,7 @@ class TestReinforceAgent(TestRandomAgent):
     def _assert_model_changed(self, agent: ReinforceAgent, checkpoint: List[np.ndarray]) -> None:
         model_weights = agent._model.get_weights()
         for w in range(len(checkpoint)):
-            self.assertFalse(np.all(model_weights[w].round(6) == checkpoint[w].round(6)))
+            self.assertFalse(np.all(model_weights[w].round(8) == checkpoint[w].round(8)))
 
     def _assert_agent_unready(self, agent: ReinforceAgent) -> None:
         self.assertIsNone(agent._model)

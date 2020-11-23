@@ -111,8 +111,7 @@ class LinearQAgent(AgentBase):
                          returns best action.
         :return: The selected action.
         """
-        action = self.eps.select(greedy_option=lambda: self.get_best_action(s),
-                                 random_option=lambda: self.env.action_space.sample(),
+        action = self.eps.select(state=s, greedy_option=lambda: self.get_best_action(s),
                                  training=training)
 
         return action

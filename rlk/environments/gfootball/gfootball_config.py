@@ -18,10 +18,11 @@ register_all()
 
 class GFootballConfig(ConfigBase):
     supported_agents = ('linear_q', 'dqn', 'double_dqn', 'dueling_dqn', 'double_dueling_dqn')
-    supported_envs = tuple(SUPPORTED_ENVS)
+    supported_envs = tuple(SUPPORTED_ENVS + ["GFootball-11_vs_11_kaggle-simple115v2-v0",
+                                             "GFootball-11_vs_11_kaggle-SMM-v0"])
     gpu_memory: int = 2048
 
-    def __init__(self, *args, env_spec: str = "GFootball-11_vs_11_kaggle-v0",
+    def __init__(self, *args, env_spec: str = "GFootball-11_vs_11_kaggle-simple115v2-v0",
                  using_simple_obs: bool = True, using_smm_obs: bool = True,
                  remote: bool = False, **kwargs):
         if env_spec not in self.supported_envs:
@@ -48,13 +49,11 @@ class GFootballConfig(ConfigBase):
                                                      output_activation=None, opt='adam', learning_rate=0.000105),
                 "env_wrappers": [SMMFrameProcessWrapper]}
 
-    @staticmethod
-    def _build_with_splitter_conv_and_dense_model(dueling: bool = False) -> Dict[str, Any]:
+    def _build_with_splitter_conv_and_dense_model(self, dueling: bool = False) -> Dict[str, Any]:
         return {"model_architecture": SplitterConvNN(observation_shape=(72, 96, 4), n_actions=19, dueling=dueling,
                                                      additional_dense_input_shape=(115,), output_activation=None,
                                                      opt='adam', learning_rate=0.000105),
-                "env_wrappers": [GFRemoteWrapper] if [GFRemoteWrapper] else [SimpleAndSMMObsWrapper,
-                                                                             SMMFrameProcessWrapper]}
+                "env_wrappers": [GFRemoteWrapper] if self.remote else [SimpleAndSMMObsWrapper, SMMFrameProcessWrapper]}
 
     def _build_for_dqn(self, dueling: bool = False) -> Dict[str, Any]:
         if self.using_simple_obs & self.using_smm_obs:
@@ -71,7 +70,7 @@ class GFootballConfig(ConfigBase):
                   'gamma': 0.992,
                   'final_reward': 0,
                   'replay_buffer_samples': 32,
-                  'eps': EpsilonGreedy(eps_initial=1.1, decay=0.00001, eps_min=0.01),
+                  'eps': EpsilonGreedy(eps_initial=0.5, decay=0.00001, eps_min=0.01, actions_pool=list(range(19))),
                   'replay_buffer': ContinuousBuffer(buffer_size=10000)}
 
         config.update(model_config)
@@ -105,7 +104,8 @@ class GFootballConfig(ConfigBase):
 
         return {"name": 'linear_q',
                 "env_spec": self.env_spec,
-                "eps": EpsilonGreedy(eps_initial=0.9, decay=0.001, eps_min=0.01, decay_schedule='linear')}
+                "eps": EpsilonGreedy(eps_initial=0.9, decay=0.001, eps_min=0.01, decay_schedule='linear',
+                                     actions_pool=list(range(19)))}
 
     def _build_for_random(self) -> Dict[str, Any]:
         return {'name': os.path.join(self.folder, 'RandomAgent'),

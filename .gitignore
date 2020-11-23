@@ -134,3 +134,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+/scripts/gfootball/no_commit/
+/scripts/gfootball/episode_repo/
+/scripts/gfootball/downloaded_games.hdf
+/episode_repo/
+/downloaded_games.hdf
+/nn_s115_pretrained_model/
+/nn_s115_rl_model/

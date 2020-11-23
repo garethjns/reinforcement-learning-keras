@@ -26,7 +26,7 @@ class TestSMMFrameProcessWrapper(unittest.TestCase):
         self._env_fixture._obs = np.zeros(self._obs_shape) + 255
         self._sut = SMMFrameProcessWrapper(self._env_fixture)
 
-        frames = [np.random.randint(low=0, high=255, size=(5, 5, 1)) + i for i in range(4)]
+        frames = [np.random.randint(low=0, high=252, size=(5, 5, 1)) + i for i in range(4)]
         self._random_obs = np.concatenate(frames, axis=2)
 
     def test_normalise_single_frame(self):

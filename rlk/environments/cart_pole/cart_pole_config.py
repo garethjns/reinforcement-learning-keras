@@ -29,24 +29,24 @@ class CartPoleConfig(ConfigBase):
                 'gamma': 0.99,
                 'log_exemplar_space': False,
                 'final_reward': -200,
-                'eps': EpsilonGreedy(eps_initial=0.4, eps_min=0.01)}
+                'eps': EpsilonGreedy(eps_initial=0.4, eps_min=0.01, actions_pool=list(range(2)))}
 
     def _build_for_dqn(self) -> Dict[str, Any]:
         return {'name': os.path.join(self.folder, 'DeepQAgent'),
                 'env_spec': self.env_spec,
                 'model_architecture': DenseNN(observation_shape=(4,), n_actions=2, opt='adam',
-                                              learning_rate=0.001, unit_scale=16, dueling=False),
+                                              learning_rate=0.0001, unit_scale=16, dueling=False),
                 'gamma': 0.99,
                 'final_reward': -200,
-                'replay_buffer_samples': 75,
-                'eps': EpsilonGreedy(eps_initial=0.2, decay=0.002, eps_min=0.002),
-                'replay_buffer': ContinuousBuffer(buffer_size=200)}
+                'replay_buffer_samples': 32,
+                'eps': EpsilonGreedy(eps_initial=0.2, decay=0.002, eps_min=0.002, actions_pool=list(range(2))),
+                'replay_buffer': ContinuousBuffer(buffer_size=1000)}
 
     def _build_for_dueling_dqn(self) -> Dict[str, Any]:
         config_dict = self._build_for_dqn()
         config_dict.update({'name': os.path.join(self.folder, 'DuelingDQN'),
                             'model_architecture': DenseNN(observation_shape=(4,), n_actions=2, opt='adam',
-                                                          learning_rate=0.001, unit_scale=16, dueling=True)})
+                                                          learning_rate=0.0001, unit_scale=16, dueling=True)})
 
         return config_dict
 
@@ -64,7 +64,7 @@ class CartPoleConfig(ConfigBase):
         config_dict.update({'name': os.path.join(self.folder, 'DoubleDQN'),
                             'double': True,
                             'model_architecture': DenseNN(observation_shape=(4,), n_actions=2, opt='adam',
-                                                          learning_rate=0.001, unit_scale=16, dueling=False)})
+                                                          learning_rate=0.0001, unit_scale=16, dueling=False)})
 
         return config_dict
 

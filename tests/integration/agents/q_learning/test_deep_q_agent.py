@@ -47,7 +47,8 @@ class TestDeepQAgent(unittest.TestCase):
     @staticmethod
     def _build_mock_config(base_config: PongConfig) -> MagicMock:
         config = base_config.build()
-        config['eps'] = EpsilonGreedy(eps_initial=0.5, decay=0.0001, eps_min=0.01, decay_schedule='linear')
+        config['eps'] = EpsilonGreedy(eps_initial=0.5, decay=0.0001, eps_min=0.01, decay_schedule='linear',
+                                      actions_pool=list(range(3)))
         config['replay_buffer'] = ContinuousBuffer(buffer_size=10)
         config['replay_buffer_samples'] = 2
         mock_config = MagicMock()
@@ -172,7 +173,7 @@ class TestDeepQAgent(unittest.TestCase):
                                  using_smm_obs=True, using_simple_obs=True,
                                  plot_during_training=False, folder=self._tmp_dir.name)
         # Act
-        agent = self._sut.example(config, render=False, n_episodes=3)
+        agent = self._sut.example(config, render=False, n_episodes=3, max_episode_steps=100)
 
         # Assert
         self.assertFalse(agent.model_architecture.dueling)
@@ -181,11 +182,11 @@ class TestDeepQAgent(unittest.TestCase):
     @unittest.skipUnless(GFOOTBALL_AVAILABLE, GFOOTBALL_MESSAGE)
     def test_dqn_with_conv_nn_on_gfootball(self):
         # Arrange
-        config = GFootballConfig('dqn', env_spec="GFootball-kaggle_11_vs_11-v0",
+        config = GFootballConfig('dqn', env_spec="GFootball-11_vs_11_kaggle-SMM-v0",
                                  using_smm_obs=True, using_simple_obs=False,
                                  plot_during_training=False, folder=self._tmp_dir.name)
         # Act
-        agent = self._sut.example(config, render=False, n_episodes=3)
+        agent = self._sut.example(config, render=False, n_episodes=3, max_episode_steps=100)
 
         # Assert
         self.assertIsInstance(agent, self._sut)
@@ -193,12 +194,12 @@ class TestDeepQAgent(unittest.TestCase):
     @unittest.skipUnless(GFOOTBALL_AVAILABLE, GFOOTBALL_MESSAGE)
     def test_dqn_with_splitter_nn_on_gfootball(self):
         # Arrange
-        config = GFootballConfig('dqn', env_spec="GFootball-11_vs_11_kaggle-v0",
+        config = GFootballConfig('dqn', env_spec="GFootball-kaggle_11_vs_11-v0",
                                  using_smm_obs=True, using_simple_obs=True,
                                  plot_during_training=False, folder=self._tmp_dir.name)
 
         # Act
-        agent = self._sut.example(config, render=False, n_episodes=3)
+        agent = self._sut.example(config, render=False, n_episodes=3, max_episode_steps=100)
 
         # Assert
         self.assertFalse(agent.model_architecture.dueling)
@@ -207,7 +208,7 @@ class TestDeepQAgent(unittest.TestCase):
     @unittest.skipUnless(GFOOTBALL_AVAILABLE, GFOOTBALL_MESSAGE)
     def test_dqn_with_double_dueling_splitter_nn_on_gfootball(self):
         # Arrange
-        config = GFootballConfig('double_dueling_dqn', env_spec="GFootball-11_vs_11_kaggle-v0",
+        config = GFootballConfig('double_dueling_dqn', env_spec="GFootball-kaggle_11_vs_11-v0",
                                  plot_during_training=False, folder=self._tmp_dir.name)
 
         # Act

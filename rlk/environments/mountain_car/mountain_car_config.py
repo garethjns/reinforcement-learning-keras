@@ -23,7 +23,7 @@ class MountainCarConfig(ConfigBase):
                 'final_reward': 500,
                 'gamma': 0.99,
                 'log_exemplar_space': False,
-                'eps': EpsilonGreedy(eps_initial=0.3, eps_min=0.005)}
+                'eps': EpsilonGreedy(eps_initial=0.3, eps_min=0.005, actions_pool=list(range(3)))}
 
     def _build_for_dqn(self) -> Dict[str, Any]:
         """This isn't tuned."""
@@ -34,7 +34,7 @@ class MountainCarConfig(ConfigBase):
                 'gamma': 0.99,
                 'final_reward': 650,
                 'replay_buffer_samples': 32,
-                'eps': EpsilonGreedy(eps_initial=0.1, decay=0.002, eps_min=0.002),
+                'eps': EpsilonGreedy(eps_initial=0.1, decay=0.002, eps_min=0.002, actions_pool=list(range(3))),
                 'replay_buffer': ContinuousBuffer(buffer_size=200)}
 
     def _build_for_dueling_dqn(self) -> Dict[str, Any]:

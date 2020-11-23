@@ -5,7 +5,7 @@ from rlk.environments.atari.space_invaders.space_invaders_config import SpaceInv
 from rlk.experiment.agent_experiment import AgentExperiment
 
 
-def run_exp(agent_type: str, n_episodes: int = 3000, max_episode_steps: int = 10000):
+def run_exp(agent_type: str, n_episodes: int = 1000, max_episode_steps: int = 10000):
     config = SpaceInvadersConfig(agent_type=agent_type, mode='stack')
 
     exp = AgentExperiment(name=f"{agent_type} Space Invaders",

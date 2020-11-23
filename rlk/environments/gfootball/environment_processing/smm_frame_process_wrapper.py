@@ -37,7 +37,7 @@ class SMMFrameProcessWrapper(gym.Wrapper):
             return super().__repr__()
 
     @staticmethod
-    def _normalise_frame(frame: np.ndarray):
+    def _normalise_frame(frame: np.ndarray) -> np.ndarray:
         return frame / 255.0
 
     def _prepare_obs_buffer(self) -> None:
