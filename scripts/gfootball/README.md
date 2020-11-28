@@ -4,10 +4,10 @@ Training and RL agent to play [GFootball](https://github.com/google-research/foo
 The GFootball environment presents a number of challenges that make it difficult for a agent to learn. Significantly, adequate exploration of a massively dimensional space with very infrequent rewards.
 
 This set of scripts attempts to overcome some of these hurdles using the following approaches:
-  - Pretraining - using data from historical games played by other agents crafted by in a [Kaggle competition](https://www.kaggle.com/c/google-football).
+  - Pretraining - using data from historical games played by other agents crafted for the [Google Research Football with Manchester City F.C. Kaggle competition](https://www.kaggle.com/c/google-football).
   - Exploration - using the actions proposed by a hand crafted bot, rather than random actions with EpsilonGreedy
   
-Overall this approach can train an agent that ~1000 points in the [Kaggle competition](https://www.kaggle.com/c/google-football), with the majority of the performance gained by the pretraining. This is competitive with other agents in the competition, and somewhat competitive against the built in environment AI. 
+Overall this approach can train an agent that scores ~1000 points in the [Kaggle competition](https://www.kaggle.com/c/google-football), with the majority of the performance gained by the pretraining. This is competitive with other agents in the competition, and somewhat competitive against the built in environment AI. 
 Improvements in performance from this point are likely to come from the following, in no particular order.
   - Implementing more improvements to the DQN (eg. prioritized replay buffer) or switching to a more advanced RL technique entirely.
   - Engineering other environment features, such as those used by various bots in the Kaggle competition.
@@ -22,7 +22,7 @@ Improvements in performance from this point are likely to come from the followin
     ```bash
     pip install gfootball
     ```
-    See also [GFootball repo](https://github.com/google-research/football) for more detailed instructions.
+    See also [GFootball repo](https://github.com/google-research/football) for more detailed instructions (and more information about the environment and different observation structures).
 
     In case of problems, two additional methods to try are available [here](https://github.com/garethjns/kaggle-football/tree/main/setup) 
 
@@ -66,8 +66,7 @@ problem. ie. Given these features (the observation features, s115, smm, raw, wha
 "Bot" here being the agents submitted to the Kaggle competition; they could be hardcoded bots or RL agents, we don't
 care for now.
 
-Training is done using the s115 features and optionally can add the raw features. Adding the raw features causes massive
-overfiting and is off for now.
+Training is done using the s115 features and optionally can add the raw features. At the moment adding the raw features tanks the model performance, possibly due to a bug somewhere.
 
 The RL agent will use a frame buffer wrapper which stacks the last and current observation. This is handled here by
 offsetting the rows of the dataset and passing the last and current features as input (first steps are discarded).
@@ -88,7 +87,7 @@ step, depending on epsilon, the agent will either sample an action from its own 
 
 Communication between the rlk env and the bot (which uses the Kaggle completion api and expects raw observations rather
 than, eg. simple115 from the gym-wrapped env, is handled using the SimpleAndRawObsWrapper. This returns the simple115
-observations to rl agent as normal, but additionally dumps the raw observations to disk for the bot to use.
+observations to rl agent as normal, but additionally dumps the raw observations to disk for the bot to use (see rlk.environments.gfootball.bots.rlk_compatibility decorator).
 
 There's also a frame buffer wrapper that stacks 2 frames.
 

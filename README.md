@@ -15,6 +15,8 @@ This repo aims to implement various reinforcement learning agents using Keras (t
         - [x] Mountain car
         - [x] CartPole
         - [x] Pong
+        - [x] Vizdoom (WIP)
+        - [x] GFootball (WIP)
         - Model extensions
           - [x] Replay buffer
           - [ ] Unrolled Bellman
@@ -51,8 +53,10 @@ cd reinforcement-learning-keras
 pip install -r requirements.txt
 ````
 
-# Deep Q learner
-## Pong
+# Implemented algorithms and environment examples
+
+## Deep Q learner
+### Pong
 Pong-NoFrameSkip-v4 with various wrappers.
 
 ![Episode play example](images/DQNAgentPong.gif) ![Convergence](images/DQNAgentPong.png)  
@@ -68,7 +72,7 @@ This agent uses two copies of its model:
  - One to predict the value of the next action, which us updated every episode step (with a batch sampled from the replay buffer)
  - One to predict value of the actions in the current and next state for calculating the discounted reward. This model is updated with the weights from the first model at the end of each episode.
 
-### Run example
+#### Run example
 ````python
 from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
 from rlk.agents.q_learning.deep_q_agent import DeepQAgent
@@ -80,12 +84,12 @@ agent.train(verbose=True, render=True, max_episode_steps=10000)
 ````
 
 
-## Cart-pole
+### Cart-pole
 Using cart-pole-v0 with step limit increased from 200 to 500.
 
 ![Episode play example]images/DQNAgent.gif) ![Convergence]images/DQNAgent.png)  
 
-### Run example
+#### Run example
 ````python
 from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
 from rlk.agents.q_learning.deep_q_agent import DeepQAgent
@@ -96,10 +100,10 @@ agent = DeepQAgent(**CartPoleConfig('dqn').build())
 agent.train(verbose=True, render=True)
 ````
 
-## MountainCar (not well tuned)
+### MountainCar (not well tuned)
 ![Episode play example](images/DeepQAgentMC.gif) ![Convergence](images/DeepQAgentMC.png)  
 
-### Run example
+#### Run example
 ````python
 from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
 from rlk.agents.q_learning.deep_q_agent import DeepQAgent
@@ -110,15 +114,15 @@ agent = DeepQAgent(**MountainCarConfig('dqn').build())
 agent.train(verbose=True, render=True, max_episode_steps=1500)
 ````
 
-## Extensions
-### Dueling DQN
+### Extensions
+#### Dueling DQN
 ![Episode play example]images/DuelingDQNAgent.gif) ![Convergence]images/DuelingDQNAgent.png)  
 
 The [dueling](https://arxiv.org/abs/1511.06581) version is exactly the same as the DQN, expect with slightly different model architecture. The second to last layer is split into two layers with the units=1 and units=n_actions. The idea is that the model might learn V(s) and action advantages (A(s)) separately, which can speed up convergence.  
 
 The output of the network is still action values, however preceding layers are not fully connected; the values are now V(s) + A(s) and a subsequent Keras lambda layer is used to calculate the action advantages.
  
- ### Run example
+#### Run example
 ````python
 from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
 from rlk.agents.q_learning.deep_q_agent import DeepQAgent
@@ -129,8 +133,8 @@ agent = DeepQAgent(**CartPoleConfig('dueling_dqn').build())
 agent.train(verbose=True, render=True)
 ````
 
-# Linear Q learner
-## Mountain car
+## Linear Q learner
+### Mountain car
 ![Episode play example](images/LinearQAgentMC.gif) ![Convergence](images/LinearQAgentMC.png)  
 
 Model:  
@@ -150,10 +154,10 @@ agent = LinearQAgent(**MountainCarConfig('linear_q').build())
 agent.train(verbose=True, render=True, max_episode_steps=1500)
 ````
 
-## CartPole
+### CartPole
 ![Episode play example](images/LinearQAgent.gif) ![Convergence](images/LinearQAgent.png)  
 
-### Run example
+#### Run example
 ````python
 from rlk.agents.q_learning.linear_q_agent import LinearQAgent
 from rlk.environments.cart_pole.cart_pole_config import CartPoleConfig 
@@ -163,8 +167,8 @@ agent.train(verbose=True, render=True)
 ````
 
  
-# REINFORCE (policy gradient)
-## CartPole
+## REINFORCE (policy gradient)
+### CartPole
 
 ![Episode play example]images/REINFORCEAgent.gif) ![Convergence](images/REINFORCEAgent.png)  
 
@@ -189,9 +193,9 @@ agent = ReinforceAgent(**CartPoleConfig('reinforce').build())
 agent.train(verbose=True, render=True)
 ````
 
-# Doom
+## Doom
 
-## Set up
+### Set up
 Install these two packages:
   - [ViZDoom](https://github.com/mwydmuch/ViZDoom)
   - [ViZDoomGym](https://github.com/shakenes/vizdoomgym) 
@@ -201,17 +205,23 @@ Additionally, to save monitor wrapper output, install the following packages:
 sudo apt install libcanberra-gtk-module libcanberra-gtk3-module
 ````
 
-## VizdoomBasic-v0
-### DQN
+### VizdoomBasic-v0
+#### DQN
 ![Episode play example](images/DQNAgentDoom.gif) ![Convergence](images/dqn_VizdoomBasic-v0.png)  
 
 
 ````python
 from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
 from rlk.agents.q_learning.deep_q_agent import DeepQAgent
-from rlk.environments.doom.doom_default_config import DoomConfig
+from rlk.environments.doom.vizdoom_basic_config import VizDoomBasicConfig
 
 VirtualGPU(256)
-agent = DeepQAgent(**DoomConfig(agent_type='dqn', mode='stack').build())
+agent = DeepQAgent(**VizDoomBasicConfig(agent_type='dqn', mode='stack').build())
 agent.train(n_episodes=1000, max_episode_steps=10000, verbose=True, render=True)
 ````
+
+### GFootball
+
+Work in progress. Involves pretraining the agent on historical data, and sampling experience from hand crafted bots.
+
+See notes in [scripts/gfootball/readme.md](scripts/gfootball/readme.md) 

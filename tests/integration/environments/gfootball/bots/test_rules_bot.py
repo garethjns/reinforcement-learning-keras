@@ -10,7 +10,7 @@ try:
     from rlk.environments.gfootball.bots.open_rules_bot import agent
     from rlk.environments.gfootball.bots.bot_config import BotConfig
 
-    KAGGLE_ENVS_AVAILABLE = False
+    KAGGLE_ENVS_AVAILABLE = True
 except ImportError:
     KAGGLE_ENVS_AVAILABLE = False
 
@@ -19,19 +19,15 @@ except ImportError:
 class TestRulesBot(unittest.TestCase):
     _raw_obs_fixture = RawObsFixture()
 
-    def setUp(self):
+    def setUp(self) -> None:
         self._bot_config = BotConfig()
+        with open(self._bot_config.json_dump_path, 'w') as f:
+            json.dump({'players_raw': self._raw_obs_fixture.data}, f)
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        with open(cls._bot_config.json_dump_path, 'w') as f:
-            json.dump({'players_raw': cls._raw_obs_fixture.data}, f)
-
-    @classmethod
-    def tearDownClass(cls) -> None:
+    def tearDown(self) -> None:
         try:
-            os.remove(cls._bot_config.json_dump_path)
-            os.rmdir(os.path.split(cls._bot_config.json_dump_path)[0])
+            os.remove(self._bot_config.json_dump_path)
+            os.rmdir(os.path.split(self._bot_config.json_dump_path)[0])
         except FileNotFoundError:
             pass
 
