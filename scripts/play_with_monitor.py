@@ -2,7 +2,7 @@
 
 from gym import wrappers
 
-from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
+from rlk.agents.q_learning.deep_q_agent import DeepQAgent
 
 
 def load_and_play(agent_name: str, env_spec: str, output_dir: str = None) -> None:
@@ -21,5 +21,6 @@ def load_and_play(agent_name: str, env_spec: str, output_dir: str = None) -> Non
 
 
 if __name__ == "__main__":
-    load_and_play(agent_name="DeepQAgent", env_spec="VizdoomBasic-v0")
-
+    # load_and_play(agent_name="DeepQAgent", env_spec="VizdoomBasic-v0")
+    load_and_play(agent_name="DoubleDuelingDQN_22229", env_spec="SpaceInvadersNoFrameskip-v0")
+    load_and_play(agent_name="DoubleDuelingDQN_19398", env_spec="SpaceInvadersNoFrameskip-v0")

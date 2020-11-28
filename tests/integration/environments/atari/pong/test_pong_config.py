@@ -4,7 +4,7 @@ import unittest
 import matplotlib.pyplot as plt
 import numpy as np
 
-from reinforcement_learning_keras.enviroments.atari.pong.pong_config import PongConfig
+from rlk.environments.atari.pong.pong_config import PongConfig
 
 
 class TestPongStackEnvironment(unittest.TestCase):

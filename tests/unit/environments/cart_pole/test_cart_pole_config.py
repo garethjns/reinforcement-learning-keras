@@ -1,4 +1,4 @@
-from reinforcement_learning_keras.enviroments.cart_pole.cart_pole_config import CartPoleConfig
+from rlk.environments.cart_pole.cart_pole_config import CartPoleConfig
 from tests.unit.environments.atari.pong.test_pong_config import TestPongConfig
 
 

@@ -1,5 +1,5 @@
-from reinforcement_learning_keras.agents.q_learning.deep_q_agent import DeepQAgent
-from reinforcement_learning_keras.enviroments.atari.space_invaders.space_invaders_config import SpaceInvadersConfig
+from rlk.agents.q_learning.deep_q_agent import DeepQAgent
+from rlk.environments.atari.space_invaders.space_invaders_config import SpaceInvadersConfig
 
 if __name__ == "__main__":
     agent = DeepQAgent.example(config=SpaceInvadersConfig(agent_type='dueling_dqn', mode='stack'),
