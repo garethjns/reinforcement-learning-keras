@@ -3,8 +3,8 @@ import tempfile
 import unittest
 
 import tensorflow as tf
+from tf2_vgpu import VirtualGPU
 
-from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
 from rlk.agents.policy_gradient.reinforce_agent import ReinforceAgent
 from rlk.environments.cart_pole.cart_pole_config import CartPoleConfig
 

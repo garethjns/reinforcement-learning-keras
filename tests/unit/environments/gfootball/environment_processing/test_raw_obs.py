@@ -17,9 +17,9 @@ except ImportError:
 
 @unittest.skipUnless(GFOOTBALL_AVAILABLE, "GFootball not available in this env.")
 class TestRawObs(unittest.TestCase):
-    _raw_obs_fixture = RawObsFixture()
 
     def setUp(self):
+        self._raw_obs_fixture = RawObsFixture()
         self.sut = RawObs(using=RawObs.standard_keys)
         self.sut.set_obs(self._raw_obs_fixture.data)
 
@@ -85,4 +85,3 @@ class TestRawObs(unittest.TestCase):
         # Assert
         self.assertEqual((1, 0), ro.shape)
         self.assertIsNone(raw_obs)
-

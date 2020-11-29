@@ -4,8 +4,8 @@ from unittest.mock import patch
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal
+from tf2_vgpu import VirtualGPU
 
-from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
 from rlk.agents.q_learning.deep_q_agent import DeepQAgent
 from rlk.environments.cart_pole.cart_pole_config import CartPoleConfig
 from tests.unit.agents.random.test_random_agent import TestRandomAgent

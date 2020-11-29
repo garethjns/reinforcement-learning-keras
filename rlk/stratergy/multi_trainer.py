@@ -1,11 +1,12 @@
-import numpy as np
 import uuid
 import warnings
 from collections import Callable
-from joblib import Parallel, delayed
 from typing import Any, Dict, List, Tuple
 
-from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
+import numpy as np
+from joblib import Parallel, delayed
+from tf2_vgpu import VirtualGPU
+
 from rlk.agents.components.history.training_history import TrainingHistory
 from rlk.agents.components.replay_buffers.continuous_buffer import ContinuousBuffer
 from rlk.agents.q_learning.deep_q_agent import DeepQAgent

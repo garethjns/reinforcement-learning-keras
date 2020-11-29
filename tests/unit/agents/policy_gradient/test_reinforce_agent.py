@@ -3,8 +3,8 @@ from typing import List
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal
+from tf2_vgpu import VirtualGPU
 
-from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
 from rlk.agents.policy_gradient.reinforce_agent import ReinforceAgent
 from rlk.environments.cart_pole.cart_pole_config import CartPoleConfig
 from tests.unit.agents.random.test_random_agent import TestRandomAgent
@@ -43,9 +43,12 @@ class TestReinforceAgent(TestRandomAgent):
         pass
 
     def _assert_model_changed(self, agent: ReinforceAgent, checkpoint: List[np.ndarray]) -> None:
+        # TODO: May not be an adequate check
         model_weights = agent._model.get_weights()
+        check = []
         for w in range(len(checkpoint)):
-            self.assertFalse(np.all(model_weights[w].round(8) == checkpoint[w].round(8)))
+            check.append(np.all(model_weights[w].round(9) == checkpoint[w].round(9)))
+        self.assertFalse(np.all(check))
 
     def _assert_agent_unready(self, agent: ReinforceAgent) -> None:
         self.assertIsNone(agent._model)

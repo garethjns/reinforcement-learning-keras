@@ -10,9 +10,9 @@ import numpy as np
 import seaborn as sns
 from joblib import Parallel, delayed
 from joblib.externals.loky.process_executor import BrokenProcessPool
+from tf2_vgpu import VirtualGPU
 
 from rlk.agents.agent_base import AgentBase
-from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
 from rlk.environments.config_base import ConfigBase
 
 

@@ -7,10 +7,10 @@ import joblib
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
+from tf2_vgpu import VirtualGPU
 
 from rlk.agents.agent_base import AgentBase
 from rlk.agents.components.helpers.env_builder import EnvBuilder
-from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
 from rlk.agents.components.history.training_history import TrainingHistory
 from rlk.agents.components.replay_buffers.continuous_buffer import ContinuousBuffer
 from rlk.agents.models.model_base import ModelBase
