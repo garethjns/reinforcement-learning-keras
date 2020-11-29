@@ -26,8 +26,8 @@ from kaggle_football.api.data.hdf_repository import HDFRepository
 from kaggle_football.models.callbacks import Callbacks
 from kaggle_football.models.time_dimension import TimeDimension
 from tensorflow.keras.backend import one_hot
+from tf2_vgpu import VirtualGPU
 
-from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
 from rlk.agents.models.denser_nn import DenserNN
 
 

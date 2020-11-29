@@ -74,7 +74,7 @@ This agent uses two copies of its model:
 
 #### Run example
 ````python
-from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
+from tf2_vgpu import VirtualGPU
 from rlk.agents.q_learning.deep_q_agent import DeepQAgent
 from rlk.environments.atari.pong.pong_config import PongConfig
 
@@ -91,7 +91,7 @@ Using cart-pole-v0 with step limit increased from 200 to 500.
 
 #### Run example
 ````python
-from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
+from tf2_vgpu import VirtualGPU
 from rlk.agents.q_learning.deep_q_agent import DeepQAgent
 from rlk.environments.cart_pole.cart_pole_config import CartPoleConfig
 
@@ -105,7 +105,7 @@ agent.train(verbose=True, render=True)
 
 #### Run example
 ````python
-from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
+from tf2_vgpu import VirtualGPU
 from rlk.agents.q_learning.deep_q_agent import DeepQAgent
 from rlk.environments.mountain_car.mountain_car_config import MountainCarConfig
 
@@ -124,7 +124,7 @@ The output of the network is still action values, however preceding layers are n
  
 #### Run example
 ````python
-from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
+from tf2_vgpu import VirtualGPU
 from rlk.agents.q_learning.deep_q_agent import DeepQAgent
 from rlk.environments.cart_pole.cart_pole_config import CartPoleConfig
 
@@ -185,7 +185,7 @@ This model doesn't use any scaling or clipping for environment pre-processing. F
 
 ````python
 from rlk.agents.policy_gradient.reinforce_agent import ReinforceAgent
-from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
+from tf2_vgpu import VirtualGPU
 from rlk.environments.cart_pole.cart_pole_config import CartPoleConfig
 
 VirtualGPU(256)
@@ -211,7 +211,7 @@ sudo apt install libcanberra-gtk-module libcanberra-gtk3-module
 
 
 ````python
-from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
+from tf2_vgpu import VirtualGPU
 from rlk.agents.q_learning.deep_q_agent import DeepQAgent
 from rlk.environments.doom.vizdoom_basic_config import VizDoomBasicConfig
 

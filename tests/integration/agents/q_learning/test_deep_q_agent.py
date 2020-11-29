@@ -4,8 +4,8 @@ import unittest
 from unittest.mock import MagicMock
 
 import tensorflow as tf
+from tf2_vgpu import VirtualGPU
 
-from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
 from rlk.agents.components.replay_buffers.continuous_buffer import ContinuousBuffer
 from rlk.agents.q_learning.deep_q_agent import DeepQAgent
 from rlk.agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy

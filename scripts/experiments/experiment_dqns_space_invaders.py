@@ -1,5 +1,4 @@
 """Train and few DeepQAgents, plot the results, and run an episode on the best agent."""
-from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
 from rlk.agents.q_learning.deep_q_agent import DeepQAgent
 from rlk.environments.atari.space_invaders.space_invaders_config import SpaceInvadersConfig
 from rlk.experiment.agent_experiment import AgentExperiment

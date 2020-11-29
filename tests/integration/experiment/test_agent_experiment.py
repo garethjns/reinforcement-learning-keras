@@ -2,8 +2,9 @@ import os
 import tempfile
 import unittest
 
+from tf2_vgpu import VirtualGPU
+
 from rlk.agents.agent_base import AgentBase
-from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
 from rlk.agents.policy_gradient.reinforce_agent import ReinforceAgent
 from rlk.agents.q_learning.deep_q_agent import DeepQAgent
 from rlk.agents.q_learning.linear_q_agent import LinearQAgent

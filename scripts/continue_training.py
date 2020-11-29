@@ -1,8 +1,7 @@
-import os
-
-from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
-from rlk.agents.q_learning.deep_q_agent import DeepQAgent
 import vizdoomgym  # noqa
+from tf2_vgpu import VirtualGPU
+
+from rlk.agents.q_learning.deep_q_agent import DeepQAgent
 
 VirtualGPU(512)
 

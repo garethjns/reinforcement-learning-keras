@@ -1,5 +1,6 @@
 """Train and few DeepQAgents, plot the results, and run an episode on the best agent."""
-from rlk.agents.components.helpers.virtual_gpu import VirtualGPU
+from tf2_vgpu import VirtualGPU
+
 from rlk.agents.policy_gradient.reinforce_agent import ReinforceAgent
 from rlk.environments.mountain_car.mountain_car_config import MountainCarConfig
 from rlk.experiment.agent_experiment import AgentExperiment

@@ -35,8 +35,6 @@ RAW_OBS_DATA = '[{"active": 1, "ball": [0.0, -0.0, 0.11059734225273132], "ball_d
 
 
 class RawObsFixture:
-    _data = json.loads(RAW_OBS_DATA)
-
     @property
     def data(self):
-        return self._data
+        return json.loads(RAW_OBS_DATA)

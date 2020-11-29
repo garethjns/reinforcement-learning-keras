@@ -11,3 +11,4 @@ coverage
 mock
 opencv-python
 joblib
+tf2-vgpu
