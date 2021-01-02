@@ -39,4 +39,3 @@ class SpaceInvadersConfig(AtariDefaultConfig):
                                      actions_pool=list(range(6))),
                 'replay_buffer': ContinuousBuffer(buffer_size=40000),
                 'replay_buffer_samples': 32}
-
