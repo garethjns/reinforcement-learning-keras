@@ -35,7 +35,7 @@ class SpaceInvadersConfig(AtariDefaultConfig):
                                              output_activation=None, opt='adam', learning_rate=0.00008),
                 'gamma': 0.99,
                 'final_reward': None,
-                'eps': EpsilonGreedy(eps_initial=2, decay=0.000025, eps_min=0.01, decay_schedule='linear'),
+                'eps': EpsilonGreedy(eps_initial=2, decay=0.000025, eps_min=0.01, decay_schedule='linear',
+                                     actions_pool=list(range(6))),
                 'replay_buffer': ContinuousBuffer(buffer_size=40000),
                 'replay_buffer_samples': 32}
-
