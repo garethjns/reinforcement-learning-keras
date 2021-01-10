@@ -104,9 +104,7 @@ class World:
 
 if __name__ == "__main__":
     agent_config = VizDoomCorridorConfig(agent_type='double_dueling_dqn', mode='stack').build()
-    # agent_ = DeepQAgent(**agent_config)
-
-    agent_ = DeepQAgent.load("DoubleDuelingDQN_VizdoomCorridor-v0")
+    agent_ = DeepQAgent(**agent_config)
 
     world = World(
         agent=agent_,
