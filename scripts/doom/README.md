@@ -21,5 +21,5 @@ VizDoomCorridor:
 ![Current performance](../../images/DDDQN_doom_corridor_at_10k.png)  
 The DQN is able to learn with its own exploration plus the extra experience from the ScriptedBots and performs considerably better than the simpler training (as with VizDoomBasic above). It still requires a lot of training amd sometimes does some odd things, though. Here the agent was trained with a single ScriptedBot contributing experience between episodes ~0-7000, and with 4 ScriptedBots after episode ~7000. The score in this graph is a running average, and the max score is ~2200, and the agent is able to occasionally hit it. There's a good chance of the agent dying randomly even when performing well, so I doubt a max average score of ~2000 is obtainable, but it can probably still be improved from this point with more training.  
 
-Example episode using agent after ~8000 training episodes.
+Example episode using agent after ~8000 training episodes.  
 ![Episode play examples](../../images/DDQN_doom_corridor_example_at_8k.gif)  
