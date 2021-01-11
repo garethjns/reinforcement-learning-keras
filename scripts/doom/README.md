@@ -3,7 +3,7 @@
 # Training DQN
 [run_dqn_doom.py](scripts/run_dqn_doom.py) can be used to train the DQNs on VizDoom environments. This approach is the same as used for the atari environments, and is adequte for training the VizDoomBasic, but struggles with the VizDoomCorridor environment (others currently unexplored). 
 
-VizDoomBasic:   
+VizDoomBasic:     
 ![Episode play example](../../images/DQNAgentDoom.gif)
 
 # Training DQN with bots
@@ -17,7 +17,7 @@ Note that the bots used here are "scripts" of actions; ie. literal lists of acti
  - [run_dqn_doom_with_bot.py](scripts/doom/run_dqn_doom_with_bot.py) - Train a DQN on VizDoomCorridor using the "World" class. This manages the agent, additional experience collection from the ScriptedBots (4 by default), and the replay buffer. With the current agent set up the replay buffer is still part of the agent, but the experience from the bots is also added to it.  
 
 
-VizDoomCorridor:
+VizDoomCorridor:  
 ![Current performance](../../images/DDDQN_doom_corridor_at_10k.png)  
 The DQN is able to learn with its own exploration plus the extra experience from the ScriptedBots and performs considerably better than the simpler training (as with VizDoomBasic above). It still requires a lot of training amd sometimes does some odd things, though. Here the agent was trained with a single ScriptedBot contributing experience between episodes ~0-7000, and with 4 ScriptedBots after episode ~7000. The score in this graph is a running average, and the max score is ~2200, and the agent is able to occasionally hit it. There's a good chance of the agent dying randomly even when performing well, so I doubt a max average score of ~2000 is obtainable, but it can probably still be improved from this point with more training.  
 
