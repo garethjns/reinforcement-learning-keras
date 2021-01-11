@@ -3,21 +3,21 @@
 
 This repo aims to implement various reinforcement learning agents using Keras (tf==2.2.0) and sklearn, for use with OpenAI Gym environments.
  
-![Episode play example](images/DQNAgentDoom.gif)
+![Episode play example](images/DDQN_doom_corridor_example_at_8k.gif)
  
 # Planned agents
 - Methods
   - Off-policy
-      - Linear Q learning
-        - [x] Mountain car
-        - [x] CartPole
-      - Deep Q learning
-        - [x] Mountain car
-        - [x] CartPole
-        - [x] Pong
-        - [x] Vizdoom (WIP)
-        - [x] GFootball (WIP)
-        - Model extensions
+      - [Linear Q learning](#linearq)
+        - [x] [Mountain car](#lq_mountaincar)
+        - [x] [CartPole](#lq_cart-pole)
+      - [Deep Q learning](#dqn)
+        - [x] [Mountain car](#dqn_mountaincar)
+        - [x] [CartPole](##dqn_cart-pole)
+        - [x] [Pong](#pong)
+        - [x] [Vizdoom](#vizdoom)
+        - [x] [GFootball](#gfootball)
+        - [Model extensions](#extensions)
           - [x] Replay buffer
           - [ ] Unrolled Bellman
           - [x] Dueling architecture
@@ -25,7 +25,7 @@ This repo aims to implement various reinforcement learning agents using Keras (t
           - [x] Double DQN
           - [ ] Noisy network
     - [ ] Policy gradient methods    
-        - [x] REINFORCE
+        - [x] [REINFORCE](#reinforce)
             - [ ] Mountain car
             - [x] CartPole
             - [ ] Pong
@@ -55,8 +55,8 @@ pip install -r requirements.txt
 
 # Implemented algorithms and environment examples
 
-## Deep Q learner
-### Pong
+## Deep Q learner <a name="dqn"></a>
+### Pong <a name="pong"></a>
 Pong-NoFrameSkip-v4 with various wrappers.
 
 ![Episode play example](images/DQNAgentPong.gif) ![Convergence](images/DQNAgentPong.png)  
@@ -84,7 +84,7 @@ agent.train(verbose=True, render=True, max_episode_steps=10000)
 ````
 
 
-### Cart-pole
+### Cart-pole <a name="dqn_cart-pole"></a>
 Using cart-pole-v0 with step limit increased from 200 to 500.
 
 ![Episode play example]images/DQNAgent.gif) ![Convergence]images/DQNAgent.png)  
@@ -100,7 +100,7 @@ agent = DeepQAgent(**CartPoleConfig('dqn').build())
 agent.train(verbose=True, render=True)
 ````
 
-### MountainCar (not well tuned)
+### MountainCar (not well tuned) <a name="dqn_mountaincar"></a>
 ![Episode play example](images/DeepQAgentMC.gif) ![Convergence](images/DeepQAgentMC.png)  
 
 #### Run example
@@ -114,7 +114,7 @@ agent = DeepQAgent(**MountainCarConfig('dqn').build())
 agent.train(verbose=True, render=True, max_episode_steps=1500)
 ````
 
-### Extensions
+### Extensions <a name="extensions"></a>
 #### Dueling DQN
 ![Episode play example]images/DuelingDQNAgent.gif) ![Convergence]images/DuelingDQNAgent.png)  
 
@@ -133,8 +133,8 @@ agent = DeepQAgent(**CartPoleConfig('dueling_dqn').build())
 agent.train(verbose=True, render=True)
 ````
 
-## Linear Q learner
-### Mountain car
+## Linear Q learner <a name="linearq"></a>
+### Mountain car <a name="lq_mountaincar"></a>
 ![Episode play example](images/LinearQAgentMC.gif) ![Convergence](images/LinearQAgentMC.png)  
 
 Model:  
@@ -154,7 +154,7 @@ agent = LinearQAgent(**MountainCarConfig('linear_q').build())
 agent.train(verbose=True, render=True, max_episode_steps=1500)
 ````
 
-### CartPole
+### CartPole <a name="lq_cart-pole"></a>
 ![Episode play example](images/LinearQAgent.gif) ![Convergence](images/LinearQAgent.png)  
 
 #### Run example
@@ -167,7 +167,7 @@ agent.train(verbose=True, render=True)
 ````
 
  
-## REINFORCE (policy gradient)
+## REINFORCE (policy gradient) <a name="reinforce"></a>
 ### CartPole
 
 ![Episode play example]images/REINFORCEAgent.gif) ![Convergence](images/REINFORCEAgent.png)  
@@ -193,7 +193,7 @@ agent = ReinforceAgent(**CartPoleConfig('reinforce').build())
 agent.train(verbose=True, render=True)
 ````
 
-## Doom
+## Doom <a name="vizdoom"></a>
 
 ### Set up
 Install these two packages:
@@ -205,7 +205,7 @@ Additionally, to save monitor wrapper output, install the following packages:
 sudo apt install libcanberra-gtk-module libcanberra-gtk3-module
 ````
 
-### VizdoomBasic-v0
+### VizdoomBasic-v0  <a name="vizdoom"></a>
 #### DQN
 ![Episode play example](images/DQNAgentDoom.gif) ![Convergence](images/dqn_VizdoomBasic-v0.png)  
 
@@ -220,8 +220,15 @@ agent = DeepQAgent(**VizDoomBasicConfig(agent_type='dqn', mode='stack').build())
 agent.train(n_episodes=1000, max_episode_steps=10000, verbose=True, render=True)
 ````
 
-### GFootball
+### VizDoomCorridor-v0
+#### Double dueling DQN
+![Episode play example](images/DDQN_doom_corridor_example_at_8k.gif) ![Convergence](images/DDDQN_doom_corridor_at_10k.png)  
 
-Work in progress. Involves pretraining the agent on historical data, and sampling experience from hand crafted bots.
+The DQNs struggle to solve this environment on their own. See scripts and [readme](scripts/doom/README.md) in [scripts/doom/](scripts/doom) for an example training with additional experience collection with (scripted) bots.
 
-See notes in [scripts/gfootball/readme.md](scripts/gfootball/readme.md) 
+
+### GFootball <a name="gfootball"></a>
+
+Work in progress. Involves pre-training the agent on historical data, and sampling experience from (policy) bots. 
+
+See notes in [scripts/gfootball/readme.md](scripts/gfootball/README.md) 

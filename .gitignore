@@ -141,3 +141,11 @@ dmypy.json
 /downloaded_games.hdf
 /nn_s115_pretrained_model/
 /nn_s115_rl_model/
+_vizdoom.ini
+variables.*
+*.pb
+.idea
+events.out.tfevents*
+*.json
+*.mp4
+*.json.gz
