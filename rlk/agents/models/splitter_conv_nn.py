@@ -27,7 +27,7 @@ class SplitterConvNN(ModelBase):
 
         return flatten
 
-    def _model_architecture(self) -> Tuple[List[keras.layers.Layer], keras.layers.Layer]:
+    def _model_architecture(self) -> Tuple[List[keras.layers.Layer], List[keras.layers.Layer]]:
         n_units = 512 * self.unit_scale
 
         frames_input = keras.layers.Input(name='conv_input', shape=self.observation_shape)

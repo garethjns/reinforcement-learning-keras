@@ -1,6 +1,6 @@
 import abc
 from dataclasses import dataclass
-from typing import Tuple, Union, Callable
+from typing import Tuple, Union, Callable, List
 
 from tensorflow import keras
 from tensorflow.keras import backend as K
@@ -10,22 +10,27 @@ from tensorflow.keras import backend as K
 class ModelBase(abc.ABC):
     """
     :param observation_shape: Tuple specifying input shape.
-    :param n_actions: Int specifying number of outputs
-    :param output_activation: Activation function for output. Eg. None for value estimation (off-policy methods) or
-                              'softmax' for action probabilities (on-policy methods).
     :param unit_scale: Multiplier for all units in FC layers in network. Default 1 = 16 units for first layer,
                         8 for second.
     :param opt: Keras optimiser to use. Should be string. This is to avoid storing TF/Keras objects here.
     :param learning_rate: Learning rate for optimiser.
-    :param dueling: Use a dueling architecture on the model head.
+    :param n_actions: Int specifying number of outputs.
+    :param output_type: Type of output to add to the nextwork, 'q' or 'ac'. Note appropriate loss should also be set.
+                         - 'q' - for q-learning, adds action value output (optionally dueling)
+                         - 'ac' - for actor-critic, adds output for action and another for critic value
+    :param output_activation: Activation function for output. Eg. None for value estimation (off-policy methods) or
+                              'softmax' for action probabilities (on-policy methods).
+    :param dueling: Use a dueling architecture on the model output. Not used if output type = 'ac'.
     """
     observation_shape: Tuple[int, ...]
     n_actions: int
     output_activation: Union[None, str] = None
+    output_type: str = 'q'
     unit_scale: int = 1
     learning_rate: float = 0.0001
     opt: str = 'Adam'
     dueling: bool = False
+    hidden_layer_activations: str = 'relu'
 
     def compile(self, model_name: str = 'model', loss: Union[str, Callable] = 'mse', **kwargs) -> keras.Model:
         """
@@ -45,18 +50,30 @@ class ModelBase(abc.ABC):
         else:
             raise ValueError(f"Invalid optimiser {self.opt}")
 
-        state_inputs, action_output = self._model_architecture()
-        model = keras.Model(inputs=state_inputs, outputs=[action_output], name=model_name)
+        state_inputs, action_outputs = self._model_architecture()
+        model = keras.Model(inputs=state_inputs, outputs=action_outputs, name=model_name)
         model.compile(optimizer=opt(learning_rate=self.learning_rate), loss=loss, **kwargs)
 
         return model
 
     @abc.abstractmethod
-    def _model_architecture(self) -> Tuple[keras.layers.Layer, keras.layers.Layer]:
+    def _model_architecture(self) -> Tuple[List[keras.layers.Layer], List[keras.layers.Layer]]:
         """Define model construction function. Should return input layer and output layer."""
         pass
 
-    def _add_output(self, input_layer: keras.layers.Layer) -> keras.layers.Layer:
+    def _add_output(self, input_layer: keras.layers.Layer) -> List[keras.layers.Layer]:
+        if self.output_type == 'q':
+            return [self._add_q_output(input_layer)]
+        else:
+            return self._add_ac_output(input_layer)
+
+    def _add_ac_output(self, input_layer: keras.layers.Layer) -> List[keras.layers.Layer]:
+        actor_output = keras.layers.Dense(self.n_actions, name='actor_output', activation='softmax')(input_layer)
+        critic_output = keras.layers.Dense(1, activation=None, name='critic_output')(input_layer)
+
+        return [actor_output, critic_output]
+
+    def _add_q_output(self, input_layer: keras.layers.Layer) -> keras.layers.Layer:
         """Add the model output - either dueling or not."""
         if self.dueling:
             # Separate layers for baseline value (1 node) and action advantages (n action nodes)

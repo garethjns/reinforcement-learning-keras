@@ -64,10 +64,10 @@ class DeepQAgent(AgentBase):
         self._target_model = keras.models.load_model(f"{self._fn}/target_model")
         self.replay_buffer = ContinuousBuffer.load(f"{self._fn}/replay_buffer.joblib")
 
-    def get_weights(self) -> np.ndarray:
+    def get_weights(self) -> List[np.ndarray]:
         return self._action_model.get_weights()
 
-    def set_weights(self, weights: np.ndarray) -> None:
+    def set_weights(self, weights: List[np.ndarray]) -> None:
         self._action_model.set_weights(weights)
         self._target_model.set_weights(weights)
 
@@ -102,9 +102,7 @@ class DeepQAgent(AgentBase):
         self._target_model = self.model_architecture.compile(model_name='target_model', loss='mse')
 
     def transform(self, s: Union[np.ndarray, List[np.ndarray]]) -> Union[np.ndarray, List[np.ndarray]]:
-        """
-        Check shape of inputs, add Row dimension if required.
-        """
+        """Check shape of inputs, add Row dimension if required."""
 
         single_input = False
         model_inputs = self._action_model.input

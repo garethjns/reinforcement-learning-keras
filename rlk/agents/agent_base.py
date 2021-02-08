@@ -132,11 +132,14 @@ class AgentBase(abc.ABC):
             return self._discounted_reward(reward, estimated_future_action_rewards)
 
     @abc.abstractmethod
-    def get_action(self, s: Any, **kwargs) -> int:
+    def get_action(self, s: Any, **kwargs) -> Union[int, Tuple[int]]:
         """
         Given state s, get an action from the agent.
 
         May include other kwargs if needed - for example, a training flag for methods using epsilon greedy.
+
+        May also return just action (eg in q learning) or Tuple[Action, (any, other, stuff)], for example for
+        actor-critic where action, action_probs, and critic_value are returned when training.
         """
         pass
 

@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List
 
 from tensorflow import keras
 
@@ -7,7 +7,7 @@ from rlk.agents.models.model_base import ModelBase
 
 class DenserNN(ModelBase):
 
-    def _model_architecture(self) -> Tuple[keras.layers.Layer, keras.layers.Layer]:
+    def _model_architecture(self) -> Tuple[List[keras.layers.Layer], List[keras.layers.Layer]]:
         frame_input = keras.layers.Input(name='input', shape=self.observation_shape)
         flat = keras.layers.Flatten(name='flatten')(frame_input)
         fc1 = keras.layers.Dense(int(flat.shape[1] / 1), name='fc1', activation='tanh')(flat)
@@ -20,7 +20,7 @@ class DenserNN(ModelBase):
 
         action_output = self._add_output(input_layer=fc7)
 
-        return frame_input, action_output
+        return [frame_input], action_output
 
 
 if __name__ == "__main__":

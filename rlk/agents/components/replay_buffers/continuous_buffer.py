@@ -1,6 +1,6 @@
 import collections
 from dataclasses import dataclass
-from typing import Tuple, Any, Iterable, List
+from typing import Tuple, Any, Iterable, List, Deque
 
 import numpy as np
 
@@ -12,8 +12,8 @@ class ContinuousBuffer(ReplayBufferBase):
     buffer_size: int = 50
 
     def __post_init__(self) -> None:
-        self._state_queue = collections.deque(maxlen=self.buffer_size)
-        self._other_queue = collections.deque(maxlen=self.buffer_size)
+        self._state_queue: Deque[Any] = collections.deque(maxlen=self.buffer_size)
+        self._other_queue: Deque[Tuple[int, float, bool]] = collections.deque(maxlen=self.buffer_size)
 
         self.queue = collections.deque(maxlen=self.buffer_size)
 

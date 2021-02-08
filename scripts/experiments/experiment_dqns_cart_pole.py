@@ -9,7 +9,7 @@ def run_exp(agent_type: str, n_episodes: int = 10, max_episode_steps: int = 600)
                           agent_class=DeepQAgent,
                           agent_config=CartPoleConfig(agent_type=agent_type),
                           n_reps=6,
-                          n_jobs=8,
+                          n_jobs=6,
                           training_options={"n_episodes": n_episodes,
                                             "max_episode_steps": max_episode_steps})
 

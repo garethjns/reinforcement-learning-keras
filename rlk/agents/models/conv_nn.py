@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List
 
 from tensorflow import keras
 
@@ -8,7 +8,7 @@ from rlk.agents.models.model_base import ModelBase
 class ConvNN(ModelBase):
     """A convolutional NN for Pong, similar to Google paper."""
 
-    def _model_architecture(self) -> Tuple[keras.layers.Layer, keras.layers.Layer]:
+    def _model_architecture(self) -> Tuple[List[keras.layers.Layer], List[keras.layers.Layer]]:
         n_units = 512 * self.unit_scale
 
         frame_input = keras.layers.Input(name='input', shape=self.observation_shape)
@@ -23,7 +23,7 @@ class ConvNN(ModelBase):
 
         action_output = self._add_output(input_layer=fc1)
 
-        return frame_input, action_output
+        return [frame_input], action_output
 
 
 if __name__ == "__main__":
