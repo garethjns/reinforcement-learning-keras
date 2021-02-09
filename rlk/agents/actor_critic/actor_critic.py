@@ -3,6 +3,7 @@
 import os
 from typing import Dict, Any, Tuple, Iterable, Callable, Optional, List, Union
 
+import joblib
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
@@ -22,7 +23,7 @@ class ActorCriticAgent(AgentBase):
     def __init__(self, training_history: TrainingHistory, model_architecture: ModelBase,
                  env_spec: str = "CartPole-v0", env_wrappers: Iterable[Callable] = (),
                  env_kwargs: Optional[Dict[str, Any]] = None, env_builder_kwargs: Optional[Dict[str, Any]] = None,
-                 name: str = 'ACAgent', gamma: float = 0.99):
+                 name: str = 'ACAgent', gamma: float = 0.99, final_reward: float = 0):
 
         if env_builder_kwargs is None:
             env_builder_kwargs = {}
@@ -38,6 +39,7 @@ class ActorCriticAgent(AgentBase):
         self.env_builder_kwargs = env_builder_kwargs
         self.name = name
         self.gamma = gamma
+        self.final_reward = final_reward
 
         self._buffer = EpisodeTensorBuffer()
         self.env_builder = EnvBuilder(env_spec=self.env_spec, env_wrappers=self.env_wrappers,
@@ -56,18 +58,34 @@ class ActorCriticAgent(AgentBase):
     def set_weights(self, weights: List[np.ndarray]) -> None:
         self._ac_model.set_weights(weights)
 
-    def _save_models_and_buffer(self) -> None:
+    def save(self, make_ready: bool = True) -> None:
+        """
+        Save self and model.
+
+        :param make_ready: Make agent ready agent after saving (reload buffer, etc). This can be skipped to save time
+                           in some situations. Default True.
+        """
+
+        self.unready()
+        if not os.path.exists(f"{self._fn}"):
+            os.mkdir(f"{self._fn}")
+        joblib.dump(self, f"{self._fn}/agent.joblib")
+
+        if make_ready:
+            self.check_ready()
+
+    def _save_models(self) -> None:
         if not os.path.exists(f"{self._fn}"):
             os.mkdir(f"{self._fn}")
 
         self._ac_model.save(f"{self._fn}/ac_model")
 
-    def _load_models_and_buffer(self) -> None:
-        self._target_model = keras.models.load_model(f"{self._fn}/ac_model")
+    def _load_models(self) -> None:
+        self._ac_model = keras.models.load_model(f"{self._fn}/ac_model")
 
     def unready(self) -> None:
         if self.ready:
-            self._save_models_and_buffer()
+            self._save_models()
             self._ac_model = None
             self._buffer.clear()
             keras.backend.clear_session()
@@ -77,7 +95,7 @@ class ActorCriticAgent(AgentBase):
     def check_ready(self):
 
         if not self.ready:
-            self._load_models_and_buffer()
+            self._load_models()
 
             super().check_ready()
 
@@ -147,9 +165,11 @@ class ActorCriticAgent(AgentBase):
                 action_prob_log = tf.math.log(action_probs[0, action])
 
                 state, reward, done, _ = self.env.step(action)
-                self._buffer.append(action_prob=action_prob_log, reward=reward, critic_value=critic_value[0, 0])
 
+                if done & (self.final_reward is not None):
+                    reward = self.final_reward
                 total_reward += reward
+                self._buffer.append(action_prob=action_prob_log, reward=reward, critic_value=critic_value[0, 0])
 
                 if done:
                     break
@@ -204,11 +224,6 @@ class ActorCriticAgent(AgentBase):
 
     def _after_episode_update(self) -> None:
         self._buffer.clear()
-
-    @classmethod
-    def example(cls, config: Dict[str, Any]) -> "AgentBase":
-        """TODO. See __main__ for now."""
-        pass
 
     def _build_model(self) -> None:
         """

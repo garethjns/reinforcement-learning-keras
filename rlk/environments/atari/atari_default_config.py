@@ -18,7 +18,7 @@ from rlk.environments.config_base import ConfigBase
 class AtariDefaultConfig(ConfigBase):
     """Defines configs for Pong."""
     env_spec: str
-    supported_agents = ('dqn', 'double_dqn', 'dueling_dqn', 'double_dueling_dqn', 'random')
+    supported_agents = ('actor_critic', 'dqn', 'double_dqn', 'dueling_dqn', 'double_dueling_dqn', 'random')
     supported_modes = ('diff', 'stack')
     gpu_memory: int = 2048
 
@@ -45,6 +45,16 @@ class AtariDefaultConfig(ConfigBase):
             self.wrapped_env = FrameBufferWrapper(FireStartWrapper(
                 ImageProcessWrapper(MaxAndSkipWrapper(self.unwrapped_env))),
                 buffer_length=3, buffer_function='stack')
+
+    def _build_for_ac(self) -> Dict[str, Any]:
+        return {'name': os.path.join(self.folder, 'ActorCriticAgent'),
+                'env_spec': self.env_spec,
+                'env_wrappers': self.env_wrappers,
+                'model_architecture': ConvNN(observation_shape=(84, 84, self.frame_depth), n_actions=6,
+                                             output_activation='softmax', opt='adam', learning_rate=0.000105,
+                                             output_type='ac'),
+                'gamma': 0.99,
+                'final_reward': None}
 
     def _build_for_dqn(self) -> Dict[str, Any]:
         return {'name': os.path.join(self.folder, 'DeepQAgent'),

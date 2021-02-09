@@ -336,28 +336,6 @@ class DeepQAgent(AgentBase):
         """Value model synced with action model at the end of each episode."""
         self.update_target_model()
 
-    @classmethod
-    def example(cls, config: ConfigBase, render: bool = True,
-                n_episodes: int = 500, max_episode_steps: int = 500, update_every: int = 10,
-                checkpoint_every: int = 100) -> "DeepQAgent":
-        """For a given config, create new, or load existing agent. Then train and save agent."""
-
-        VirtualGPU(config.gpu_memory)
-
-        config_dict = config.build()
-        if os.path.exists(config_dict['name']):
-            agent = cls.load(config_dict['name'])
-            warnings.warn('Loaded existing agent.')
-        else:
-            agent = cls(**config_dict)
-
-        agent.train(verbose=True, render=render,
-                    n_episodes=n_episodes, max_episode_steps=max_episode_steps, update_every=update_every,
-                    checkpoint_every=checkpoint_every)
-        agent.save()
-
-        return agent
-
     def _save_self(self):
         """Save agent.joblib."""
 
