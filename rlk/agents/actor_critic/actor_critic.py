@@ -171,6 +171,9 @@ class ActorCriticAgent(AgentBase):
                 total_reward += reward
                 self._buffer.append(action_prob=action_prob_log, reward=reward, critic_value=critic_value[0, 0])
 
+                if render:
+                    self.env.render()
+
                 if done:
                     break
 

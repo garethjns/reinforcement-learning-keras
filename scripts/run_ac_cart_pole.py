@@ -7,5 +7,3 @@ if __name__ == "__main__":
                                      render=False,
                                      update_every=6, checkpoint_every=0)
     agent.save()
-
-    agent.train(verbose=True, render=False, n_episodes=10000, max_episode_steps=1000, checkpoint_every=0)

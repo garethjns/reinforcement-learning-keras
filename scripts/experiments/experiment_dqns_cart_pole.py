@@ -4,7 +4,7 @@ from rlk.environments.cart_pole.cart_pole_config import CartPoleConfig
 from rlk.experiment.agent_experiment import AgentExperiment
 
 
-def run_exp(agent_type: str, n_episodes: int = 10, max_episode_steps: int = 600):
+def run_exp(agent_type: str, n_episodes: int = 1000, max_episode_steps: int = 500):
     exp = AgentExperiment(name=f"{agent_type} CartPole",
                           agent_class=DeepQAgent,
                           agent_config=CartPoleConfig(agent_type=agent_type),

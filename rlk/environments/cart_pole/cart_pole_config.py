@@ -37,7 +37,6 @@ class CartPoleConfig(ConfigBase):
     def _build_for_ac(self):
         return {'name': os.path.join(self.folder, 'ACAgent'),
                 'env_spec': self.env_spec,
-                "training_history": TrainingHistory(plotting_on=True, plot_every=100, rolling_average=50),
                 "model_architecture": DenseNNSimple(output_type='ac', observation_shape=(4,), n_actions=2,
                                                     learning_rate=0.001, unit_scale=8,
                                                     hidden_layer_activations='relu', opt='adam',
