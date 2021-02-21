@@ -1,5 +1,4 @@
 import os
-import warnings
 from dataclasses import dataclass, field
 from typing import Dict, Any, Union, Tuple, Iterable, Callable, List
 
@@ -7,7 +6,6 @@ import joblib
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from tf2_vgpu import VirtualGPU
 
 from rlk.agents.agent_base import AgentBase
 from rlk.agents.components.helpers.env_builder import EnvBuilder
@@ -15,7 +13,6 @@ from rlk.agents.components.history.training_history import TrainingHistory
 from rlk.agents.components.replay_buffers.continuous_buffer import ContinuousBuffer
 from rlk.agents.models.model_base import ModelBase
 from rlk.agents.q_learning.exploration.epsilon_base import EpsilonBase
-from rlk.environments.config_base import ConfigBase
 
 tf.compat.v1.disable_eager_execution()
 
@@ -64,10 +61,10 @@ class DeepQAgent(AgentBase):
         self._target_model = keras.models.load_model(f"{self._fn}/target_model")
         self.replay_buffer = ContinuousBuffer.load(f"{self._fn}/replay_buffer.joblib")
 
-    def get_weights(self) -> np.ndarray:
+    def get_weights(self) -> List[np.ndarray]:
         return self._action_model.get_weights()
 
-    def set_weights(self, weights: np.ndarray) -> None:
+    def set_weights(self, weights: List[np.ndarray]) -> None:
         self._action_model.set_weights(weights)
         self._target_model.set_weights(weights)
 
@@ -102,9 +99,7 @@ class DeepQAgent(AgentBase):
         self._target_model = self.model_architecture.compile(model_name='target_model', loss='mse')
 
     def transform(self, s: Union[np.ndarray, List[np.ndarray]]) -> Union[np.ndarray, List[np.ndarray]]:
-        """
-        Check shape of inputs, add Row dimension if required.
-        """
+        """Check shape of inputs, add Row dimension if required."""
 
         single_input = False
         model_inputs = self._action_model.input
@@ -337,28 +332,6 @@ class DeepQAgent(AgentBase):
     def _after_episode_update(self) -> None:
         """Value model synced with action model at the end of each episode."""
         self.update_target_model()
-
-    @classmethod
-    def example(cls, config: ConfigBase, render: bool = True,
-                n_episodes: int = 500, max_episode_steps: int = 500, update_every: int = 10,
-                checkpoint_every: int = 100) -> "DeepQAgent":
-        """For a given config, create new, or load existing agent. Then train and save agent."""
-
-        VirtualGPU(config.gpu_memory)
-
-        config_dict = config.build()
-        if os.path.exists(config_dict['name']):
-            agent = cls.load(config_dict['name'])
-            warnings.warn('Loaded existing agent.')
-        else:
-            agent = cls(**config_dict)
-
-        agent.train(verbose=True, render=render,
-                    n_episodes=n_episodes, max_episode_steps=max_episode_steps, update_every=update_every,
-                    checkpoint_every=checkpoint_every)
-        agent.save()
-
-        return agent
 
     def _save_self(self):
         """Save agent.joblib."""

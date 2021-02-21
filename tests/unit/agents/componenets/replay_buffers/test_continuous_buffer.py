@@ -22,8 +22,7 @@ class TestContinuousBuffer(unittest.TestCase):
         dones = np.array([False] * 10)
         dones[6] = True
         for i, d in zip(range(10), dones):
-            replay_buffer.append((np.zeros(shape=shape) + i,
-                                  i, 0.9, d))
+            replay_buffer.append((np.zeros(shape=shape) + i, i, 0.9, d))
 
         return replay_buffer
 

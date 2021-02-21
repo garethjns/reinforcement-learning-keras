@@ -50,12 +50,17 @@ class ConfigBase(abc.ABC):
             config_dict = self._build_for_reinforce()
         elif self.agent_type.lower() == 'random':
             config_dict = self._build_for_random()
+        elif self.agent_type == 'actor_critic':
+            config_dict = self._build_for_ac()
         else:
             raise NotImplementedError
 
         config_dict.update({'training_history': TrainingHistory(agent_name=config_dict['name'],
                                                                 **self._default_training_history_kwargs)})
         return config_dict
+
+    def _build_for_ac(self) -> Dict[str, Any]:
+        raise NotImplementedError
 
     def _build_for_linear_q(self) -> Dict[str, Any]:
         raise NotImplementedError

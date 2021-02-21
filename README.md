@@ -31,7 +31,7 @@ This repo aims to implement various reinforcement learning agents using Keras (t
             - [ ] Pong
         - [ ] Actor-critic
             - [ ] Mountain car
-            - [ ] CartPole
+            - [x] CartPole
             - [ ] Pong
             
 

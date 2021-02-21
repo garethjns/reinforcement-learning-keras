@@ -1,17 +1,21 @@
 import abc
 import copy
 import gc
+import os
 import time
+import warnings
 from typing import Any, Callable, Union, Dict, Tuple, Iterable
 
 import gym
 import joblib
 import numpy as np
+from tf2_vgpu import VirtualGPU
 
 from rlk.agents.components.helpers.env_builder import EnvBuilder
 from rlk.agents.components.helpers.tqdm_handler import TQDMHandler
 from rlk.agents.components.history.episode_report import EpisodeReport
 from rlk.agents.components.history.training_history import TrainingHistory
+from rlk.environments.config_base import ConfigBase
 
 
 class AgentBase(abc.ABC):
@@ -132,11 +136,14 @@ class AgentBase(abc.ABC):
             return self._discounted_reward(reward, estimated_future_action_rewards)
 
     @abc.abstractmethod
-    def get_action(self, s: Any, **kwargs) -> int:
+    def get_action(self, s: Any, **kwargs) -> Union[int, Tuple[int]]:
         """
         Given state s, get an action from the agent.
 
         May include other kwargs if needed - for example, a training flag for methods using epsilon greedy.
+
+        May also return just action (eg in q learning) or Tuple[Action, (any, other, stuff)], for example for
+        actor-critic where action, action_probs, and critic_value are returned when training.
         """
         pass
 
@@ -250,6 +257,26 @@ class AgentBase(abc.ABC):
         return new_agent
 
     @classmethod
-    def example(cls, config: Dict[str, Any]) -> "AgentBase":
-        """Optional example function using this agent."""
-        raise NotImplementedError
+    def example(cls, config: ConfigBase, render: bool = True,
+                n_episodes: int = 500, max_episode_steps: int = 500,
+                checkpoint_every: int = 100, **kwargs) -> "AgentBase":
+        """
+        Default example runner.
+
+        kwargs should contain algo specific settings and will be passed to .train. eg, update_every for dqn.
+        """
+        VirtualGPU(config.gpu_memory)
+
+        config_dict = config.build()
+        if os.path.exists(config_dict['name']):
+            agent = cls.load(config_dict['name'])
+            warnings.warn('Loaded existing agent.')
+        else:
+            agent = cls(**config_dict)  # noqa - __init__ will be available in non abstract children
+
+        agent.train(verbose=True, render=render,
+                    n_episodes=n_episodes, max_episode_steps=max_episode_steps,
+                    checkpoint_every=checkpoint_every, **kwargs)
+        agent.save()
+
+        return agent

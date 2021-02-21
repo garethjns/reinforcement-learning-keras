@@ -3,6 +3,7 @@ from typing import Any, Dict
 
 from rlk.agents.components.replay_buffers.continuous_buffer import ContinuousBuffer
 from rlk.agents.models.dense_nn import DenseNN
+from rlk.agents.models.dense_nn_simple import DenseNNSimple
 from rlk.agents.q_learning.exploration.epsilon_greedy import EpsilonGreedy
 from rlk.environments.config_base import ConfigBase
 
@@ -10,7 +11,7 @@ from rlk.environments.config_base import ConfigBase
 class MountainCarConfig(ConfigBase):
     """Defines config for mountain_car"""
     env_spec = 'MountainCar-v0'
-    supported_agents = ('linear_q', 'dueling_dqn', 'dqn', 'random')
+    supported_agents = ('actor_critic', 'linear_q', 'dueling_dqn', 'dqn', 'random')
     gpu_memory = 128
 
     @property
@@ -24,6 +25,15 @@ class MountainCarConfig(ConfigBase):
                 'gamma': 0.99,
                 'log_exemplar_space': False,
                 'eps': EpsilonGreedy(eps_initial=0.3, eps_min=0.005, actions_pool=list(range(3)))}
+
+    def _build_for_ac(self):
+        return {'name': os.path.join(self.folder, 'ACAgent'),
+                'env_spec': self.env_spec,
+                "model_architecture": DenseNNSimple(output_type='ac', observation_shape=(2,), n_actions=3,
+                                                    learning_rate=0.001, unit_scale=8,
+                                                    hidden_layer_activations='relu', opt='adam',
+                                                    output_activation='softmax'),
+                "gamma": 0.99}
 
     def _build_for_dqn(self) -> Dict[str, Any]:
         """This isn't tuned."""
