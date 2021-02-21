@@ -1,5 +1,4 @@
 import os
-import warnings
 from dataclasses import dataclass, field
 from typing import Dict, Any, Union, Tuple, Iterable, Callable, List
 
@@ -7,7 +6,6 @@ import joblib
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from tf2_vgpu import VirtualGPU
 
 from rlk.agents.agent_base import AgentBase
 from rlk.agents.components.helpers.env_builder import EnvBuilder
@@ -15,7 +13,6 @@ from rlk.agents.components.history.training_history import TrainingHistory
 from rlk.agents.components.replay_buffers.continuous_buffer import ContinuousBuffer
 from rlk.agents.models.model_base import ModelBase
 from rlk.agents.q_learning.exploration.epsilon_base import EpsilonBase
-from rlk.environments.config_base import ConfigBase
 
 tf.compat.v1.disable_eager_execution()
 

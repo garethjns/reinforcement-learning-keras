@@ -16,8 +16,18 @@ from rlk.agents.components.replay_buffers.episode_tensor_buffer import EpisodeTe
 from rlk.agents.models.dense_nn_simple import DenseNNSimple
 from rlk.agents.models.model_base import ModelBase
 
+tf.compat.v1.enable_eager_execution()
+
 
 class ActorCriticAgent(AgentBase):
+    """
+    Actor critic agent.
+
+    Requires that eager execution is enabled:
+    tf.compat.v1.enable_eager_execution()
+    And check with
+    tf.executing_eagerly()
+    """
     _ac_model: Union[None, keras.Model]
 
     def __init__(self, training_history: TrainingHistory, model_architecture: ModelBase,
@@ -52,6 +62,10 @@ class ActorCriticAgent(AgentBase):
     def __getstate__(self) -> Dict[str, Any]:
         return self._pickle_compatible_getstate()
 
+    def __eq__(self, other: Any):
+        return ((self.name == other.name) & (self.env_spec == other.env_spec)
+                & (self.model_architecture == other.model_architecture))
+
     def get_weights(self) -> List[np.ndarray]:
         return self._ac_model.get_weights()
 
@@ -67,18 +81,29 @@ class ActorCriticAgent(AgentBase):
         """
 
         self.unready()
+        self._save_self()
+        if make_ready:
+            self.check_ready()
+
+    def _save_self(self):
+        """Save agent.joblib."""
+
         if not os.path.exists(f"{self._fn}"):
             os.mkdir(f"{self._fn}")
         joblib.dump(self, f"{self._fn}/agent.joblib")
-
-        if make_ready:
-            self.check_ready()
 
     def _save_models(self) -> None:
         if not os.path.exists(f"{self._fn}"):
             os.mkdir(f"{self._fn}")
 
         self._ac_model.save(f"{self._fn}/ac_model")
+
+    @classmethod
+    def load(cls, fn: str) -> "ActorCriticAgent":
+        new_agent = joblib.load(f"{fn}/agent.joblib")
+        new_agent.check_ready()
+
+        return new_agent
 
     def _load_models(self) -> None:
         self._ac_model = keras.models.load_model(f"{self._fn}/ac_model")
@@ -113,7 +138,9 @@ class ActorCriticAgent(AgentBase):
         """
 
         action_probs, critic_value = self._ac_model(self.transform(s))
-        action = np.random.choice(range(self._ac_model.output[0].shape[1]), p=np.squeeze(action_probs))
+        # This is the bit that makes this implementation require eager execution: action_probs.numpy()
+        action = np.random.choice(range(self._ac_model.output[0].shape[1]),
+                                  p=np.squeeze(action_probs.numpy()))
 
         if return_all:
             return action, (action_probs, critic_value)

@@ -12,13 +12,18 @@ from rlk.environments.cart_pole.cart_pole_config import CartPoleConfig
 from rlk.environments.mountain_car.mountain_car_config import MountainCarConfig
 
 
-class TestDeepQAgent(unittest.TestCase):
+class TestActorCriticAgent(unittest.TestCase):
     _sut = ActorCriticAgent
     _fn = 'test_ac_save.agents'
     _gpu = VirtualGPU(1024)
 
     def setUp(self) -> None:
         self._tmp_dir = tempfile.TemporaryDirectory()
+
+        # Ensure eager model is on, this must be done in each setup.
+        # (TODO: But why? It's on by default and is only turned off in DeepQAgent and ReinforceAgent.
+        #  Perhaps an import in Configs?)
+        tf.compat.v1.enable_eager_execution()
 
     def tearDown(self):
         tf.keras.backend.clear_session()
