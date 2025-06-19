@@ -87,7 +87,7 @@ agent.train(verbose=True, render=True, max_episode_steps=10000)
 ### Cart-pole <a name="dqn_cart-pole"></a>
 Using cart-pole-v0 with step limit increased from 200 to 500.
 
-![Episode play example]images/DQNAgent.gif) ![Convergence]images/DQNAgent.png)  
+![Episode play example](images/DQNAgent.gif) ![Convergence](images/DQNAgent.png)  
 
 #### Run example
 ````python
@@ -116,7 +116,7 @@ agent.train(verbose=True, render=True, max_episode_steps=1500)
 
 ### Extensions <a name="extensions"></a>
 #### Dueling DQN
-![Episode play example]images/DuelingDQNAgent.gif) ![Convergence]images/DuelingDQNAgent.png)  
+![Episode play example](images/DuelingDQNAgent.gif) ![Convergence](images/DuelingDQNAgent.png)  
 
 The [dueling](https://arxiv.org/abs/1511.06581) version is exactly the same as the DQN, expect with slightly different model architecture. The second to last layer is split into two layers with the units=1 and units=n_actions. The idea is that the model might learn V(s) and action advantages (A(s)) separately, which can speed up convergence.  
 
@@ -170,7 +170,7 @@ agent.train(verbose=True, render=True)
 ## REINFORCE (policy gradient) <a name="reinforce"></a>
 ### CartPole
 
-![Episode play example]images/REINFORCEAgent.gif) ![Convergence](images/REINFORCEAgent.png)  
+![Episode play example](images/REINFORCEAgent.gif) ![Convergence](images/REINFORCEAgent.png)  
 
 Model:  
 State -> model -> [probability of action 1, probability of action 2]  
